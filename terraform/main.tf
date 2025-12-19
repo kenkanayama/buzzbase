@@ -171,6 +171,15 @@ resource "google_cloud_run_v2_service" "buzzbase" {
   }
 }
 
+# Cloud Run - 未認証ユーザーからのアクセスを許可
+resource "google_cloud_run_v2_service_iam_member" "public_access" {
+  project  = var.project_id
+  location = var.region
+  name     = google_cloud_run_v2_service.buzzbase.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
 # -----------------------------------------------------------------------------
 # Secret Manager (Firebase設定の管理)
 # -----------------------------------------------------------------------------
