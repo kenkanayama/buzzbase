@@ -1,0 +1,25 @@
+# =============================================================================
+# BuzzBase - Development Dockerfile
+# =============================================================================
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# npmのキャッシュディレクトリを設定
+ENV NPM_CONFIG_CACHE=/app/.npm-cache
+
+# 開発時に必要なツールをインストール
+RUN apk add --no-cache git
+
+# ユーザー権限の設定（node_modulesの権限問題を回避）
+RUN chown -R node:node /app
+
+USER node
+
+# Vite開発サーバーのポート
+EXPOSE 5173
+
+# 開発サーバーを起動
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+

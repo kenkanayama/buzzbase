@@ -1,0 +1,100 @@
+# =============================================================================
+# BuzzBase - Cloud Build Configuration
+# =============================================================================
+# 
+# このファイルは GitHub の main ブランチへの push をトリガーに実行されます。
+# ビルドパイプライン:
+#   1. Docker イメージのビルド
+#   2. Artifact Registry へ push
+#   3. Cloud Run へデプロイ
+#
+# =============================================================================
+
+substitutions:
+  _REGION: asia-northeast1
+  _SERVICE_NAME: buzzbase
+  _REPOSITORY: buzzbase
+
+steps:
+  # ---------------------------------------------------------------------------
+  # Step 1: Docker イメージのビルド
+  # ---------------------------------------------------------------------------
+  - id: 'build'
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/frontend:${SHORT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/frontend:latest'
+      - '--build-arg'
+      - 'VITE_FIREBASE_API_KEY=${_FIREBASE_API_KEY}'
+      - '--build-arg'
+      - 'VITE_FIREBASE_AUTH_DOMAIN=${PROJECT_ID}.firebaseapp.com'
+      - '--build-arg'
+      - 'VITE_FIREBASE_PROJECT_ID=${PROJECT_ID}'
+      - '--build-arg'
+      - 'VITE_FIREBASE_STORAGE_BUCKET=${PROJECT_ID}.appspot.com'
+      - '--build-arg'
+      - 'VITE_FIREBASE_MESSAGING_SENDER_ID=${_FIREBASE_MESSAGING_SENDER_ID}'
+      - '--build-arg'
+      - 'VITE_FIREBASE_APP_ID=${_FIREBASE_APP_ID}'
+      - '.'
+
+  # ---------------------------------------------------------------------------
+  # Step 2: Artifact Registry へ push
+  # ---------------------------------------------------------------------------
+  - id: 'push'
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/frontend'
+    waitFor:
+      - 'build'
+
+  # ---------------------------------------------------------------------------
+  # Step 3: Cloud Run へデプロイ
+  # ---------------------------------------------------------------------------
+  - id: 'deploy'
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/frontend:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '80'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--service-account'
+      - 'buzzbase-cloudrun@${PROJECT_ID}.iam.gserviceaccount.com'
+    waitFor:
+      - 'push'
+
+# イメージを Artifact Registry に保存
+images:
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/frontend:${SHORT_SHA}'
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/frontend:latest'
+
+# ビルドオプション
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+
+# タイムアウト（15分）
+timeout: '900s'
+

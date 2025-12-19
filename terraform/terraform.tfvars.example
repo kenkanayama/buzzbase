@@ -1,0 +1,19 @@
+# =============================================================================
+# BuzzBase - Terraform Variables Example
+# =============================================================================
+# このファイルを terraform.tfvars にコピーして値を設定してください
+# cp terraform.tfvars.example terraform.tfvars
+
+# GCPプロジェクトID (必須)
+# BuzzBase プロジェクト: sincere-kit
+project_id = "sincere-kit"
+
+# リージョン設定 (オプション - デフォルト: asia-northeast1)
+region = "asia-northeast1"
+
+# Firestore ロケーション (オプション - デフォルト: asia-northeast1)
+firestore_location = "asia-northeast1"
+
+# 環境名 (オプション - デフォルト: dev)
+environment = "dev"
+
