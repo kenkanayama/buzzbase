@@ -48,6 +48,25 @@ services:
     profiles:
       - emulator  # `docker compose --profile emulator up` で起動
 
+  # ---------------------------------------------------------------------------
+  # Terraform (インフラ管理用)
+  # ---------------------------------------------------------------------------
+  terraform:
+    build:
+      context: .
+      dockerfile: Dockerfile.terraform
+    container_name: buzzbase-terraform
+    volumes:
+      - ./terraform:/terraform
+      - ~/.config/gcloud:/root/.config/gcloud:ro  # GCP認証情報
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+    working_dir: /terraform
+    stdin_open: true
+    tty: true
+    profiles:
+      - terraform  # `docker compose --profile terraform up` で起動
+
 # =============================================================================
 # Networks
 # =============================================================================

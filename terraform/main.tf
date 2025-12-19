@@ -46,9 +46,6 @@ resource "google_project_service" "required_apis" {
     "run.googleapis.com",
     "cloudbuild.googleapis.com",
     "artifactregistry.googleapis.com",
-    "firestore.googleapis.com",
-    "cloudfunctions.googleapis.com",
-    "cloudscheduler.googleapis.com",
     "secretmanager.googleapis.com",
     "iam.googleapis.com",
     "firebase.googleapis.com",
@@ -66,21 +63,8 @@ resource "google_project_service" "required_apis" {
 resource "google_artifact_registry_repository" "buzzbase" {
   location      = var.region
   repository_id = "buzzbase"
-  description   = "Docker repository for BuzzBase application"
+  description   = "BuzzBase Docker images"
   format        = "DOCKER"
-
-  depends_on = [google_project_service.required_apis]
-}
-
-# -----------------------------------------------------------------------------
-# Firestore Database
-# -----------------------------------------------------------------------------
-
-resource "google_firestore_database" "buzzbase" {
-  provider    = google-beta
-  name        = "(default)"
-  location_id = var.firestore_location
-  type        = "FIRESTORE_NATIVE"
 
   depends_on = [google_project_service.required_apis]
 }
@@ -93,12 +77,6 @@ resource "google_firestore_database" "buzzbase" {
 resource "google_service_account" "cloud_run" {
   account_id   = "buzzbase-cloudrun"
   display_name = "BuzzBase Cloud Run Service Account"
-}
-
-# Cloud Functions 用 Service Account
-resource "google_service_account" "cloud_functions" {
-  account_id   = "buzzbase-functions"
-  display_name = "BuzzBase Cloud Functions Service Account"
 }
 
 # Cloud Build 用 Service Account
@@ -116,20 +94,6 @@ resource "google_project_iam_member" "cloudrun_firestore" {
   project = var.project_id
   role    = "roles/datastore.user"
   member  = "serviceAccount:${google_service_account.cloud_run.email}"
-}
-
-# Cloud Functions Service Account - Firestore アクセス
-resource "google_project_iam_member" "functions_firestore" {
-  project = var.project_id
-  role    = "roles/datastore.user"
-  member  = "serviceAccount:${google_service_account.cloud_functions.email}"
-}
-
-# Cloud Functions Service Account - Secret Manager アクセス
-resource "google_project_iam_member" "functions_secretmanager" {
-  project = var.project_id
-  role    = "roles/secretmanager.secretAccessor"
-  member  = "serviceAccount:${google_service_account.cloud_functions.email}"
 }
 
 # Cloud Build Service Account - Artifact Registry への push
@@ -177,11 +141,8 @@ resource "google_cloud_run_v2_service" "buzzbase" {
           cpu    = "1"
           memory = "512Mi"
         }
-      }
-
-      env {
-        name  = "VITE_FIREBASE_PROJECT_ID"
-        value = var.project_id
+        cpu_idle          = true
+        startup_cpu_boost = true
       }
     }
 
@@ -204,47 +165,18 @@ resource "google_cloud_run_v2_service" "buzzbase" {
   lifecycle {
     ignore_changes = [
       template[0].containers[0].image,
+      client,
+      client_version,
     ]
   }
 }
 
-# Cloud Run - 公開アクセス許可
-resource "google_cloud_run_v2_service_iam_member" "public_access" {
-  project  = var.project_id
-  location = var.region
-  name     = google_cloud_run_v2_service.buzzbase.name
-  role     = "roles/run.invoker"
-  member   = "allUsers"
-}
-
 # -----------------------------------------------------------------------------
-# Cloud Scheduler (再生数取得バッチ)
+# Secret Manager (Firebase設定の管理)
 # -----------------------------------------------------------------------------
 
-resource "google_cloud_scheduler_job" "view_count_batch" {
-  name        = "buzzbase-viewcount-batch"
-  description = "7日経過した投稿の再生数を取得するバッチジョブ"
-  schedule    = "0 0 * * *" # 毎日0時に実行
-  time_zone   = "Asia/Tokyo"
-
-  http_target {
-    http_method = "POST"
-    uri         = "https://${var.region}-${var.project_id}.cloudfunctions.net/fetchViewCounts"
-
-    oidc_token {
-      service_account_email = google_service_account.cloud_functions.email
-    }
-  }
-
-  depends_on = [google_project_service.required_apis]
-}
-
-# -----------------------------------------------------------------------------
-# Secret Manager (APIキー等の管理)
-# -----------------------------------------------------------------------------
-
-resource "google_secret_manager_secret" "resend_api_key" {
-  secret_id = "resend-api-key"
+resource "google_secret_manager_secret" "firebase_api_key" {
+  secret_id = "firebase-api-key"
 
   replication {
     auto {}
@@ -253,8 +185,8 @@ resource "google_secret_manager_secret" "resend_api_key" {
   depends_on = [google_project_service.required_apis]
 }
 
-resource "google_secret_manager_secret" "instagram_api_key" {
-  secret_id = "instagram-api-key"
+resource "google_secret_manager_secret" "firebase_app_id" {
+  secret_id = "firebase-app-id"
 
   replication {
     auto {}
@@ -263,8 +195,8 @@ resource "google_secret_manager_secret" "instagram_api_key" {
   depends_on = [google_project_service.required_apis]
 }
 
-resource "google_secret_manager_secret" "tiktok_api_key" {
-  secret_id = "tiktok-api-key"
+resource "google_secret_manager_secret" "firebase_messaging_sender_id" {
+  secret_id = "firebase-messaging-sender-id"
 
   replication {
     auto {}
@@ -272,4 +204,3 @@ resource "google_secret_manager_secret" "tiktok_api_key" {
 
   depends_on = [google_project_service.required_apis]
 }
-

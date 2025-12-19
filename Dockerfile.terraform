@@ -1,0 +1,19 @@
+# =============================================================================
+# BuzzBase - Terraform Dockerfile
+# =============================================================================
+
+FROM hashicorp/terraform:1.10 AS terraform
+
+FROM google/cloud-sdk:slim
+
+# Terraformをコピー
+COPY --from=terraform /bin/terraform /usr/local/bin/terraform
+
+# 作業ディレクトリを設定
+WORKDIR /terraform
+
+# ヘルプ表示
+RUN terraform --version && gcloud --version
+
+# デフォルトコマンド
+CMD ["terraform", "--help"]

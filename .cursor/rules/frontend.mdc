@@ -1,0 +1,155 @@
+---
+description: フロントエンド（React/TypeScript）開発時のルール
+globs: frontend/**/*
+alwaysApply: false
+---
+
+# フロントエンド開発ルール
+
+## コンポーネント作成ガイドライン
+
+### 基本構造
+```typescript
+import { FC } from 'react';
+import { cn } from '@/lib/utils';
+
+interface ComponentNameProps {
+  // props定義
+}
+
+export const ComponentName: FC<ComponentNameProps> = ({ ...props }) => {
+  return (
+    <div className="">
+      {/* コンテンツ */}
+    </div>
+  );
+};
+```
+
+### コンポーネントの配置
+- `components/ui/`: 汎用UIコンポーネント（Button, Input, LoadingSpinner等）
+- `components/auth/`: 認証関連コンポーネント
+- `components/layout/`: レイアウトコンポーネント（Header, Layout, MobileNav等）
+- `pages/`: ページコンポーネント
+
+---
+
+## Tailwind CSS
+
+### 基本方針
+- インラインでユーティリティクラスを使用
+- 複雑なクラス名の結合には `cn()` ユーティリティを使用（`clsx` + `tailwind-merge`）
+
+### 例
+```typescript
+import { cn } from '@/lib/utils';
+
+<button
+  className={cn(
+    'px-4 py-2 rounded-lg font-medium',
+    'bg-blue-600 text-white',
+    'hover:bg-blue-700',
+    disabled && 'opacity-50 cursor-not-allowed'
+  )}
+>
+  ボタン
+</button>
+```
+
+### レスポンシブデザイン
+- スマホファーストでデザイン
+- ブレークポイント: `sm:` `md:` `lg:` `xl:` `2xl:`
+
+---
+
+## Firebase連携
+
+### 認証
+- `AuthContext` を使用してユーザー状態を管理
+- 保護されたルートには `ProtectedRoute` コンポーネントを使用
+
+### Firestore
+- コレクション操作は `lib/firebase.ts` に集約
+- 適切なエラーハンドリングを実装
+
+---
+
+## アイコン
+
+- `lucide-react` を使用
+- 必要なアイコンのみインポート
+
+```typescript
+import { Menu, X, User } from 'lucide-react';
+```
+
+---
+
+## ルーティング
+
+- `react-router-dom` v6 を使用
+- ルート定義は `App.tsx` に集約
+
+---
+
+## 型定義
+
+### 共通型は `types/index.ts` に配置
+```typescript
+// types/index.ts
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  // ...
+}
+```
+
+### コンポーネント固有の型はコンポーネントファイル内で定義
+```typescript
+interface ButtonProps {
+  variant?: 'primary' | 'secondary';
+  size?: 'sm' | 'md' | 'lg';
+  // ...
+}
+```
+
+---
+
+## npm コマンド
+
+Docker環境内で実行すること：
+
+```bash
+# パッケージ追加
+docker compose exec frontend npm install <package-name>
+
+# 開発依存として追加
+docker compose exec frontend npm install -D <package-name>
+
+# リント実行
+docker compose exec frontend npm run lint
+
+# 型チェック
+docker compose exec frontend npm run type-check
+
+# ビルド
+docker compose exec frontend npm run build
+```
+
+---
+
+## 開発サーバー
+
+```bash
+# 起動
+docker compose up frontend
+
+# ログを見る
+docker compose logs -f frontend
+
+# 再ビルド
+docker compose build --no-cache frontend
+```
+
+開発サーバー: http://localhost:5173

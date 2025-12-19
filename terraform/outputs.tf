@@ -17,18 +17,7 @@ output "cloud_run_service_account" {
   value       = google_service_account.cloud_run.email
 }
 
-output "cloud_functions_service_account" {
-  description = "Cloud Functions service account email"
-  value       = google_service_account.cloud_functions.email
-}
-
 output "cloud_build_service_account" {
   description = "Cloud Build service account email"
   value       = google_service_account.cloud_build.email
 }
-
-output "firestore_database" {
-  description = "Firestore database name"
-  value       = google_firestore_database.buzzbase.name
-}
-
