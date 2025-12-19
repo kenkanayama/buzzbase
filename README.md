@@ -29,6 +29,9 @@ BuzzBaseは、インフルエンサーが商品PR投稿のURLを登録し、7日
 
 ```
 buzz_base/
+├── docs/               # ドキュメント
+│   ├── DEVELOPMENT.md  # 開発ガイド
+│   └── SETUP_CICD.md   # CI/CD セットアップ
 ├── terraform/          # GCPインフラ定義
 ├── frontend/           # Vite + React アプリ
 │   ├── src/
@@ -41,6 +44,7 @@ buzz_base/
 │   └── public/         # 静的ファイル
 ├── firebase/           # Firestore ルール/インデックス
 ├── functions/          # Cloud Functions (後で追加)
+├── cloudbuild.yaml     # CI/CD 設定
 ├── Dockerfile          # 本番用
 ├── Dockerfile.dev      # 開発用
 └── docker-compose.yml  # ローカル開発環境
@@ -53,122 +57,66 @@ buzz_base/
 - Node.js 20+
 - Docker & Docker Compose
 - GCP アカウント（本番デプロイ時）
-- Firebase プロジェクト
+- Firebase プロジェクト（`sincere-kit`）
 
-### 1. リポジトリのクローン
-
-```bash
-git clone <repository-url>
-cd buzz_base
-```
-
-### 2. 環境変数の設定
+### クイックスタート
 
 ```bash
-# 環境変数ファイルをコピー
+# 1. 環境変数を設定
 cp env.example .env
+# .env を編集して Firebase 設定を入力
 
-# .env ファイルを編集し、Firebase の設定を入力
+# 2. 開発サーバーを起動
+docker compose up frontend
+
+# 3. ブラウザでアクセス
+# http://localhost:5173
 ```
 
-### 3. フロントエンド依存関係のインストール
-
-```bash
-cd frontend
-npm install
-```
-
-### 4. 開発サーバーの起動
-
-#### 方法A: Docker を使用（推奨）
-```bash
-# プロジェクトルートで実行
-docker compose up
-```
-
-#### 方法B: ローカルで直接実行
-```bash
-cd frontend
-npm run dev
-```
-
-開発サーバーが `http://localhost:5173` で起動します。
-
-### 5. Firebase Emulator の使用（オプション）
-
-ローカルでFirestoreとAuthをテストする場合：
-
-```bash
-docker compose --profile emulator up
-```
-
-Firebase Emulator UI: `http://localhost:4000`
-
-## 🏗️ GCP インフラのデプロイ
-
-### 1. Terraform の設定
-
-```bash
-cd terraform
-
-# 変数ファイルをコピー
-cp terraform.tfvars.example terraform.tfvars
-
-# terraform.tfvars を編集し、プロジェクトIDを設定
-```
-
-### 2. インフラのデプロイ
-
-```bash
-# 初期化
-terraform init
-
-# プラン確認
-terraform plan
-
-# デプロイ
-terraform apply
-```
+詳細は [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) を参照してください。
 
 ## 📝 開発ステップ
 
-指示書に従い、以下の順序で開発を進めます：
+指示書に従い、以下の順序で開発を進めています：
 
 1. ✅ **Infrastructure** - Terraform による GCP 基盤構築
 2. ✅ **Dev Environment** - Docker / Vite + React 初期構築
-3. ⬜ **CI/CD** - Cloud Build 設定
+3. ✅ **CI/CD** - Cloud Build 設定 *(GitHub連携待ち)*
 4. ⬜ **Authentication** - Firebase Auth + Resend 連携
 5. ⬜ **Frontend & DB** - ダッシュボード UI と Firestore CRUD
 6. ⬜ **Backend Logic** - Cloud Functions（再生数取得バッチ）
 7. ⬜ **SNS API** - Instagram / TikTok API 連携
 
-## 🧪 テスト
+## 🧪 テスト・ビルド
 
 ```bash
-cd frontend
-
-# 型チェック
-npm run type-check
-
-# リント
-npm run lint
+# Docker 環境内で実行
+docker compose exec frontend npm run type-check  # 型チェック
+docker compose exec frontend npm run lint        # リント
+docker compose exec frontend npm run build       # ビルド
 ```
 
-## 📦 ビルド
+## 🏗️ GCP インフラのデプロイ
 
 ```bash
-cd frontend
-npm run build
+cd terraform
+
+# Terraform 初期化
+docker compose --profile terraform run --rm terraform init
+
+# プラン確認
+docker compose --profile terraform run --rm terraform plan
+
+# デプロイ
+docker compose --profile terraform run --rm terraform apply
 ```
 
-ビルド成果物は `frontend/dist/` に出力されます。
+## 📚 ドキュメント
 
-## 🐳 Docker イメージのビルド
-
-```bash
-# 本番用イメージのビルド
-docker build -t buzzbase:latest .
-```
+| ドキュメント | 内容 |
+|-------------|------|
+| [DEVELOPMENT.md](docs/DEVELOPMENT.md) | 開発環境セットアップ・開発フロー |
+| [SETUP_CICD.md](docs/SETUP_CICD.md) | GitHub + Cloud Build 連携手順 |
 
 ## 📄 ライセンス
 

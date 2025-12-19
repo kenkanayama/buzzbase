@@ -58,14 +58,14 @@ services:
     container_name: buzzbase-terraform
     volumes:
       - ./terraform:/terraform
-      - ~/.config/gcloud:/root/.config/gcloud:ro  # GCP認証情報
+      - ./gcp-service-account.json:/terraform/gcp-service-account.json:ro
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/terraform/gcp-service-account.json
     working_dir: /terraform
     stdin_open: true
     tty: true
     profiles:
-      - terraform  # `docker compose --profile terraform up` で起動
+      - terraform  # `docker compose --profile terraform run --rm terraform <command>` で実行
 
 # =============================================================================
 # Networks

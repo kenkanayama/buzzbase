@@ -13,17 +13,43 @@
 
 ### Step 1: GitHub リポジトリの作成
 
+> ⚠️ **重要**: リポジトリは先に GitHub 上で作成する必要があります
+
+#### 1.1 GitHub でリポジトリを作成
+
+1. [GitHub](https://github.com/new) にアクセス
+2. 以下の設定で新規リポジトリを作成：
+   - **Repository name**: `buzzbase`
+   - **Description**: インフルエンサー向け再生数補償型サンプリング支援アプリ
+   - **Visibility**: Private（推奨）または Public
+   - **Initialize with**: 何も選択しない（空のリポジトリ）
+3. 「Create repository」をクリック
+
+#### 1.2 ローカルリポジトリの初期化とプッシュ
+
 ```bash
-# リポジトリ初期化（まだの場合）
-cd /path/to/buzz_base
+# プロジェクトディレクトリに移動
+cd /Users/ken.kanayama/kenkanayama/adhoc/buzz_base
+
+# Git リポジトリを初期化（まだの場合）
 git init
 
 # リモートリポジトリを追加
 git remote add origin https://github.com/kenkanayama/buzzbase.git
 
-# 初回コミット
+# 全ファイルをステージング
 git add .
-git commit -m "Initial commit: BuzzBase project setup"
+
+# 初回コミット
+git commit -m "feat: BuzzBase プロジェクト初期構築
+
+- Terraform による GCP インフラ定義
+- Docker / docker-compose.yml による開発環境
+- Vite + React + Tailwind CSS フロントエンド
+- Cloud Build による CI/CD 設定"
+
+# main ブランチにプッシュ
+git branch -M main
 git push -u origin main
 ```
 
@@ -40,7 +66,8 @@ gcloud services enable \
   cloudbuild.googleapis.com \
   run.googleapis.com \
   artifactregistry.googleapis.com \
-  secretmanager.googleapis.com
+  secretmanager.googleapis.com \
+  firestore.googleapis.com
 ```
 
 ### Step 3: Artifact Registry リポジトリの作成
@@ -88,7 +115,9 @@ gcloud projects add-iam-policy-binding sincere-kit \
   --role="roles/datastore.user"
 ```
 
-### Step 6: Secret Manager に Firebase 設定を保存
+### Step 6: Secret Manager に Firebase 設定を保存（オプション）
+
+> 💡 Firebase の設定値はビルドトリガーの代入変数で直接指定することも可能です
 
 ```bash
 # Firebase API Key
@@ -148,32 +177,54 @@ gcloud secrets add-iam-policy-binding firebase-app-id \
 
 | 変数名 | 値 |
 |--------|-----|
-| `_FIREBASE_API_KEY` | `$$SECRET:firebase-api-key` または 直接値 |
-| `_FIREBASE_MESSAGING_SENDER_ID` | `$$SECRET:firebase-messaging-sender-id` または 直接値 |
-| `_FIREBASE_APP_ID` | `$$SECRET:firebase-app-id` または 直接値 |
+| `_FIREBASE_API_KEY` | Firebase API Key の値 |
+| `_FIREBASE_MESSAGING_SENDER_ID` | Messaging Sender ID の値 |
+| `_FIREBASE_APP_ID` | App ID の値 |
 
 4. 「作成」をクリック
 
 ### Step 8: 初回デプロイのテスト
 
 ```bash
-# main ブランチに push してトリガー
+# 何か変更を加えて push
 git add .
-git commit -m "Add CI/CD configuration"
+git commit -m "chore: CI/CD テスト"
 git push origin main
 ```
 
 [Cloud Build 履歴](https://console.cloud.google.com/cloud-build/builds?project=sincere-kit) でビルド状況を確認できます。
 
-## ✅ 確認事項
+## ✅ 確認チェックリスト
 
-- [ ] GitHub リポジトリが作成されている
+- [ ] GitHub リポジトリ `kenkanayama/buzzbase` が作成されている
+- [ ] ローカルからリポジトリに push できる
 - [ ] Cloud Build と GitHub が連携されている
 - [ ] ビルドトリガーが作成されている
 - [ ] main ブランチへの push で自動ビルドが開始される
 - [ ] Cloud Run にデプロイされ、URLでアクセスできる
 
 ## 🔍 トラブルシューティング
+
+### `Repository not found` エラー
+
+**原因**: GitHub にリポジトリが存在しない
+
+**解決策**:
+1. [GitHub](https://github.com/new) で `buzzbase` リポジトリを作成
+2. リポジトリ作成後に再度 `git push` を実行
+
+### 認証エラー
+
+**原因**: GitHub の認証情報が正しく設定されていない
+
+**解決策**:
+```bash
+# GitHub CLI でログイン
+gh auth login
+
+# または Personal Access Token を使用
+git remote set-url origin https://<USERNAME>:<TOKEN>@github.com/kenkanayama/buzzbase.git
+```
 
 ### ビルドが失敗する場合
 
@@ -188,7 +239,7 @@ git push origin main
 
 ### 環境変数が反映されない場合
 
-1. Secret Manager に正しい値が保存されているか確認
+1. ビルドトリガーの代入変数を確認
 2. Cloud Build のログで変数が正しく渡されているか確認
 
 ## 📚 参考リンク
@@ -196,4 +247,4 @@ git push origin main
 - [Cloud Build ドキュメント](https://cloud.google.com/build/docs)
 - [Cloud Run ドキュメント](https://cloud.google.com/run/docs)
 - [GitHub App の設定](https://cloud.google.com/build/docs/automating-builds/github/connect-repo-github)
-
+- [GitHub リポジトリ作成](https://docs.github.com/ja/repositories/creating-and-managing-repositories/creating-a-new-repository)

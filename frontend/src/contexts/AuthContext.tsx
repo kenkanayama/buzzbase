@@ -9,7 +9,7 @@ import {
   signOut as firebaseSignOut,
   sendEmailVerification,
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, isFirebaseConfigured } from '@/lib/firebase';
 
 // =====================================================
 // Types
@@ -19,6 +19,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
+  isConfigured: boolean;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -46,6 +47,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // 認証状態の監視
   useEffect(() => {
+    // Firebase が設定されていない場合はスキップ
+    if (!isFirebaseConfigured || !auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -56,6 +63,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // メールでサインイン
   const signInWithEmail = async (email: string, password: string) => {
+    if (!auth) {
+      setError('Firebase が設定されていません');
+      throw new Error('Firebase not configured');
+    }
+
     try {
       setError(null);
       await signInWithEmailAndPassword(auth, email, password);
@@ -68,6 +80,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // メールでサインアップ
   const signUpWithEmail = async (email: string, password: string) => {
+    if (!auth) {
+      setError('Firebase が設定されていません');
+      throw new Error('Firebase not configured');
+    }
+
     try {
       setError(null);
       const result = await createUserWithEmailAndPassword(auth, email, password);
@@ -82,6 +99,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Googleでサインイン
   const signInWithGoogle = async () => {
+    if (!auth) {
+      setError('Firebase が設定されていません');
+      throw new Error('Firebase not configured');
+    }
+
     try {
       setError(null);
       await signInWithPopup(auth, googleProvider);
@@ -94,6 +116,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // サインアウト
   const signOut = async () => {
+    if (!auth) return;
+
     try {
       await firebaseSignOut(auth);
     } catch (err) {
@@ -110,6 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         loading,
         error,
+        isConfigured: isFirebaseConfigured,
         signInWithEmail,
         signUpWithEmail,
         signInWithGoogle,
