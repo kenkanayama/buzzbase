@@ -4,6 +4,7 @@
 
 /* =============================================================================
    BuzzBase - Global Styles
+   デザインシステム: ホワイトベース + オレンジ/レッドアクセント
    ============================================================================= */
 
 @layer base {
@@ -12,72 +13,169 @@
   }
 
   body {
-    @apply bg-gray-50 font-sans text-gray-900 antialiased;
+    @apply bg-white font-sans antialiased;
+    color: #262626; /* neutral-800 */
   }
 
   /* フォーカス時のアウトライン */
   *:focus-visible {
-    @apply outline-none ring-2 ring-brand-500 ring-offset-2;
+    outline: none;
+    box-shadow:
+      0 0 0 2px white,
+      0 0 0 4px #f29801; /* primary-500 */
   }
 }
 
 @layer components {
   /* Primary Button */
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-6 py-3 font-semibold text-white shadow-lg shadow-brand-500/25 transition-all duration-200 hover:from-brand-600 hover:to-brand-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-lg px-6 py-3 font-semibold text-white transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    background-color: #f29801; /* primary-500 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-primary:hover {
+    background-color: #e38500; /* primary-600 */
+  }
+
+  .btn-primary:active {
+    background-color: #bc6502; /* primary-700 */
   }
 
   /* Secondary Button */
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-xl border-2 border-gray-200 bg-white px-6 py-3 font-semibold text-gray-700 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-lg border-2 bg-white px-6 py-3 font-semibold transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    color: #404040; /* neutral-700 */
+    border-color: #e5e5e5; /* neutral-200 */
+  }
+
+  .btn-secondary:hover {
+    border-color: #f29801; /* primary-500 */
+    color: #f29801; /* primary-500 */
   }
 
   /* Ghost Button */
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium text-gray-600 transition-all duration-200 hover:bg-gray-100 active:scale-[0.98];
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium transition-all duration-200 active:scale-[0.98];
+    color: #525252; /* neutral-600 */
+  }
+
+  .btn-ghost:hover {
+    background-color: #f5f5f5; /* neutral-100 */
+    color: #171717; /* neutral-900 */
+  }
+
+  /* Danger Button */
+  .btn-danger {
+    @apply inline-flex items-center justify-center rounded-lg px-6 py-3 font-semibold text-white transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    background-color: #e61f13; /* secondary-500 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-danger:hover {
+    background-color: #d41108; /* secondary-600 */
+  }
+
+  .btn-danger:active {
+    background-color: #b00d06; /* secondary-700 */
   }
 
   /* Input Field */
   .input-field {
-    @apply w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 transition-colors duration-200 focus:border-brand-500 focus:ring-0;
+    @apply w-full rounded-lg border-2 bg-white px-4 py-3 transition-colors duration-200;
+    color: #262626; /* neutral-800 */
+    border-color: #e5e5e5; /* neutral-200 */
+  }
+
+  .input-field::placeholder {
+    color: #a3a3a3; /* neutral-400 */
+  }
+
+  .input-field:focus {
+    border-color: #f29801; /* primary-500 */
+    box-shadow: 0 0 0 3px rgba(242, 152, 1, 0.1); /* primary-100 */
   }
 
   /* Card */
   .card {
-    @apply rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md;
+    @apply rounded-2xl border bg-white p-6 transition-shadow duration-200;
+    border-color: #e5e5e5; /* neutral-200 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 
-  /* Badge */
+  .card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Card with hover border */
+  .card-interactive:hover {
+    border-color: #ffdba8; /* primary-200 */
+  }
+
+  /* Badge - Primary */
   .badge {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+    @apply inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold;
   }
 
-  .badge-success {
-    @apply badge bg-green-100 text-green-800;
+  .badge-primary {
+    background-color: #fff8ed; /* primary-50 */
+    color: #e38500; /* primary-600 */
+    border-color: #ffdba8; /* primary-200 */
   }
 
-  .badge-warning {
-    @apply badge bg-amber-100 text-amber-800;
+  .badge-secondary {
+    background-color: #fff1f0; /* secondary-50 */
+    color: #d41108; /* secondary-600 */
+    border-color: #ffc8c4; /* secondary-200 */
   }
 
-  .badge-error {
-    @apply badge bg-red-100 text-red-800;
+  .badge-neutral {
+    background-color: #f5f5f5; /* neutral-100 */
+    color: #525252; /* neutral-600 */
+    border-color: #e5e5e5; /* neutral-200 */
+  }
+
+  /* Icon Box */
+  .icon-box {
+    @apply flex h-12 w-12 items-center justify-center rounded-xl;
+  }
+
+  .icon-box-primary {
+    background-color: #ffefd4; /* primary-100 */
+  }
+
+  .icon-box-secondary {
+    background-color: #ffe1df; /* secondary-100 */
   }
 }
 
 @layer utilities {
-  /* グラデーションテキスト */
-  .text-gradient {
-    @apply bg-gradient-to-r from-brand-500 to-accent-500 bg-clip-text text-transparent;
-  }
-
-  /* ガラスモーフィズム */
-  .glass {
-    @apply bg-white/70 backdrop-blur-lg;
-  }
-
   /* 安全なエリア（iOS対応） */
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* セクションスペーシング */
+  .section-spacing {
+    @apply px-4 py-20;
+  }
+
+  @media (min-width: 768px) {
+    .section-spacing {
+      @apply py-28;
+    }
+  }
+
+  /* コンテナ */
+  .container-narrow {
+    @apply mx-auto max-w-3xl;
+  }
+
+  .container-wide {
+    @apply mx-auto max-w-5xl;
+  }
+
+  .container-full {
+    @apply mx-auto max-w-6xl;
   }
 }

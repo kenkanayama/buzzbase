@@ -7,302 +7,523 @@ import {
   Link2,
   Calendar,
   BarChart3,
-  Instagram,
-  Play,
-  Sparkles,
+  Smartphone,
+  History,
+  Check,
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+
+// =====================================================
+// BuzzBase トップページ
+// デザイン: ホワイトベース + オレンジ(#f29801)/レッド(#e61f13)アクセント
+// =====================================================
+
+// カラー定数
+const COLORS = {
+  primary: '#f29801',
+  primaryHover: '#e38500',
+  primaryLight: '#fff8ed',
+  primaryBorder: '#ffdba8',
+  secondary: '#e61f13',
+  secondaryLight: '#fff1f0',
+  secondaryBorder: '#ffc8c4',
+  neutral50: '#fafafa',
+  neutral100: '#f5f5f5',
+  neutral200: '#e5e5e5',
+  neutral400: '#a3a3a3',
+  neutral500: '#737373',
+  neutral600: '#525252',
+  neutral800: '#262626',
+  neutral900: '#171717',
+};
 
 export function HomePage() {
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white selection:bg-brand-500/30">
-      {/* 背景グラデーション */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute left-1/4 top-0 h-[600px] w-[600px] animate-pulse-slow rounded-full bg-brand-500/20 blur-[120px]" />
-        <div className="absolute bottom-1/4 right-0 h-[500px] w-[500px] rounded-full bg-purple-500/15 blur-[100px]" />
-        <div className="absolute left-0 top-1/2 h-[400px] w-[400px] rounded-full bg-accent-500/10 blur-[80px]" />
-      </div>
+    <div className="min-h-screen bg-white" style={{ color: COLORS.neutral800 }}>
+      {/* ヘッダー */}
+      <header
+        className="sticky top-0 z-50 border-b bg-white"
+        style={{ borderColor: COLORS.neutral200 }}
+      >
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+          {/* ロゴ */}
+          <div className="flex items-center gap-2">
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-lg"
+              style={{ backgroundColor: COLORS.primary }}
+            >
+              <span className="text-lg font-bold text-white">B</span>
+            </div>
+            <span className="font-display text-xl font-bold" style={{ color: COLORS.neutral900 }}>
+              Buzz<span style={{ color: COLORS.primary }}>Base</span>
+            </span>
+          </div>
 
-      {/* コンテンツ */}
-      <div className="relative z-10">
-        {/* ヘッダー */}
-        <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl">
-          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/30">
-                <Sparkles className="h-5 w-5 text-white" />
+          {/* ナビゲーション */}
+          <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
+            <a
+              href="#features"
+              className="transition-colors"
+              style={{ color: COLORS.neutral600 }}
+              onMouseOver={(e) => (e.currentTarget.style.color = COLORS.primary)}
+              onMouseOut={(e) => (e.currentTarget.style.color = COLORS.neutral600)}
+            >
+              機能
+            </a>
+            <a
+              href="#how-it-works"
+              className="transition-colors"
+              style={{ color: COLORS.neutral600 }}
+              onMouseOver={(e) => (e.currentTarget.style.color = COLORS.primary)}
+              onMouseOut={(e) => (e.currentTarget.style.color = COLORS.neutral600)}
+            >
+              使い方
+            </a>
+          </nav>
+
+          {/* ログインボタン */}
+          <Link to="/login">
+            <button
+              className="rounded-lg border px-5 py-2 text-sm font-medium transition-colors"
+              style={{ color: COLORS.neutral600, borderColor: COLORS.neutral200 }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.borderColor = COLORS.primary;
+                e.currentTarget.style.color = COLORS.primary;
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.borderColor = COLORS.neutral200;
+                e.currentTarget.style.color = COLORS.neutral600;
+              }}
+            >
+              ログイン
+            </button>
+          </Link>
+        </div>
+      </header>
+
+      {/* ヒーローセクション */}
+      <section className="px-4 py-16 md:py-24">
+        <div className="mx-auto max-w-4xl text-center">
+          {/* バッジ */}
+          <div
+            className="mb-8 inline-flex animate-fade-in items-center gap-2 rounded-full border px-4 py-2"
+            style={{
+              backgroundColor: COLORS.primaryLight,
+              borderColor: COLORS.primaryBorder,
+            }}
+          >
+            <Zap className="h-4 w-4" style={{ color: COLORS.primary }} />
+            <span className="text-sm font-medium" style={{ color: COLORS.primaryHover }}>
+              インフルエンサー専用ツール
+            </span>
+          </div>
+
+          {/* メインコピー */}
+          <h1 className="mb-6 animate-slide-up font-display text-4xl font-bold leading-tight sm:text-5xl md:text-6xl">
+            <span style={{ color: COLORS.neutral900 }}>PR投稿の</span>
+            <span style={{ color: COLORS.secondary }}>再生数</span>
+            <br />
+            <span style={{ color: COLORS.neutral900 }}>を自動で記録</span>
+          </h1>
+
+          {/* サブコピー */}
+          <p
+            className="mx-auto mb-10 max-w-xl animate-slide-up text-lg"
+            style={{ color: COLORS.neutral600, animationDelay: '0.1s' }}
+          >
+            商品PRの投稿URLを登録するだけ。
+            <br className="hidden sm:block" />
+            <span className="font-semibold" style={{ color: COLORS.primary }}>
+              7日後
+            </span>
+            の再生数を自動取得して可視化します。
+          </p>
+
+          {/* CTA */}
+          <div
+            className="flex animate-slide-up flex-col items-center justify-center gap-4 sm:flex-row"
+            style={{ animationDelay: '0.2s' }}
+          >
+            <Link to="/signup" className="w-full sm:w-auto">
+              <button
+                className="group flex w-full items-center justify-center gap-1 rounded-lg px-8 py-4 text-lg font-semibold text-white transition-colors sm:w-auto"
+                style={{
+                  backgroundColor: COLORS.primary,
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = COLORS.primaryHover)}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = COLORS.primary)}
+              >
+                無料で始める
+                <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+              </button>
+            </Link>
+            <a href="#how-it-works" className="w-full sm:w-auto">
+              <button
+                className="w-full px-6 py-3.5 font-medium transition-colors sm:w-auto"
+                style={{ color: COLORS.neutral600 }}
+                onMouseOver={(e) => (e.currentTarget.style.color = COLORS.primary)}
+                onMouseOut={(e) => (e.currentTarget.style.color = COLORS.neutral600)}
+              >
+                使い方を見る
+              </button>
+            </a>
+          </div>
+
+          {/* 対応SNS */}
+          <div
+            className="mt-12 flex animate-fade-in items-center justify-center gap-4"
+            style={{ animationDelay: '0.4s' }}
+          >
+            <span className="text-sm" style={{ color: COLORS.neutral400 }}>
+              対応SNS:
+            </span>
+            <div className="flex items-center gap-3">
+              {/* Instagram */}
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-lg border bg-white"
+                style={{ borderColor: COLORS.neutral200, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+              >
+                <svg
+                  className="h-5 w-5"
+                  style={{ color: COLORS.neutral600 }}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                </svg>
               </div>
-              <span className="font-display text-xl font-bold tracking-tight">
-                バズ<span className="text-brand-400">ベース</span>
+              {/* TikTok */}
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-lg border bg-white"
+                style={{ borderColor: COLORS.neutral200, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+              >
+                <svg
+                  className="h-5 w-5"
+                  style={{ color: COLORS.neutral600 }}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* イメージカード */}
+        <div
+          className="mx-auto mt-16 max-w-sm animate-slide-up px-4"
+          style={{ animationDelay: '0.3s' }}
+        >
+          <div
+            className="rounded-2xl border bg-white p-5"
+            style={{ borderColor: COLORS.neutral200, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+          >
+            {/* ヘッダー */}
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-full"
+                  style={{ backgroundColor: COLORS.neutral100 }}
+                >
+                  <span className="text-lg">👤</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: COLORS.neutral800 }}>
+                    @your_account
+                  </p>
+                  <p className="text-xs" style={{ color: COLORS.neutral500 }}>
+                    Instagram
+                  </p>
+                </div>
+              </div>
+              <span
+                className="rounded-full border px-2.5 py-1 text-xs font-semibold"
+                style={{
+                  color: COLORS.primaryHover,
+                  backgroundColor: COLORS.primaryLight,
+                  borderColor: COLORS.primaryBorder,
+                }}
+              >
+                計測完了
               </span>
             </div>
 
-            <nav className="hidden items-center gap-6 text-sm md:flex">
-              <a href="#features" className="text-gray-400 transition-colors hover:text-white">
-                機能
-              </a>
-              <a href="#how-it-works" className="text-gray-400 transition-colors hover:text-white">
-                使い方
-              </a>
-            </nav>
+            {/* サムネイル */}
+            <div
+              className="mb-4 flex aspect-video items-center justify-center rounded-xl border"
+              style={{ backgroundColor: COLORS.neutral100, borderColor: COLORS.neutral200 }}
+            >
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-full border bg-white"
+                style={{ borderColor: COLORS.neutral200, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+              >
+                <svg
+                  className="ml-0.5 h-5 w-5"
+                  style={{ color: COLORS.secondary }}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </div>
 
-            <Link to="/login">
-              <button className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/15">
-                ログイン
+            {/* 結果 */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="mb-1 text-xs" style={{ color: COLORS.neutral500 }}>
+                  7日後の再生数
+                </p>
+                <p className="text-2xl font-bold" style={{ color: COLORS.secondary }}>
+                  15.2K
+                </p>
+              </div>
+              <div
+                className="flex items-center gap-1 text-sm font-semibold"
+                style={{ color: COLORS.primary }}
+              >
+                <TrendingUp className="h-4 w-4" />
+                <span>+23%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 使い方セクション */}
+      <section
+        id="how-it-works"
+        className="px-4 py-20 md:py-28"
+        style={{ backgroundColor: COLORS.neutral50 }}
+      >
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-16 text-center">
+            <span
+              className="mb-3 block text-sm font-semibold uppercase tracking-wide"
+              style={{ color: COLORS.primary }}
+            >
+              How it works
+            </span>
+            <h2
+              className="mb-4 font-display text-3xl font-bold md:text-4xl"
+              style={{ color: COLORS.neutral900 }}
+            >
+              かんたん<span style={{ color: COLORS.secondary }}>3</span>ステップ
+            </h2>
+            <p className="mx-auto max-w-md" style={{ color: COLORS.neutral600 }}>
+              アカウント登録から再生数の確認まで、シンプルな操作で完結します
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3 md:gap-8">
+            {steps.map((step, index) => (
+              <div key={step.title} className="relative">
+                {/* コネクターライン */}
+                {index < steps.length - 1 && (
+                  <div
+                    className="absolute left-[60%] top-10 hidden h-0.5 w-[80%] border-t-2 border-dashed md:block"
+                    style={{ borderColor: COLORS.neutral200 }}
+                  />
+                )}
+
+                <div
+                  className="relative rounded-2xl border bg-white p-6 transition-shadow hover:shadow-md"
+                  style={{
+                    borderColor: COLORS.neutral200,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                  }}
+                >
+                  {/* アイコン */}
+                  <div
+                    className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl"
+                    style={{
+                      backgroundColor: COLORS.primary,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    }}
+                  >
+                    <step.icon className="h-6 w-6 text-white" />
+                  </div>
+
+                  <div
+                    className="mb-2 text-xs font-bold uppercase tracking-wide"
+                    style={{ color: COLORS.primary }}
+                  >
+                    Step {index + 1}
+                  </div>
+                  <h3 className="mb-2 text-lg font-bold" style={{ color: COLORS.neutral900 }}>
+                    {step.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed" style={{ color: COLORS.neutral600 }}>
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 機能セクション */}
+      <section id="features" className="bg-white px-4 py-20 md:py-28">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-16 text-center">
+            <span
+              className="mb-3 block text-sm font-semibold uppercase tracking-wide"
+              style={{ color: COLORS.primary }}
+            >
+              Features
+            </span>
+            <h2
+              className="mb-4 font-display text-3xl font-bold md:text-4xl"
+              style={{ color: COLORS.neutral900 }}
+            >
+              BuzzBaseの特徴
+            </h2>
+            <p className="mx-auto max-w-md" style={{ color: COLORS.neutral600 }}>
+              インフルエンサーの活動をサポートする機能を揃えています
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature) => (
+              <div
+                key={feature.title}
+                className="group rounded-2xl border bg-white p-6 transition-all hover:-translate-y-1"
+                style={{
+                  borderColor: COLORS.neutral200,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.borderColor = COLORS.primaryBorder;
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.borderColor = COLORS.neutral200;
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                }}
+              >
+                <div
+                  className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl transition-transform group-hover:scale-105"
+                  style={{ backgroundColor: feature.bgColor }}
+                >
+                  <feature.icon className="h-6 w-6" style={{ color: feature.iconColor }} />
+                </div>
+                <h3 className="mb-2 font-bold" style={{ color: COLORS.neutral900 }}>
+                  {feature.title}
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: COLORS.neutral600 }}>
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTAセクション */}
+      <section className="px-4 py-20 md:py-28" style={{ backgroundColor: COLORS.neutral50 }}>
+        <div className="mx-auto max-w-3xl">
+          <div
+            className="rounded-2xl border bg-white p-8 text-center md:p-12"
+            style={{ borderColor: COLORS.neutral200, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+          >
+            {/* チェックマーク */}
+            <div
+              className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full"
+              style={{ backgroundColor: '#ffefd4' }}
+            >
+              <Check className="h-8 w-8" style={{ color: COLORS.primary }} />
+            </div>
+
+            <h2
+              className="mb-4 font-display text-2xl font-bold md:text-3xl"
+              style={{ color: COLORS.neutral900 }}
+            >
+              さっそく始めてみませんか？
+            </h2>
+            <p className="mx-auto mb-8 max-w-md" style={{ color: COLORS.neutral600 }}>
+              アカウント登録は無料。
+              <br />
+              今すぐPR投稿の再生数をトラッキングしましょう。
+            </p>
+            <Link to="/signup">
+              <button
+                className="mx-auto flex items-center justify-center gap-1 rounded-lg px-8 py-4 text-lg font-semibold text-white transition-colors"
+                style={{
+                  backgroundColor: COLORS.primary,
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = COLORS.primaryHover)}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = COLORS.primary)}
+              >
+                無料で始める
+                <ChevronRight className="h-5 w-5" />
               </button>
             </Link>
           </div>
-        </header>
+        </div>
+      </section>
 
-        {/* ヒーローセクション */}
-        <section className="px-4 pb-20 pt-12 md:pb-32 md:pt-20">
-          <div className="mx-auto max-w-4xl text-center">
-            {/* バッジ */}
-            <div className="mb-8 inline-flex animate-fade-in items-center gap-2 rounded-full border border-white/10 bg-gradient-to-r from-brand-500/20 to-purple-500/20 px-4 py-2">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-500"></span>
+      {/* フッター */}
+      <footer className="border-t bg-white px-4 py-12" style={{ borderColor: COLORS.neutral200 }}>
+        <div className="mx-auto max-w-5xl">
+          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
+            {/* ロゴ */}
+            <div className="flex items-center gap-2">
+              <div
+                className="flex h-8 w-8 items-center justify-center rounded-lg"
+                style={{ backgroundColor: COLORS.primary }}
+              >
+                <span className="text-sm font-bold text-white">B</span>
+              </div>
+              <span className="font-display font-bold" style={{ color: COLORS.neutral900 }}>
+                BuzzBase
               </span>
-              <span className="text-sm text-gray-300">インフルエンサー専用ツール</span>
             </div>
 
-            {/* メインコピー */}
-            <h1 className="mb-6 animate-slide-up font-display text-4xl font-bold leading-[1.1] sm:text-5xl md:text-6xl">
-              <span className="text-white">PR投稿の</span>
-              <br className="sm:hidden" />
-              <span className="bg-gradient-to-r from-brand-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                再生数
-              </span>
-              <br />
-              <span className="text-white">を自動で記録</span>
-            </h1>
-
-            {/* サブコピー */}
-            <p
-              className="mx-auto mb-10 max-w-xl animate-slide-up text-base text-gray-400 sm:text-lg"
-              style={{ animationDelay: '0.1s' }}
-            >
-              商品PRの投稿URLを登録するだけ。
-              <br className="hidden sm:block" />
-              <span className="font-medium text-brand-400">7日後</span>
-              の再生数を自動取得して可視化します。
-            </p>
-
-            {/* CTA */}
-            <div
-              className="flex animate-slide-up flex-col items-center justify-center gap-3 sm:flex-row"
-              style={{ animationDelay: '0.2s' }}
-            >
-              <Link to="/signup" className="w-full sm:w-auto">
-                <Button size="lg" className="group w-full sm:w-auto">
-                  無料で始める
-                  <ChevronRight className="ml-1 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-                </Button>
-              </Link>
-              <a href="#how-it-works" className="w-full sm:w-auto">
-                <button className="w-full px-6 py-3.5 font-medium text-gray-300 transition-colors hover:text-white sm:w-auto">
-                  使い方を見る
-                </button>
+            {/* リンク */}
+            <div className="flex items-center gap-6 text-sm" style={{ color: COLORS.neutral500 }}>
+              <a
+                href="#"
+                className="transition-colors"
+                onMouseOver={(e) => (e.currentTarget.style.color = COLORS.primary)}
+                onMouseOut={(e) => (e.currentTarget.style.color = COLORS.neutral500)}
+              >
+                利用規約
+              </a>
+              <a
+                href="#"
+                className="transition-colors"
+                onMouseOver={(e) => (e.currentTarget.style.color = COLORS.primary)}
+                onMouseOut={(e) => (e.currentTarget.style.color = COLORS.neutral500)}
+              >
+                プライバシーポリシー
+              </a>
+              <a
+                href="#"
+                className="transition-colors"
+                onMouseOver={(e) => (e.currentTarget.style.color = COLORS.primary)}
+                onMouseOut={(e) => (e.currentTarget.style.color = COLORS.neutral500)}
+              >
+                お問い合わせ
               </a>
             </div>
 
-            {/* SNSアイコン */}
-            <div
-              className="mt-12 flex animate-fade-in items-center justify-center gap-4"
-              style={{ animationDelay: '0.4s' }}
-            >
-              <span className="text-xs text-gray-500">対応SNS:</span>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400">
-                  <Instagram className="h-5 w-5 text-white" />
-                </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-black">
-                  <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
+            {/* コピーライト */}
+            <p className="text-sm" style={{ color: COLORS.neutral400 }}>
+              © {new Date().getFullYear()} BuzzBase
+            </p>
           </div>
-
-          {/* モックアップカード */}
-          <div
-            className="mx-auto mt-16 max-w-sm animate-slide-up px-4"
-            style={{ animationDelay: '0.3s' }}
-          >
-            <div className="relative">
-              {/* グロー効果 */}
-              <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-brand-500/50 via-purple-500/50 to-pink-500/50 opacity-50 blur-xl" />
-
-              {/* カード */}
-              <div className="relative rounded-3xl border border-white/10 bg-gray-900/90 p-5 backdrop-blur-sm">
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-pink-500 to-orange-400" />
-                    <div>
-                      <p className="text-sm font-medium">@your_account</p>
-                      <p className="text-xs text-gray-500">Instagram</p>
-                    </div>
-                  </div>
-                  <span className="rounded-full bg-green-400/10 px-2 py-1 text-xs font-medium text-green-400">
-                    計測完了
-                  </span>
-                </div>
-
-                <div className="mb-4 flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-gray-800 to-gray-900">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 backdrop-blur">
-                    <Play className="ml-0.5 h-5 w-5 text-white" />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-xs text-gray-500">7日後の再生数</p>
-                    <p className="text-2xl font-bold text-white">
-                      <span className="bg-gradient-to-r from-brand-400 to-pink-400 bg-clip-text text-transparent">
-                        15.2K
-                      </span>
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm text-green-400">
-                    <TrendingUp className="h-4 w-4" />
-                    <span className="font-medium">+23%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 使い方セクション */}
-        <section
-          id="how-it-works"
-          className="bg-gradient-to-b from-transparent via-gray-900/50 to-transparent px-4 py-20 md:py-32"
-        >
-          <div className="mx-auto max-w-5xl">
-            <div className="mb-16 text-center">
-              <span className="mb-3 block text-sm font-medium text-brand-400">HOW IT WORKS</span>
-              <h2 className="mb-4 font-display text-3xl font-bold md:text-4xl">
-                かんたん<span className="text-brand-400">3</span>ステップ
-              </h2>
-              <p className="mx-auto max-w-md text-gray-400">
-                アカウント登録から再生数の確認まで、シンプルな操作で完結します
-              </p>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-3 md:gap-8">
-              {steps.map((step, index) => (
-                <div key={step.title} className="group relative">
-                  {/* コネクターライン（PC表示時のみ） */}
-                  {index < steps.length - 1 && (
-                    <div className="absolute left-[60%] top-12 hidden h-px w-[80%] bg-gradient-to-r from-white/20 to-transparent md:block" />
-                  )}
-
-                  <div className="relative rounded-2xl border border-white/5 bg-white/[0.03] p-6 transition-colors hover:border-white/10">
-                    {/* ステップ番号 */}
-                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-brand-500/20 to-purple-500/20">
-                      <step.icon className="h-6 w-6 text-brand-400" />
-                    </div>
-
-                    <div className="mb-2 text-xs font-medium text-brand-400">STEP {index + 1}</div>
-                    <h3 className="mb-2 text-lg font-semibold">{step.title}</h3>
-                    <p className="text-sm leading-relaxed text-gray-400">{step.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* 機能セクション */}
-        <section id="features" className="px-4 py-20 md:py-32">
-          <div className="mx-auto max-w-5xl">
-            <div className="mb-16 text-center">
-              <span className="mb-3 block text-sm font-medium text-brand-400">FEATURES</span>
-              <h2 className="mb-4 font-display text-3xl font-bold md:text-4xl">バズベースの特徴</h2>
-              <p className="mx-auto max-w-md text-gray-400">
-                インフルエンサーの活動をサポートする機能を揃えています
-              </p>
-            </div>
-
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {features.map((feature) => (
-                <div
-                  key={feature.title}
-                  className="group rounded-2xl border border-white/5 bg-gradient-to-br from-white/[0.05] to-transparent p-6 transition-all hover:-translate-y-1 hover:border-white/10"
-                >
-                  <div
-                    className={`h-11 w-11 rounded-xl ${feature.color} mb-4 flex items-center justify-center transition-transform group-hover:scale-110`}
-                  >
-                    <feature.icon className="h-5 w-5 text-white" />
-                  </div>
-                  <h3 className="mb-2 font-semibold">{feature.title}</h3>
-                  <p className="text-sm leading-relaxed text-gray-400">{feature.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CTAセクション */}
-        <section className="px-4 py-20 md:py-32">
-          <div className="mx-auto max-w-3xl">
-            <div className="relative overflow-hidden rounded-3xl">
-              {/* 背景グラデーション */}
-              <div className="absolute inset-0 bg-gradient-to-r from-brand-600 via-purple-600 to-pink-600 opacity-90" />
-              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
-
-              <div className="relative px-6 py-12 text-center md:px-12 md:py-16">
-                <h2 className="mb-4 font-display text-2xl font-bold md:text-3xl">
-                  さっそく始めてみませんか？
-                </h2>
-                <p className="mx-auto mb-8 max-w-md text-white/80">
-                  アカウント登録は無料。今すぐPR投稿の再生数をトラッキングしましょう。
-                </p>
-                <Link to="/signup">
-                  <button className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 font-semibold text-gray-900 shadow-xl shadow-black/20 transition-colors hover:bg-gray-100">
-                    無料で始める
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* フッター */}
-        <footer className="border-t border-white/5 px-4 py-12">
-          <div className="mx-auto max-w-5xl">
-            <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-600">
-                  <Sparkles className="h-4 w-4 text-white" />
-                </div>
-                <span className="font-display font-bold">バズベース</span>
-              </div>
-
-              <div className="flex items-center gap-6 text-sm text-gray-500">
-                <a href="#" className="transition-colors hover:text-white">
-                  利用規約
-                </a>
-                <a href="#" className="transition-colors hover:text-white">
-                  プライバシーポリシー
-                </a>
-                <a href="#" className="transition-colors hover:text-white">
-                  お問い合わせ
-                </a>
-              </div>
-
-              <p className="text-sm text-gray-600">© {new Date().getFullYear()} BuzzBase</p>
-            </div>
-          </div>
-        </footer>
-      </div>
+        </div>
+      </footer>
     </div>
   );
 }
 
+// =====================================================
 // 使い方ステップ
+// =====================================================
 const steps = [
   {
     title: 'URLを登録',
@@ -321,42 +542,50 @@ const steps = [
   },
 ];
 
+// =====================================================
 // 機能リスト
+// =====================================================
 const features = [
   {
     title: '自動トラッキング',
     description: 'URLを登録すれば、7日後の再生数を自動で取得。手作業は不要です。',
     icon: TrendingUp,
-    color: 'bg-gradient-to-br from-brand-500 to-brand-600',
+    bgColor: '#ffefd4', // primary-100
+    iconColor: '#f29801', // primary
   },
   {
     title: 'マルチSNS対応',
     description: 'InstagramとTikTokに対応。今後も対応SNSを拡大予定。',
     icon: Zap,
-    color: 'bg-gradient-to-br from-purple-500 to-purple-600',
+    bgColor: '#ffe1df', // secondary-100
+    iconColor: '#e61f13', // secondary
   },
   {
     title: 'セキュア認証',
     description: 'GoogleアカウントまたはメールでSSO。安心のセキュリティ。',
     icon: Shield,
-    color: 'bg-gradient-to-br from-accent-500 to-accent-600',
+    bgColor: '#ffefd4',
+    iconColor: '#f29801',
   },
   {
     title: 'スマホ最適化',
     description: 'スマホでもPCでも使いやすいレスポンシブデザイン。',
-    icon: Sparkles,
-    color: 'bg-gradient-to-br from-pink-500 to-pink-600',
+    icon: Smartphone,
+    bgColor: '#ffe1df',
+    iconColor: '#e61f13',
   },
   {
     title: '投稿履歴管理',
     description: '過去のPR投稿をすべて一覧で確認。成長を可視化。',
-    icon: BarChart3,
-    color: 'bg-gradient-to-br from-orange-500 to-orange-600',
+    icon: History,
+    bgColor: '#ffefd4',
+    iconColor: '#f29801',
   },
   {
     title: '完全無料',
     description: 'すべての機能を無料でご利用いただけます。',
-    icon: Play,
-    color: 'bg-gradient-to-br from-green-500 to-green-600',
+    icon: Check,
+    bgColor: '#ffe1df',
+    iconColor: '#e61f13',
   },
 ];

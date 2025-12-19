@@ -2,8 +2,13 @@ import { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from './LoadingSpinner';
 
+// =====================================================
+// Button コンポーネント
+// デザインシステム: フラットデザイン、オレンジ/レッドアクセント
+// =====================================================
+
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   icon?: ReactNode;
@@ -21,14 +26,19 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed';
+    'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variantStyles = {
-    primary:
-      'text-white bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 shadow-lg shadow-brand-500/25',
+    // プライマリ: オレンジ（メインアクション）
+    primary: 'text-white bg-primary-500 hover:bg-primary-600 active:bg-primary-700 shadow-button',
+    // セカンダリ: ボーダー付き（サブアクション）
     secondary:
-      'text-gray-700 bg-white border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50',
-    ghost: 'text-gray-600 hover:bg-gray-100',
+      'text-neutral-700 bg-white border-2 border-neutral-200 hover:border-primary-500 hover:text-primary-500',
+    // ゴースト: 透明（テキストリンク風）
+    ghost: 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900',
+    // デンジャー: レッド（削除等の警告アクション）
+    danger:
+      'text-white bg-secondary-500 hover:bg-secondary-600 active:bg-secondary-700 shadow-button',
   };
 
   const sizeStyles = {
