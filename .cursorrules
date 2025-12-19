@@ -1,0 +1,264 @@
+# BuzzBase 開発ルール
+
+## 言語設定
+- すべての回答は日本語で行うこと
+
+## デザインシステムの使用
+
+### 必須: デザインシステムガイドラインの参照
+
+フロントエンド開発において、**すべてのUIコンポーネント、スタイリング、レイアウトの実装は、プロジェクト内のデザインシステムガイドラインに従うこと**。
+
+#### デザインシステムドキュメントの場所
+
+以下のファイルを必ず参照すること：
+
+1. **メインドキュメント**: `docs/DESIGN_SYSTEM.md`
+2. **開発者向けコピー**: `frontend/src/styles/DESIGN_SYSTEM.md`
+
+#### デザインシステムの参照方法
+
+新しいUIコンポーネントやスタイリングを作成・修正する際は、**必ず以下の手順を実行すること**：
+
+1. **事前にデザインシステムドキュメントを読み込む**
+   - `read_file` ツールを使用して `docs/DESIGN_SYSTEM.md` または `frontend/src/styles/DESIGN_SYSTEM.md` を読み込む
+   - カラーパレット、タイポグラフィ、コンポーネントパターンを確認する
+
+2. **デザインシステムに準拠した実装**
+   - カラーコードはデザインシステムで定義された値を使用する
+     - プライマリ: `#f29801` (オレンジ)
+     - セカンダリ: `#e61f13` (レッド)
+     - 背景: `#ffffff` (白) または `#fafafa` (淡いグレー)
+   - グラデーション、glassmorphism、ダークテーマは使用しない
+   - インラインスタイルでカラーを直接指定する（Tailwindのカスタムクラスではなく）
+
+3. **デザインシステムのチェックリストを確認**
+   - 実装前に `docs/DESIGN_SYSTEM.md` の「✅ チェックリスト」セクションを確認する
+   - すべての項目に準拠していることを確認する
+
+#### デザインシステムの主要な原則
+
+- **背景**: 白（`#ffffff`）または淡いグレー（`#fafafa`）のみ
+- **プライマリカラー**: オレンジ（`#f29801`） - ボタン、リンク、ロゴ
+- **セカンダリカラー**: レッド（`#e61f13`） - 警告、削除、数値強調
+- **テキスト**: ニュートラルカラー（`#262626`, `#525252` など）
+- **エフェクト**: グラデーション、glassmorphism は使用しない
+- **デザイン**: フラットデザイン、「硬めとポップの中間」を意識
+
+#### 実装例
+
+```tsx
+// ✅ 正しい実装: デザインシステムに準拠
+<button
+  className="px-8 py-4 text-lg font-semibold text-white rounded-lg transition-colors"
+  style={{ backgroundColor: '#f29801' }} // デザインシステムのプライマリカラー
+  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e38500'}
+  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f29801'}
+>
+  無料で始める
+</button>
+
+// ❌ 間違った実装: グラデーションを使用
+<button className="bg-gradient-to-r from-orange-500 to-red-500">
+  ボタン
+</button>
+```
+
+#### デザインシステム違反の回避
+
+以下のような実装は**絶対に避けること**：
+
+- ❌ グラデーション（`bg-gradient-*`）
+- ❌ ダークテーマ（`bg-gray-900`, `bg-black` など）
+- ❌ glassmorphism（`backdrop-blur`, `bg-white/70` など）
+- ❌ デザインシステムで定義されていないカラーコード
+- ❌ デザインシステムドキュメントを参照せずにスタイリングを実装
+
+#### デザインシステムの更新
+
+デザインシステムガイドラインを更新する場合は、以下の両方のファイルを更新すること：
+
+1. `docs/DESIGN_SYSTEM.md`
+2. `frontend/src/styles/DESIGN_SYSTEM.md`
+
+---
+
+## Docker環境でのコマンド実行
+
+基本的にすべてのコマンドはDocker環境内で実行すること。
+
+### フロントエンド関連コマンド
+```bash
+# npmコマンドの実行
+docker compose exec frontend npm install <package>
+docker compose exec frontend npm run lint
+docker compose exec frontend npm run type-check
+docker compose exec frontend npm run build
+```
+
+### 開発サーバーの起動
+```bash
+# フロントエンドのみ
+docker compose up frontend
+
+# Firebase Emulator も含める
+docker compose --profile emulator up
+
+# バックグラウンドで起動
+docker compose up -d frontend
+```
+
+### Terraformコマンド
+```bash
+# Terraform環境を使用
+docker compose --profile terraform run --rm terraform init
+docker compose --profile terraform run --rm terraform plan
+docker compose --profile terraform run --rm terraform apply
+```
+
+### 例外：Docker外で実行するコマンド
+以下のコマンドはホストマシンで直接実行する：
+- `git` 関連のコマンド
+- `docker` / `docker compose` コマンド自体
+- `gcloud` CLI コマンド
+
+---
+
+## コミットワークフロー
+
+「コミットして」とチャットに入力された場合、以下の手順で実行する：
+
+### 1. 差分の確認
+```bash
+git status
+git diff
+git diff --staged
+```
+
+### 2. ステージング
+```bash
+git add -A
+```
+
+### 3. コミット
+コミットメッセージは差分を確認した上で、適切な内容を**日本語**で作成する。
+
+**コミットメッセージのフォーマット:**
+```
+<type>: <概要>
+
+<詳細説明（必要な場合）>
+```
+
+**typeの種類:**
+- `feat`: 新しい機能
+- `fix`: バグの修正
+- `docs`: ドキュメントのみの変更
+- `style`: 空白、フォーマット、セミコロン追加など（コードの動作に影響しない変更）
+- `refactor`: 仕様に影響がないコード改善（リファクタリング）
+- `perf`: パフォーマンス向上関連
+- `test`: テスト関連
+- `chore`: ビルド、補助ツール、ライブラリ関連
+
+### 4. プッシュ
+現在のローカルブランチと同名のリモートブランチにプッシュする：
+```bash
+git push origin $(git branch --show-current)
+```
+
+---
+
+## 技術スタック
+
+### フロントエンド
+- **React 18** + **Vite** + **TypeScript**
+- **Tailwind CSS** でスタイリング
+- **Firebase** Authentication & Firestore
+- **React Router DOM** でルーティング
+
+### インフラ
+- **GCP**: Cloud Run, Cloud Firestore, Cloud Functions
+- **Docker**: ローカル開発環境
+- **Terraform**: IaC
+
+### コード品質
+- **ESLint** でリンティング（フラットコンフィグ形式）
+- **Prettier** でコードフォーマット（Tailwind CSSプラグイン付き）
+- **husky** + **lint-staged** でpre-commitフック
+- **TypeScript** strict mode
+
+### Pre-commit 自動チェック
+コミット時に以下が自動実行される：
+- ステージされた `.ts`, `.tsx` ファイルに対して ESLint + Prettier
+- ステージされた `.js`, `.jsx`, `.json`, `.css`, `.md` ファイルに対して Prettier
+
+---
+
+## コーディング規約
+
+### TypeScript
+- 型定義は `frontend/src/types/` に配置
+- `any` 型の使用は避ける
+- 厳密な型チェックを有効にする
+
+### React
+- 関数コンポーネントを使用
+- カスタムフックは `hooks/` ディレクトリに配置
+- Contextは `contexts/` ディレクトリに配置
+- コンポーネントは機能別にディレクトリ分け
+
+### スタイリング
+- Tailwind CSSのユーティリティクラスを使用
+- カスタムCSSは最小限に
+- `clsx` と `tailwind-merge` を使用してクラス名を結合
+- **デザインシステムガイドラインに準拠すること**（上記参照）
+
+### ファイル命名規則
+- コンポーネント: PascalCase (`Button.tsx`, `Header.tsx`)
+- ユーティリティ: camelCase (`utils.ts`, `firebase.ts`)
+- 型定義: `index.ts` または対象のファイル名
+
+---
+
+## プロジェクト構造
+
+```
+buzz_base/
+├── frontend/           # React アプリ
+│   ├── src/
+│   │   ├── components/ # UIコンポーネント
+│   │   │   ├── auth/   # 認証関連
+│   │   │   ├── layout/ # レイアウト
+│   │   │   └── ui/     # 汎用UI
+│   │   ├── contexts/   # React Context
+│   │   ├── hooks/      # カスタムフック
+│   │   ├── lib/        # ユーティリティ
+│   │   ├── pages/      # ページコンポーネント
+│   │   ├── styles/     # グローバルスタイル
+│   │   │   └── DESIGN_SYSTEM.md  # デザインシステムガイドライン
+│   │   └── types/      # 型定義
+│   └── public/         # 静的ファイル
+├── docs/               # ドキュメント
+│   └── DESIGN_SYSTEM.md  # デザインシステムガイドライン（メイン）
+├── firebase/           # Firestore ルール
+├── terraform/          # インフラ定義
+├── docker-compose.yml  # 開発環境
+├── Dockerfile          # 本番用
+└── Dockerfile.dev      # 開発用
+```
+
+---
+
+## 環境変数
+
+環境変数は `.env` ファイルで管理する（`.gitignore` に含まれている）。
+設定例は `env.example` を参照。
+
+必要な環境変数:
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+
