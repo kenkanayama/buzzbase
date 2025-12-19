@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           className={cn(
             'w-full px-4 py-3',
             'text-gray-900 placeholder-gray-400',
-            'bg-white border-2 rounded-xl',
+            'rounded-xl border-2 bg-white',
             'transition-colors duration-200',
             error
               ? 'border-red-400 focus:border-red-500'
@@ -33,13 +33,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           {...props}
         />
-        {error && (
-          <p className="text-sm text-red-500">{error}</p>
-        )}
+        {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
     );
   }
 );
 
 Input.displayName = 'Input';
-

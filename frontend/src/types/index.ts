@@ -94,4 +94,3 @@ export interface ViewCountBatchResult {
   error?: string;
   fetchedAt: Date;
 }
-

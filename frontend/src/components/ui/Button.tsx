@@ -20,11 +20,14 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles =
+    'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variantStyles = {
-    primary: 'text-white bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 shadow-lg shadow-brand-500/25',
-    secondary: 'text-gray-700 bg-white border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+    primary:
+      'text-white bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 shadow-lg shadow-brand-500/25',
+    secondary:
+      'text-gray-700 bg-white border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50',
     ghost: 'text-gray-600 hover:bg-gray-100',
   };
 
@@ -49,4 +52,3 @@ export function Button({
     </button>
   );
 }
-

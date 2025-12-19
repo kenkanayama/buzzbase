@@ -52,4 +52,3 @@ export function getDaysSincePost(postDate: Date): number {
   const diffTime = Math.abs(now.getTime() - postDate.getTime());
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 }
-

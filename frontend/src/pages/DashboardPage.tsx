@@ -33,60 +33,56 @@ export function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="animate-fade-in space-y-8">
       {/* ウェルカムセクション */}
       <section>
-        <h1 className="text-2xl font-display font-bold text-gray-900">
+        <h1 className="font-display text-2xl font-bold text-gray-900">
           こんにちは、{user?.displayName || 'ユーザー'}さん 👋
         </h1>
-        <p className="text-gray-500 mt-1">今日も素敵な投稿を管理しましょう</p>
+        <p className="mt-1 text-gray-500">今日も素敵な投稿を管理しましょう</p>
       </section>
 
       {/* クイックアクション */}
       <section className="card !p-4">
-        <Link to="/post/new" className="flex items-center gap-4 group">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/20 group-hover:scale-105 transition-transform">
-            <Plus className="w-6 h-6 text-white" />
+        <Link to="/post/new" className="group flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/20 transition-transform group-hover:scale-105">
+            <Plus className="h-6 w-6 text-white" />
           </div>
           <div className="flex-1">
             <h3 className="font-semibold text-gray-900">新しい投稿を登録</h3>
             <p className="text-sm text-gray-500">商品PRの投稿URLを追加</p>
           </div>
-          <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-brand-500 transition-colors" />
+          <ChevronRight className="h-5 w-5 text-gray-400 transition-colors group-hover:text-brand-500" />
         </Link>
       </section>
 
       {/* SNS連携状況 */}
       <section>
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">SNS連携</h2>
           <button className="text-sm text-brand-500 hover:underline">設定</button>
         </div>
         <div className="grid gap-3">
           {snsAccounts.map((account) => (
-            <div key={account.platform} className="card !p-4 flex items-center gap-4">
+            <div key={account.platform} className="card flex items-center gap-4 !p-4">
               <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                   account.platform === 'Instagram'
                     ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500'
                     : 'bg-black'
                 }`}
               >
                 {account.platform === 'Instagram' ? (
-                  <Instagram className="w-5 h-5 text-white" />
+                  <Instagram className="h-5 w-5 text-white" />
                 ) : (
-                  <Music2 className="w-5 h-5 text-white" />
+                  <Music2 className="h-5 w-5 text-white" />
                 )}
               </div>
               <div className="flex-1">
                 <h3 className="font-medium text-gray-900">{account.platform}</h3>
                 <p className="text-sm text-gray-500">{account.username}</p>
               </div>
-              <span
-                className={`${
-                  account.connected ? 'badge-success' : 'badge-warning'
-                }`}
-              >
+              <span className={`${account.connected ? 'badge-success' : 'badge-warning'}`}>
                 {account.connected ? '連携済み' : '要再連携'}
               </span>
             </div>
@@ -96,7 +92,7 @@ export function DashboardPage() {
 
       {/* 最近の投稿 */}
       <section>
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">最近の投稿</h2>
           <Link to="/posts" className="text-sm text-brand-500 hover:underline">
             すべて見る
@@ -104,12 +100,14 @@ export function DashboardPage() {
         </div>
 
         {recentPosts.length === 0 ? (
-          <div className="card text-center py-12">
-            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-8 h-8 text-gray-400" />
+          <div className="card py-12 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+              <Calendar className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="font-medium text-gray-900 mb-2">まだ投稿がありません</h3>
-            <p className="text-sm text-gray-500 mb-4">最初の投稿を登録して、再生数をトラッキングしましょう</p>
+            <h3 className="mb-2 font-medium text-gray-900">まだ投稿がありません</h3>
+            <p className="mb-4 text-sm text-gray-500">
+              最初の投稿を登録して、再生数をトラッキングしましょう
+            </p>
             <Link to="/post/new">
               <Button size="sm">投稿を登録する</Button>
             </Link>
@@ -120,20 +118,20 @@ export function DashboardPage() {
               <div key={post.id} className="card !p-4">
                 <div className="flex items-start gap-4">
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${
                       post.platform === 'Instagram'
                         ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500'
                         : 'bg-black'
                     }`}
                   >
                     {post.platform === 'Instagram' ? (
-                      <Instagram className="w-5 h-5 text-white" />
+                      <Instagram className="h-5 w-5 text-white" />
                     ) : (
-                      <Music2 className="w-5 h-5 text-white" />
+                      <Music2 className="h-5 w-5 text-white" />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate">{post.productName}</h3>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-medium text-gray-900">{post.productName}</h3>
                     <p className="text-sm text-gray-500">
                       {post.postDate.toLocaleDateString('ja-JP', {
                         year: 'numeric',
@@ -144,8 +142,8 @@ export function DashboardPage() {
                   </div>
                   <div className="text-right">
                     {post.viewCount !== null ? (
-                      <div className="flex items-center gap-1 text-gray-900 font-semibold">
-                        <Eye className="w-4 h-4 text-gray-400" />
+                      <div className="flex items-center gap-1 font-semibold text-gray-900">
+                        <Eye className="h-4 w-4 text-gray-400" />
                         {formatNumber(post.viewCount)}
                       </div>
                     ) : (
@@ -161,4 +159,3 @@ export function DashboardPage() {
     </div>
   );
 }
-

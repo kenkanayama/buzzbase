@@ -108,8 +108,15 @@ git push origin $(git branch --show-current)
 - **Terraform**: IaC
 
 ### コード品質
-- **ESLint** でリンティング
+- **ESLint** でリンティング（フラットコンフィグ形式）
+- **Prettier** でコードフォーマット（Tailwind CSSプラグイン付き）
+- **husky** + **lint-staged** でpre-commitフック
 - **TypeScript** strict mode
+
+### Pre-commit 自動チェック
+コミット時に以下が自動実行される：
+- ステージされた `.ts`, `.tsx` ファイルに対して ESLint + Prettier
+- ステージされた `.js`, `.jsx`, `.json`, `.css`, `.md` ファイルに対して Prettier
 
 ---
 

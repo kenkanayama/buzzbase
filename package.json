@@ -1,0 +1,23 @@
+{
+  "name": "buzz_base",
+  "version": "1.0.0",
+  "description": "インフルエンサー向け「再生数補償型サンプリング」支援Webアプリ",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "lint": "cd frontend && npm run lint",
+    "lint:fix": "cd frontend && npm run lint:fix",
+    "format": "cd frontend && npm run format",
+    "format:check": "cd frontend && npm run format:check",
+    "type-check": "cd frontend && npm run type-check"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kenkanayama/buzzbase.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

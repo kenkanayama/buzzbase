@@ -40,11 +40,7 @@ export default {
           'Meiryo',
           'sans-serif',
         ],
-        display: [
-          '"DM Sans"',
-          '"Noto Sans JP"',
-          'sans-serif',
-        ],
+        display: ['"DM Sans"', '"Noto Sans JP"', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',
@@ -65,4 +61,3 @@ export default {
   },
   plugins: [],
 };
-

@@ -10,22 +10,20 @@ const navItems = [
 
 export function MobileNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 md:hidden glass border-t border-gray-200/50 safe-bottom">
-      <div className="flex items-center justify-around h-16">
+    <nav className="glass safe-bottom fixed bottom-0 left-0 right-0 border-t border-gray-200/50 md:hidden">
+      <div className="flex h-16 items-center justify-around">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
               cn(
-                'flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl transition-colors',
-                isActive
-                  ? 'text-brand-500'
-                  : 'text-gray-400 hover:text-gray-600'
+                'flex flex-col items-center gap-0.5 rounded-xl px-4 py-2 transition-colors',
+                isActive ? 'text-brand-500' : 'text-gray-400 hover:text-gray-600'
               )
             }
           >
-            <item.icon className="w-6 h-6" />
+            <item.icon className="h-6 w-6" />
             <span className="text-xs font-medium">{item.label}</span>
           </NavLink>
         ))}
@@ -33,4 +31,3 @@ export function MobileNav() {
     </nav>
   );
 }
-

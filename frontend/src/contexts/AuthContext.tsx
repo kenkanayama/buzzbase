@@ -166,4 +166,3 @@ function getAuthErrorMessage(error: unknown): string {
   }
   return 'エラーが発生しました';
 }
-

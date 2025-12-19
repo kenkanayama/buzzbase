@@ -47,29 +47,29 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
       <div className="w-full max-w-md">
         {/* ロゴ */}
-        <div className="text-center mb-8">
+        <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/30">
-              <span className="text-white font-bold text-lg">B</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/30">
+              <span className="text-lg font-bold text-white">B</span>
             </div>
-            <span className="font-display font-bold text-2xl text-gray-900">
+            <span className="font-display text-2xl font-bold text-gray-900">
               Buzz<span className="text-brand-500">Base</span>
             </span>
           </Link>
         </div>
 
         {/* ログインカード */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-8">
-          <h1 className="text-2xl font-display font-bold text-center mb-2">おかえりなさい</h1>
-          <p className="text-gray-500 text-center mb-8">アカウントにログインしてください</p>
+        <div className="rounded-3xl bg-white p-8 shadow-xl shadow-gray-200/50">
+          <h1 className="mb-2 text-center font-display text-2xl font-bold">おかえりなさい</h1>
+          <p className="mb-8 text-center text-gray-500">アカウントにログインしてください</p>
 
           {/* エラー表示 */}
           {error && (
-            <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 p-4">
+              <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" />
               <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
@@ -79,9 +79,9 @@ export function LoginPage() {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-gray-200 px-4 py-3 transition-colors hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                 fill="#4285F4"
@@ -103,10 +103,10 @@ export function LoginPage() {
           </button>
 
           {/* 区切り線 */}
-          <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-gray-200" />
+          <div className="my-6 flex items-center gap-4">
+            <div className="h-px flex-1 bg-gray-200" />
             <span className="text-sm text-gray-400">または</span>
-            <div className="flex-1 h-px bg-gray-200" />
+            <div className="h-px flex-1 bg-gray-200" />
           </div>
 
           {/* メールログインフォーム */}
@@ -138,7 +138,7 @@ export function LoginPage() {
           {/* サインアップリンク */}
           <p className="mt-6 text-center text-sm text-gray-500">
             アカウントをお持ちでない方は{' '}
-            <Link to="/signup" className="text-brand-500 font-medium hover:underline">
+            <Link to="/signup" className="font-medium text-brand-500 hover:underline">
               新規登録
             </Link>
           </p>
@@ -147,4 +147,3 @@ export function LoginPage() {
     </div>
   );
 }
-

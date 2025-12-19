@@ -12,7 +12,7 @@
   }
 
   body {
-    @apply font-sans text-gray-900 bg-gray-50 antialiased;
+    @apply bg-gray-50 font-sans text-gray-900 antialiased;
   }
 
   /* フォーカス時のアウトライン */
@@ -24,56 +24,32 @@
 @layer components {
   /* Primary Button */
   .btn-primary {
-    @apply inline-flex items-center justify-center px-6 py-3 
-           text-white font-semibold rounded-xl
-           bg-gradient-to-r from-brand-500 to-brand-600
-           hover:from-brand-600 hover:to-brand-700
-           active:scale-[0.98]
-           transition-all duration-200
-           shadow-lg shadow-brand-500/25
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-6 py-3 font-semibold text-white shadow-lg shadow-brand-500/25 transition-all duration-200 hover:from-brand-600 hover:to-brand-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   /* Secondary Button */
   .btn-secondary {
-    @apply inline-flex items-center justify-center px-6 py-3
-           text-gray-700 font-semibold rounded-xl
-           bg-white border-2 border-gray-200
-           hover:border-gray-300 hover:bg-gray-50
-           active:scale-[0.98]
-           transition-all duration-200
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-xl border-2 border-gray-200 bg-white px-6 py-3 font-semibold text-gray-700 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   /* Ghost Button */
   .btn-ghost {
-    @apply inline-flex items-center justify-center px-4 py-2
-           text-gray-600 font-medium rounded-lg
-           hover:bg-gray-100
-           active:scale-[0.98]
-           transition-all duration-200;
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium text-gray-600 transition-all duration-200 hover:bg-gray-100 active:scale-[0.98];
   }
 
   /* Input Field */
   .input-field {
-    @apply w-full px-4 py-3 
-           text-gray-900 placeholder-gray-400
-           bg-white border-2 border-gray-200 rounded-xl
-           focus:border-brand-500 focus:ring-0
-           transition-colors duration-200;
+    @apply w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 transition-colors duration-200 focus:border-brand-500 focus:ring-0;
   }
 
   /* Card */
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-gray-100
-           p-6 transition-shadow duration-200
-           hover:shadow-md;
+    @apply rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md;
   }
 
   /* Badge */
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 
-           text-xs font-medium rounded-full;
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
 
   .badge-success {
@@ -92,8 +68,7 @@
 @layer utilities {
   /* グラデーションテキスト */
   .text-gradient {
-    @apply bg-gradient-to-r from-brand-500 to-accent-500 
-           bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-brand-500 to-accent-500 bg-clip-text text-transparent;
   }
 
   /* ガラスモーフィズム */
@@ -106,4 +81,3 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
-
