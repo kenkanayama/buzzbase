@@ -10,16 +10,18 @@ WORKDIR /app
 ENV NPM_CONFIG_CACHE=/app/.npm-cache
 
 # 開発時に必要なツールをインストール
-RUN apk add --no-cache git
+RUN apk add --no-cache git su-exec
+
+# entrypointスクリプトをコピー
+COPY frontend/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # ユーザー権限の設定（node_modulesの権限問題を回避）
 RUN chown -R node:node /app
 
-USER node
-
 # Vite開発サーバーのポート
 EXPOSE 5173
 
-# 開発サーバーを起動
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# entrypointを設定
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
