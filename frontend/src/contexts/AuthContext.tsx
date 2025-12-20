@@ -9,6 +9,7 @@ import {
   signOut as firebaseSignOut,
   sendEmailVerification,
   deleteUser,
+  ActionCodeSettings,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, isFirebaseConfigured } from '@/lib/firebase';
@@ -24,6 +25,19 @@ import { auth, db, isFirebaseConfigured } from '@/lib/firebase';
  * TODO: 本番リリース時にALLOWED_GOOGLE_DOMAINSをnullまたは空配列に変更する
  */
 const ALLOWED_GOOGLE_DOMAINS: string[] | null = ['hayashi-rice.tech'];
+
+/**
+ * メール確認後のリダイレクト設定
+ * 確認リンクをクリック後、指定したURLにリダイレクトされる
+ */
+const getEmailVerificationSettings = (): ActionCodeSettings => {
+  // 現在のホスト（ローカル or 本番）に基づいてURLを生成
+  const baseUrl = window.location.origin;
+  return {
+    url: `${baseUrl}/login?verified=true`,
+    handleCodeInApp: false,
+  };
+};
 
 // =====================================================
 // Types
@@ -109,8 +123,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setError(null);
       const result = await createUserWithEmailAndPassword(auth, email, password);
-      // メール確認を送信
-      await sendEmailVerification(result.user);
+      // メール確認を送信（確認後のリダイレクト先を指定）
+      await sendEmailVerification(result.user, getEmailVerificationSettings());
     } catch (err) {
       const message = getAuthErrorMessage(err);
       setError(message);
@@ -181,7 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      await sendEmailVerification(auth.currentUser);
+      await sendEmailVerification(auth.currentUser, getEmailVerificationSettings());
     } catch (err) {
       const code = (err as { code?: string }).code;
       if (code === 'auth/too-many-requests') {

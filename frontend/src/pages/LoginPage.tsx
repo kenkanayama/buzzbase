@@ -1,9 +1,9 @@
 import { useState, FormEvent } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
 // デザインシステムカラー
 const COLORS = {
@@ -16,16 +16,22 @@ const COLORS = {
   neutral500: '#737373',
   neutral600: '#525252',
   neutral800: '#262626',
+  success: '#16a34a',
+  successLight: '#f0fdf4',
 };
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { signInWithEmail, signInWithGoogle, error, clearError } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // メール確認完了かどうか
+  const isEmailVerified = searchParams.get('verified') === 'true';
 
   // リダイレクト先を取得（デフォルトはダッシュボード）
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
@@ -97,6 +103,30 @@ export function LoginPage() {
           <p className="mb-8 text-center" style={{ color: COLORS.neutral500 }}>
             アカウントにログインしてください
           </p>
+
+          {/* メール確認完了メッセージ */}
+          {isEmailVerified && (
+            <div
+              className="mb-6 flex items-start gap-3 rounded-xl p-4"
+              style={{
+                backgroundColor: COLORS.successLight,
+                border: '1px solid #bbf7d0',
+              }}
+            >
+              <CheckCircle
+                className="mt-0.5 h-5 w-5 flex-shrink-0"
+                style={{ color: COLORS.success }}
+              />
+              <div>
+                <p className="font-medium" style={{ color: COLORS.success }}>
+                  メールアドレスが確認されました
+                </p>
+                <p className="mt-1 text-sm" style={{ color: COLORS.success }}>
+                  以下からログインしてください
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* エラー表示 */}
           {error && (
