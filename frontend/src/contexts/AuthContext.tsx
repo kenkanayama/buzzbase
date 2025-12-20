@@ -19,12 +19,38 @@ import { auth, db, isFirebaseConfigured } from '@/lib/firebase';
 // =====================================================
 
 /**
- * 【暫定対応】開発中のため、Google認証でログインできるドメインを制限
+ * 【暫定対応】開発中のため、認証でログインできるドメインを制限
  *
- * 開発完了後は、この制限を解除してすべてのユーザーがログインできるようにする予定
- * TODO: 本番リリース時にALLOWED_GOOGLE_DOMAINSをnullまたは空配列に変更する
+ * Google認証・メールアドレス認証の両方に適用される。
+ * 開発完了後は、この制限を解除してすべてのユーザーがログインできるようにする予定。
+ *
+ * TODO: 本番リリース時にALLOWED_AUTH_DOMAINSをnullまたは空配列に変更する
  */
-const ALLOWED_GOOGLE_DOMAINS: string[] | null = ['hayashi-rice.tech'];
+const ALLOWED_AUTH_DOMAINS: string[] | null = ['hayashi-rice.tech'];
+
+/**
+ * ドメイン制限のエラーメッセージを生成
+ */
+const getDomainRestrictionErrorMessage = (): string => {
+  if (!ALLOWED_AUTH_DOMAINS || ALLOWED_AUTH_DOMAINS.length === 0) {
+    return 'ログインできません';
+  }
+  return `このアプリは現在開発中のため、${ALLOWED_AUTH_DOMAINS.join(', ')} ドメインのアカウントのみ利用できます`;
+};
+
+/**
+ * メールアドレスのドメインが許可されているかチェック
+ * @returns true: 許可されている, false: 許可されていない
+ */
+const isEmailDomainAllowed = (email: string): boolean => {
+  // ドメイン制限がない場合は全て許可
+  if (!ALLOWED_AUTH_DOMAINS || ALLOWED_AUTH_DOMAINS.length === 0) {
+    return true;
+  }
+
+  const domain = email.split('@')[1];
+  return ALLOWED_AUTH_DOMAINS.includes(domain);
+};
 
 /**
  * メール確認後のリダイレクト設定
@@ -99,6 +125,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Firebase not configured');
     }
 
+    // 【暫定対応】ドメイン制限チェック
+    if (!isEmailDomainAllowed(email)) {
+      const errorMessage = getDomainRestrictionErrorMessage();
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+
     try {
       setError(null);
       const result = await signInWithEmailAndPassword(auth, email, password);
@@ -127,6 +160,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Firebase not configured');
     }
 
+    // 【暫定対応】ドメイン制限チェック
+    if (!isEmailDomainAllowed(email)) {
+      const errorMessage = getDomainRestrictionErrorMessage();
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+
     try {
       setError(null);
       const result = await createUserWithEmailAndPassword(auth, email, password);
@@ -151,25 +191,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await signInWithPopup(auth, googleProvider);
 
       // 【暫定対応】ドメイン制限チェック
-      if (ALLOWED_GOOGLE_DOMAINS && ALLOWED_GOOGLE_DOMAINS.length > 0) {
-        const email = result.user.email;
-        if (email) {
-          const domain = email.split('@')[1];
-          if (!ALLOWED_GOOGLE_DOMAINS.includes(domain)) {
-            // 許可されていないドメインの場合はユーザーを削除してエラー
-            // Firebase Authにユーザーが残らないようにする
-            try {
-              await deleteUser(result.user);
-            } catch (deleteError) {
-              // 削除に失敗した場合はサインアウトのみ実行
-              console.error('ユーザー削除に失敗:', deleteError);
-              await firebaseSignOut(auth);
-            }
-            const errorMessage = `このアプリは現在開発中のため、${ALLOWED_GOOGLE_DOMAINS.join(', ')} ドメインのアカウントのみログインできます`;
-            setError(errorMessage);
-            throw new Error(errorMessage);
-          }
+      const email = result.user.email;
+      if (email && !isEmailDomainAllowed(email)) {
+        // 許可されていないドメインの場合はユーザーを削除してエラー
+        // Firebase Authにユーザーが残らないようにする
+        try {
+          await deleteUser(result.user);
+        } catch (deleteError) {
+          // 削除に失敗した場合はサインアウトのみ実行
+          console.error('ユーザー削除に失敗:', deleteError);
+          await firebaseSignOut(auth);
         }
+        const errorMessage = getDomainRestrictionErrorMessage();
+        setError(errorMessage);
+        throw new Error(errorMessage);
       }
 
       // Firestoreにユーザー情報を登録（新規ユーザーの場合のみ）
