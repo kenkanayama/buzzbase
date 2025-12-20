@@ -12,6 +12,18 @@ import {
 import { auth, isFirebaseConfigured } from '@/lib/firebase';
 
 // =====================================================
+// Constants
+// =====================================================
+
+/**
+ * 【暫定対応】開発中のため、Google認証でログインできるドメインを制限
+ *
+ * 開発完了後は、この制限を解除してすべてのユーザーがログインできるようにする予定
+ * TODO: 本番リリース時にALLOWED_GOOGLE_DOMAINSをnullまたは空配列に変更する
+ */
+const ALLOWED_GOOGLE_DOMAINS: string[] | null = ['hayashi-rice.tech'];
+
+// =====================================================
 // Types
 // =====================================================
 
@@ -106,7 +118,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       setError(null);
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+
+      // 【暫定対応】ドメイン制限チェック
+      if (ALLOWED_GOOGLE_DOMAINS && ALLOWED_GOOGLE_DOMAINS.length > 0) {
+        const email = result.user.email;
+        if (email) {
+          const domain = email.split('@')[1];
+          if (!ALLOWED_GOOGLE_DOMAINS.includes(domain)) {
+            // 許可されていないドメインの場合はサインアウトしてエラー
+            await firebaseSignOut(auth);
+            const errorMessage = `このアプリは現在開発中のため、${ALLOWED_GOOGLE_DOMAINS.join(', ')} ドメインのアカウントのみログインできます`;
+            setError(errorMessage);
+            throw new Error(errorMessage);
+          }
+        }
+      }
     } catch (err) {
       const message = getAuthErrorMessage(err);
       setError(message);
