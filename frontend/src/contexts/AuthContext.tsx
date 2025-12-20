@@ -9,7 +9,8 @@ import {
   signOut as firebaseSignOut,
   sendEmailVerification,
 } from 'firebase/auth';
-import { auth, isFirebaseConfigured } from '@/lib/firebase';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db, isFirebaseConfigured } from '@/lib/firebase';
 
 // =====================================================
 // Constants
@@ -134,6 +135,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       }
+
+      // Firestoreにユーザー情報を登録（新規ユーザーの場合のみ）
+      await registerUserToFirestore(result.user);
     } catch (err) {
       const message = getAuthErrorMessage(err);
       setError(message);
@@ -189,6 +193,46 @@ export function useAuth() {
 // =====================================================
 // Utils
 // =====================================================
+
+/**
+ * Firestoreにユーザー情報を登録
+ * 新規ユーザーの場合のみ登録、既存ユーザーの場合は最終ログイン日時を更新
+ */
+async function registerUserToFirestore(user: User): Promise<void> {
+  if (!db) {
+    console.warn('Firestoreが設定されていないため、ユーザー情報を登録できません');
+    return;
+  }
+
+  try {
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      // 新規ユーザー: ドキュメントを作成
+      await setDoc(userRef, {
+        email: user.email,
+        displayName: user.displayName || null,
+        photoURL: user.photoURL || null,
+        createdAt: serverTimestamp(),
+        lastLoginAt: serverTimestamp(),
+      });
+      console.log('新規ユーザーをFirestoreに登録しました:', user.uid);
+    } else {
+      // 既存ユーザー: 最終ログイン日時を更新
+      await setDoc(
+        userRef,
+        {
+          lastLoginAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+    }
+  } catch (error) {
+    console.error('Firestoreへのユーザー登録に失敗しました:', error);
+    // ログインは成功させるため、エラーは投げない
+  }
+}
 
 function getAuthErrorMessage(error: unknown): string {
   if (error && typeof error === 'object' && 'code' in error) {

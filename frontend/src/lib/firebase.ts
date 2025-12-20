@@ -1,6 +1,11 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, Auth } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, Firestore } from 'firebase/firestore';
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+  Firestore,
+  initializeFirestore,
+} from 'firebase/firestore';
 
 // Firebase設定
 const firebaseConfig = {
@@ -11,6 +16,9 @@ const firebaseConfig = {
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
+
+// Firestoreデータベース名（デフォルト以外のデータベースを使用）
+const FIRESTORE_DATABASE_ID = 'sincere-kit-buzzbase';
 
 // Firebase設定が有効かチェック
 const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId);
@@ -24,7 +32,9 @@ if (isFirebaseConfigured) {
   try {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
     auth = getAuth(app);
-    db = getFirestore(app);
+
+    // 特定のFirestoreデータベースに接続
+    db = initializeFirestore(app, {}, FIRESTORE_DATABASE_ID);
 
     // 開発環境でエミュレーターに接続
     if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
