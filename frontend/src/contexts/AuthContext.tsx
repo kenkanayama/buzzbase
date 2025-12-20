@@ -207,27 +207,38 @@ export function useAuth() {
  * 新規ユーザーの場合のみ登録、既存ユーザーの場合は最終ログイン日時を更新
  */
 async function registerUserToFirestore(user: User): Promise<void> {
+  console.log('registerUserToFirestore: 開始', { uid: user.uid, email: user.email });
+
   if (!db) {
-    console.warn('Firestoreが設定されていないため、ユーザー情報を登録できません');
+    console.error('registerUserToFirestore: Firestoreが設定されていません (db is null)');
     return;
   }
 
+  console.log('registerUserToFirestore: Firestore接続確認OK');
+
   try {
     const userRef = doc(db, 'users', user.uid);
+    console.log('registerUserToFirestore: ドキュメント参照作成', userRef.path);
+
     const userSnap = await getDoc(userRef);
+    console.log('registerUserToFirestore: ドキュメント取得完了', { exists: userSnap.exists() });
 
     if (!userSnap.exists()) {
       // 新規ユーザー: ドキュメントを作成
-      await setDoc(userRef, {
+      const userData = {
         email: user.email,
         displayName: user.displayName || null,
         photoURL: user.photoURL || null,
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
-      });
-      console.log('新規ユーザーをFirestoreに登録しました:', user.uid);
+      };
+      console.log('registerUserToFirestore: 新規ユーザー登録開始', userData);
+
+      await setDoc(userRef, userData);
+      console.log('registerUserToFirestore: 新規ユーザー登録完了:', user.uid);
     } else {
       // 既存ユーザー: 最終ログイン日時を更新
+      console.log('registerUserToFirestore: 既存ユーザー、lastLoginAt更新開始');
       await setDoc(
         userRef,
         {
@@ -235,9 +246,10 @@ async function registerUserToFirestore(user: User): Promise<void> {
         },
         { merge: true }
       );
+      console.log('registerUserToFirestore: lastLoginAt更新完了');
     }
   } catch (error) {
-    console.error('Firestoreへのユーザー登録に失敗しました:', error);
+    console.error('registerUserToFirestore: エラー発生', error);
     // ログインは成功させるため、エラーは投げない
   }
 }
