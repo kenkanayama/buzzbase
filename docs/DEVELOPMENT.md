@@ -171,22 +171,39 @@ buzz_base/
 ### リント・型チェック
 
 ```bash
-cd frontend
-
-# 型チェック
-npm run type-check
-
-# リント
-npm run lint
-
-# ビルド確認
-npm run build
+# Docker環境内で実行
+docker compose exec frontend npm run type-check  # 型チェック
+docker compose exec frontend npm run lint        # リント
+docker compose exec frontend npm run build       # ビルド確認
 ```
 
-### pre-commit フック（今後追加予定）
+### コミット前の必須チェック
 
-- ESLint + Prettier による自動フォーマット
-- 型チェック
+**⚠️ 重要**: `frontend/` ディレクトリ内のファイルに変更がある場合は、**必ず以下のチェックを実行してからコミットすること**。
+
+```bash
+# 型チェック
+docker compose exec frontend npm run type-check
+
+# ビルドチェック（型チェックも含む）
+docker compose exec frontend npm run build
+```
+
+**チェックが失敗した場合：**
+- エラーを修正してから再度チェックを実行する
+- すべてのチェックが成功するまでコミットしない
+
+**よくあるエラー例：**
+- `TS6133: 'xxx' is declared but its value is never read.` → 未使用のインポートを削除
+- `TS2345: Argument of type 'xxx' is not assignable...` → 型の不整合を修正
+
+### pre-commit フック
+
+husky + lint-staged によるpre-commitフックが導入済みです。
+コミット時に以下が自動実行されます：
+
+- ステージされた `.ts`, `.tsx` ファイルに対して ESLint + Prettier
+- ステージされた `.js`, `.jsx`, `.json`, `.css`, `.md` ファイルに対して Prettier
 
 ---
 
