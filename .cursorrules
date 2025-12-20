@@ -135,12 +135,32 @@ git diff
 git diff --staged
 ```
 
-### 2. ステージング
+### 2. フロントエンドの変更がある場合：ビルドチェック（必須）
+
+**⚠️ 重要**: `frontend/` ディレクトリ内のファイルに変更がある場合は、**必ず以下のチェックを実行してからコミットすること**。
+
+```bash
+# 型チェック
+docker compose exec frontend npm run type-check
+
+# ビルドチェック（型チェックも含む）
+docker compose exec frontend npm run build
+```
+
+**チェックが失敗した場合：**
+- エラーを修正してから再度チェックを実行する
+- すべてのチェックが成功するまでコミットしない
+
+**よくあるエラー例：**
+- `TS6133: 'xxx' is declared but its value is never read.` → 未使用のインポートを削除
+- `TS2345: Argument of type 'xxx' is not assignable...` → 型の不整合を修正
+
+### 3. ステージング
 ```bash
 git add -A
 ```
 
-### 3. コミット
+### 4. コミット
 コミットメッセージは差分を確認した上で、適切な内容を**日本語**で作成する。
 
 **コミットメッセージのフォーマット:**
@@ -160,7 +180,7 @@ git add -A
 - `test`: テスト関連
 - `chore`: ビルド、補助ツール、ライブラリ関連
 
-### 4. プッシュ
+### 5. プッシュ
 現在のローカルブランチと同名のリモートブランチにプッシュする：
 ```bash
 git push origin $(git branch --show-current)

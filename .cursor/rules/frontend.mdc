@@ -139,6 +139,34 @@ docker compose exec frontend npm run build
 
 ---
 
+## コミット前の必須チェック
+
+**⚠️ 重要**: フロントエンドのコードを変更した場合は、**コミット前に必ず以下のチェックを実行すること**。
+
+### 必須チェック手順
+
+```bash
+# 型チェック（推奨: 最初にこちらを実行）
+docker compose exec frontend npm run type-check
+
+# ビルドチェック（本番ビルドが成功するか確認）
+docker compose exec frontend npm run build
+```
+
+### チェックが失敗した場合
+
+エラーを修正してから再度チェックを実行する。すべてのチェックが成功するまでコミットしないこと。
+
+### よくあるエラーと対処法
+
+| エラー | 原因 | 対処法 |
+|--------|------|--------|
+| `TS6133: 'xxx' is declared but its value is never read.` | 未使用のインポートまたは変数 | 未使用の部分を削除する |
+| `TS2345: Argument of type 'xxx' is not assignable...` | 型の不整合 | 正しい型を指定する |
+| `TS2307: Cannot find module 'xxx'` | モジュールが見つからない | パッケージをインストールまたはパスを修正 |
+
+---
+
 ## 開発サーバー
 
 ```bash
