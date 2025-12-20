@@ -34,7 +34,7 @@ steps:
       - '--build-arg'
       - 'VITE_FIREBASE_PROJECT_ID=${PROJECT_ID}'
       - '--build-arg'
-      - 'VITE_FIREBASE_STORAGE_BUCKET=${PROJECT_ID}.appspot.com'
+      - 'VITE_FIREBASE_STORAGE_BUCKET=${PROJECT_ID}.firebasestorage.app'
       - '--build-arg'
       - 'VITE_FIREBASE_MESSAGING_SENDER_ID=${_FIREBASE_MESSAGING_SENDER_ID}'
       - '--build-arg'

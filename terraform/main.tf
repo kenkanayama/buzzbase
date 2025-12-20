@@ -213,3 +213,19 @@ resource "google_secret_manager_secret" "firebase_messaging_sender_id" {
 
   depends_on = [google_project_service.required_apis]
 }
+
+# -----------------------------------------------------------------------------
+# Cloud Build Trigger
+# -----------------------------------------------------------------------------
+# Note: 第1世代のGitHub接続を使用しているため、トリガーはGCPコンソールで手動設定
+# 
+# 設定手順:
+# 1. GCP Console → Cloud Build → トリガー → トリガーを作成
+# 2. ソース: GitHub (第1世代) → リポジトリ: kenkanayama/buzzbase
+# 3. ブランチ: ^main$
+# 4. 構成: cloudbuild.yaml
+# 5. 置換変数を追加:
+#    - _FIREBASE_API_KEY = (Firebase API Key)
+#    - _FIREBASE_MESSAGING_SENDER_ID = 1028492470102
+#    - _FIREBASE_APP_ID = 1:1028492470102:web:7fbcd8e3bd35a51a4518f7
+# -----------------------------------------------------------------------------

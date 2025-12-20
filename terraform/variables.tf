@@ -25,3 +25,37 @@ variable "environment" {
   default     = "dev"
 }
 
+# -----------------------------------------------------------------------------
+# Firebase Configuration
+# -----------------------------------------------------------------------------
+
+variable "firebase_api_key" {
+  description = "Firebase API Key"
+  type        = string
+  sensitive   = true
+}
+
+variable "firebase_messaging_sender_id" {
+  description = "Firebase Messaging Sender ID"
+  type        = string
+}
+
+variable "firebase_app_id" {
+  description = "Firebase App ID"
+  type        = string
+}
+
+# -----------------------------------------------------------------------------
+# GitHub Configuration
+# -----------------------------------------------------------------------------
+
+variable "github_owner" {
+  description = "GitHub repository owner"
+  type        = string
+}
+
+variable "github_repo" {
+  description = "GitHub repository name"
+  type        = string
+}
+

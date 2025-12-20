@@ -5,6 +5,19 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 
+// デザインシステムカラー
+const COLORS = {
+  primary: '#f29801',
+  primaryHover: '#e38500',
+  secondary: '#e61f13',
+  secondaryLight: '#fff1f0',
+  neutral50: '#fafafa',
+  neutral200: '#e5e5e5',
+  neutral500: '#737373',
+  neutral600: '#525252',
+  neutral800: '#262626',
+};
+
 export function SignUpPage() {
   const navigate = useNavigate();
   const { signUpWithEmail, signInWithGoogle, error, clearError } = useAuth();
@@ -77,30 +90,60 @@ export function SignUpPage() {
   const displayError = validationError || error;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+    <div
+      className="flex min-h-screen items-center justify-center p-4"
+      style={{ backgroundColor: COLORS.neutral50 }}
+    >
       <div className="w-full max-w-md">
         {/* ロゴ */}
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/30">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-xl"
+              style={{ backgroundColor: COLORS.primary }}
+            >
               <span className="text-lg font-bold text-white">B</span>
             </div>
-            <span className="font-display text-2xl font-bold text-gray-900">
-              Buzz<span className="text-brand-500">Base</span>
+            <span className="font-display text-2xl font-bold" style={{ color: COLORS.neutral800 }}>
+              Buzz<span style={{ color: COLORS.primary }}>Base</span>
             </span>
           </Link>
         </div>
 
         {/* サインアップカード */}
-        <div className="rounded-3xl bg-white p-8 shadow-xl shadow-gray-200/50">
-          <h1 className="mb-2 text-center font-display text-2xl font-bold">アカウント作成</h1>
-          <p className="mb-8 text-center text-gray-500">無料で始めましょう</p>
+        <div
+          className="rounded-2xl bg-white p-8"
+          style={{
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            border: `1px solid ${COLORS.neutral200}`,
+          }}
+        >
+          <h1
+            className="mb-2 text-center font-display text-2xl font-bold"
+            style={{ color: COLORS.neutral800 }}
+          >
+            アカウント作成
+          </h1>
+          <p className="mb-8 text-center" style={{ color: COLORS.neutral500 }}>
+            無料で始めましょう
+          </p>
 
           {/* エラー表示 */}
           {displayError && (
-            <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 p-4">
-              <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" />
-              <p className="text-sm text-red-600">{displayError}</p>
+            <div
+              className="mb-6 flex items-start gap-3 rounded-xl p-4"
+              style={{
+                backgroundColor: COLORS.secondaryLight,
+                border: '1px solid #ffc8c4',
+              }}
+            >
+              <AlertCircle
+                className="mt-0.5 h-5 w-5 flex-shrink-0"
+                style={{ color: COLORS.secondary }}
+              />
+              <p className="text-sm" style={{ color: COLORS.secondary }}>
+                {displayError}
+              </p>
             </div>
           )}
 
@@ -109,7 +152,16 @@ export function SignUpPage() {
             type="button"
             onClick={handleGoogleSignUp}
             disabled={loading}
-            className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-gray-200 px-4 py-3 transition-colors hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-3 rounded-lg px-4 py-3 transition-colors disabled:opacity-50"
+            style={{ border: `2px solid ${COLORS.neutral200}` }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.borderColor = COLORS.primary;
+              e.currentTarget.style.backgroundColor = '#fff8ed';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.borderColor = COLORS.neutral200;
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path
@@ -129,14 +181,18 @@ export function SignUpPage() {
                 fill="#EA4335"
               />
             </svg>
-            <span className="font-medium text-gray-700">Googleで登録</span>
+            <span className="font-medium" style={{ color: COLORS.neutral600 }}>
+              Googleで登録
+            </span>
           </button>
 
           {/* 区切り線 */}
           <div className="my-6 flex items-center gap-4">
-            <div className="h-px flex-1 bg-gray-200" />
-            <span className="text-sm text-gray-400">または</span>
-            <div className="h-px flex-1 bg-gray-200" />
+            <div className="h-px flex-1" style={{ backgroundColor: COLORS.neutral200 }} />
+            <span className="text-sm" style={{ color: COLORS.neutral500 }}>
+              または
+            </span>
+            <div className="h-px flex-1" style={{ backgroundColor: COLORS.neutral200 }} />
           </div>
 
           {/* メールサインアップフォーム */}
@@ -184,9 +240,13 @@ export function SignUpPage() {
           </form>
 
           {/* ログインリンク */}
-          <p className="mt-6 text-center text-sm text-gray-500">
+          <p className="mt-6 text-center text-sm" style={{ color: COLORS.neutral500 }}>
             既にアカウントをお持ちの方は{' '}
-            <Link to="/login" className="font-medium text-brand-500 hover:underline">
+            <Link
+              to="/login"
+              className="font-medium hover:underline"
+              style={{ color: COLORS.primary }}
+            >
               ログイン
             </Link>
           </p>
@@ -199,7 +259,8 @@ export function SignUpPage() {
 function PasswordRule({ satisfied, children }: { satisfied: boolean; children: React.ReactNode }) {
   return (
     <div
-      className={`flex items-center gap-2 text-xs ${satisfied ? 'text-green-600' : 'text-gray-400'}`}
+      className="flex items-center gap-2 text-xs"
+      style={{ color: satisfied ? '#16a34a' : COLORS.neutral500 }}
     >
       <CheckCircle className={`h-3.5 w-3.5 ${satisfied ? 'opacity-100' : 'opacity-40'}`} />
       <span>{children}</span>
