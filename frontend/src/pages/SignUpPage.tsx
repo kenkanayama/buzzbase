@@ -65,7 +65,8 @@ export function SignUpPage() {
 
     try {
       await signUpWithEmail(email, password);
-      navigate('/dashboard', { replace: true });
+      // メール確認画面へ遷移
+      navigate('/verify-email', { replace: true });
     } catch {
       // エラーはAuthContextで処理
     } finally {

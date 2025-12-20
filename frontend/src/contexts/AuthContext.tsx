@@ -39,6 +39,8 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   clearError: () => void;
+  resendVerificationEmail: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 // =====================================================
@@ -84,7 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       setError(null);
-      await signInWithEmailAndPassword(auth, email, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+
+      // メール確認済みの場合のみFirestoreに登録
+      if (result.user.emailVerified) {
+        await registerUserToFirestore(result.user);
+      }
     } catch (err) {
       const message = getAuthErrorMessage(err);
       setError(message);
@@ -167,6 +174,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // エラーをクリア
   const clearError = () => setError(null);
 
+  // 確認メールを再送信
+  const resendVerificationEmail = async () => {
+    if (!auth?.currentUser) {
+      throw new Error('ユーザーがログインしていません');
+    }
+
+    try {
+      await sendEmailVerification(auth.currentUser);
+    } catch (err) {
+      const code = (err as { code?: string }).code;
+      if (code === 'auth/too-many-requests') {
+        throw new Error('確認メールの送信回数が上限に達しました。しばらくお待ちください');
+      }
+      throw new Error('確認メールの送信に失敗しました');
+    }
+  };
+
+  // ユーザー情報を更新（メール確認状態の更新）
+  const refreshUser = async () => {
+    if (!auth?.currentUser) {
+      return;
+    }
+
+    await auth.currentUser.reload();
+    // reload後のユーザー情報を反映
+    setUser({ ...auth.currentUser });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -179,6 +214,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInWithGoogle,
         signOut,
         clearError,
+        resendVerificationEmail,
+        refreshUser,
       }}
     >
       {children}
