@@ -103,9 +103,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null);
       const result = await signInWithEmailAndPassword(auth, email, password);
 
+      // 最新のユーザー情報を取得（メール確認状態がキャッシュで古い場合があるため）
+      await result.user.reload();
+
+      // 状態を更新（reload後の最新情報を反映）
+      setUser(auth.currentUser);
+
       // メール確認済みの場合のみFirestoreに登録
-      if (result.user.emailVerified) {
-        await registerUserToFirestore(result.user);
+      if (auth.currentUser?.emailVerified) {
+        await registerUserToFirestore(auth.currentUser);
       }
     } catch (err) {
       const message = getAuthErrorMessage(err);
