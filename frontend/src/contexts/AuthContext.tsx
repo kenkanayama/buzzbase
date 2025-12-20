@@ -8,6 +8,7 @@ import {
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   sendEmailVerification,
+  deleteUser,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, isFirebaseConfigured } from '@/lib/firebase';
@@ -127,8 +128,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (email) {
           const domain = email.split('@')[1];
           if (!ALLOWED_GOOGLE_DOMAINS.includes(domain)) {
-            // 許可されていないドメインの場合はサインアウトしてエラー
-            await firebaseSignOut(auth);
+            // 許可されていないドメインの場合はユーザーを削除してエラー
+            // Firebase Authにユーザーが残らないようにする
+            try {
+              await deleteUser(result.user);
+            } catch (deleteError) {
+              // 削除に失敗した場合はサインアウトのみ実行
+              console.error('ユーザー削除に失敗:', deleteError);
+              await firebaseSignOut(auth);
+            }
             const errorMessage = `このアプリは現在開発中のため、${ALLOWED_GOOGLE_DOMAINS.join(', ')} ドメインのアカウントのみログインできます`;
             setError(errorMessage);
             throw new Error(errorMessage);
