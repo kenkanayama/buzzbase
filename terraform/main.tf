@@ -233,6 +233,16 @@ resource "google_cloudbuild_trigger" "main_branch" {
     }
   }
 
+  # terraformディレクトリのみの変更ではビルドをスキップ
+  ignored_files = [
+    "terraform/**",
+    "docs/**",
+    "*.md",
+    ".gitignore",
+    ".cursorignore",
+    ".cursor/**",
+  ]
+
   filename = "cloudbuild.yaml"
 
   substitutions = {
