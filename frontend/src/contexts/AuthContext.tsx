@@ -28,14 +28,15 @@ const ALLOWED_GOOGLE_DOMAINS: string[] | null = ['hayashi-rice.tech'];
 
 /**
  * メール確認後のリダイレクト設定
- * 確認リンクをクリック後、指定したURLにリダイレクトされる
+ * 確認リンクをクリック後、アプリ内のカスタムハンドラーへ遷移する
  */
 const getEmailVerificationSettings = (): ActionCodeSettings => {
   // 現在のホスト（ローカル or 本番）に基づいてURLを生成
   const baseUrl = window.location.origin;
   return {
-    url: `${baseUrl}/login?verified=true`,
-    handleCodeInApp: false,
+    // カスタムハンドラーのURLを指定（Firebaseはここにリダイレクトする）
+    url: `${baseUrl}/auth/action`,
+    handleCodeInApp: true,
   };
 };
 
