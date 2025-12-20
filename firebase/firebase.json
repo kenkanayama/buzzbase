@@ -1,5 +1,6 @@
 {
   "firestore": {
+    "database": "sincere-kit-buzzbase",
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },

@@ -65,3 +65,6 @@ docs/PROJECT_CONFIG.md
 .cache/
 *.tgz
 
+# Test scripts
+scripts/package-lock.json
+
