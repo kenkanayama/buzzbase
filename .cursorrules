@@ -110,18 +110,93 @@
    - 機密情報の値（環境変数や `.env` で管理）
    - 一時的な検証・テスト用リソース
 
-#### Terraformファイルの配置
+#### Terraformファイル構成
 
-すべてのTerraformファイルは `terraform/` ディレクトリに配置する：
+すべてのTerraformファイルは `terraform/` ディレクトリに配置し、**論理的なサービスグループごとにファイルを分割**する：
 
 ```
 terraform/
-├── main.tf           # メインのリソース定義
-├── variables.tf      # 変数定義
-├── outputs.tf        # 出力定義
-├── terraform.tfvars  # 変数値（.gitignoreに含む）
+├── main.tf              # Terraform設定、プロバイダー、API有効化
+├── cloud_run.tf         # Cloud Run関連（SA、IAM、サービス、公開アクセス）
+├── cloud_functions.tf   # Cloud Functions関連（SA、IAM、ストレージ、関数）
+├── cloud_build.tf       # Cloud Build関連（SA、IAM、Artifact Registry、トリガー）
+├── secrets.tf           # Secret Manager関連
+├── iam_local_dev.tf     # ローカル開発用SA・IAM
+├── variables.tf         # 変数定義
+├── outputs.tf           # 出力定義
+├── functions/           # Cloud Functionsソースコード
+│   ├── index.js
+│   └── package.json
+├── terraform.tfvars     # 変数値（.gitignoreに含む）
 └── terraform.tfvars.example  # 変数値のサンプル
 ```
+
+#### Terraformコーディング規約（ベストプラクティス）
+
+1. **論理的なサービスグループごとにファイルを分割する**
+   - 各GCPサービス（Cloud Run、Cloud Functions、Cloud Buildなど）に関連するすべてのリソースを1ファイルにまとめる
+   - サービスアカウント、IAMバインディング、サービス本体を同じファイルに記述
+   - これにより保守性が向上し、特定サービスの変更時に1ファイルだけ編集すればよい
+
+2. **ファイルの役割**
+
+   | ファイル | 内容 |
+   |---|---|
+   | `main.tf` | Terraformブロック、プロバイダー設定、API有効化のみ |
+   | `cloud_run.tf` | Cloud Run関連のすべて（SA、IAM、サービス、公開アクセス） |
+   | `cloud_functions.tf` | Cloud Functions関連のすべて（SA、IAM、ストレージ、関数） |
+   | `cloud_build.tf` | Cloud Build関連のすべて（SA、IAM、Artifact Registry、トリガー） |
+   | `secrets.tf` | Secret Manager関連 |
+   | `iam_local_dev.tf` | 特定サービスに紐づかないSA・IAM |
+   | `variables.tf` | 変数定義 |
+   | `outputs.tf` | 出力定義 |
+
+3. **新しいGCPサービスを追加する場合**
+   - 新しいファイル（例: `cloud_scheduler.tf`）を作成する
+   - そのサービスに関連するすべてのリソースを1ファイルにまとめる
+   - ファイル冒頭にコメントで内容を説明する
+
+4. **ファイル内の構成順序**
+   ```hcl
+   # =============================================================================
+   # [サービス名] - [説明]
+   # =============================================================================
+   #
+   # このファイルには [サービス名] に関連するすべてのリソースが含まれます:
+   #   - サービスアカウント
+   #   - IAMバインディング
+   #   - [その他のリソース]
+   #
+   # =============================================================================
+
+   # -----------------------------------------------------------------------------
+   # Service Account
+   # -----------------------------------------------------------------------------
+   resource "google_service_account" "..." { ... }
+
+   # -----------------------------------------------------------------------------
+   # IAM Bindings
+   # -----------------------------------------------------------------------------
+   resource "google_project_iam_member" "..." { ... }
+
+   # -----------------------------------------------------------------------------
+   # [リソース本体]
+   # -----------------------------------------------------------------------------
+   resource "google_..._service" "..." { ... }
+
+   # -----------------------------------------------------------------------------
+   # Public Access (必要な場合)
+   # -----------------------------------------------------------------------------
+   resource "google_..._iam_member" "..." { ... }
+   ```
+
+5. **IAMリソースの配置ルール**
+   - サービス固有のSA・IAM → そのサービスのファイル（例: `cloud_run.tf`）
+   - 複数サービスで共有するSA・IAM → 専用ファイル（例: `iam_local_dev.tf`）
+
+6. **命名規則**
+   - ファイル名: `<サービス名>.tf`（スネークケース）
+   - リソース名: サービス名を接頭辞に（例: `cloudrun_firestore`, `functions_secret_accessor`）
 
 #### GCP設定変更時のワークフロー
 
@@ -317,7 +392,16 @@ buzz_base/
 ├── docs/               # ドキュメント
 │   └── DESIGN_SYSTEM.md  # デザインシステムガイドライン（メイン）
 ├── firebase/           # Firestore ルール
-├── terraform/          # インフラ定義
+├── terraform/          # インフラ定義（Terraform）
+│   ├── main.tf         # Terraform設定、プロバイダー、API有効化
+│   ├── cloud_run.tf    # Cloud Run関連リソース
+│   ├── cloud_functions.tf  # Cloud Functions関連リソース
+│   ├── cloud_build.tf  # Cloud Build・Artifact Registry関連
+│   ├── secrets.tf      # Secret Manager関連
+│   ├── iam_local_dev.tf  # ローカル開発用SA・IAM
+│   ├── variables.tf    # 変数定義
+│   ├── outputs.tf      # 出力定義
+│   └── functions/      # Cloud Functionsソースコード
 ├── docker-compose.yml  # 開発環境
 ├── Dockerfile          # 本番用
 └── Dockerfile.dev      # 開発用
