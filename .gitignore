@@ -39,6 +39,9 @@ ui-debug.log
 *.swo
 *~
 
+# Cursor rules with credentials (IMPORTANT: Never commit!)
+.cursor/rules/dev-credentials.mdc
+
 # OS
 .DS_Store
 Thumbs.db
