@@ -116,7 +116,10 @@ docker compose --profile terraform run --rm terraform apply
 | ドキュメント | 内容 |
 |-------------|------|
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | 開発環境セットアップ・開発フロー |
-| [SETUP_CICD.md](docs/SETUP_CICD.md) | GitHub + Cloud Build 連携手順 |
+| [SETUP_CICD.md](docs/SETUP_CICD.md) | GitHub + Cloud Build 連携手順（完了済み） |
+| [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | UI/UX デザインガイドライン |
+| [DASHBOARD_TODO.md](docs/DASHBOARD_TODO.md) | ダッシュボード機能開発TODO |
+| [アプリ開発概要.md](アプリ開発概要.md) | 機能要件・仕様書 |
 
 ## 📄 ライセンス
 

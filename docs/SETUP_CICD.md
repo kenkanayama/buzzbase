@@ -8,8 +8,8 @@
 
 - [x] GCP プロジェクト作成済み（`sincere-kit`）
 - [x] Firebase Authentication 有効化済み
-- [ ] GitHub リポジトリ作成済み
-- [ ] Terraform でインフラ構築済み
+- [x] GitHub リポジトリ作成済み
+- [x] Terraform でインフラ構築済み
 
 ## 🔧 セットアップ手順
 
@@ -198,12 +198,12 @@ git push origin main
 
 ## ✅ 確認チェックリスト
 
-- [ ] GitHub リポジトリ `kenkanayama/buzzbase` が作成されている
-- [ ] ローカルからリポジトリに push できる
-- [ ] Cloud Build と GitHub が連携されている
-- [ ] ビルドトリガーが作成されている
-- [ ] main ブランチへの push で自動ビルドが開始される
-- [ ] Cloud Run にデプロイされ、URLでアクセスできる
+- [x] GitHub リポジトリ `kenkanayama/buzzbase` が作成されている
+- [x] ローカルからリポジトリに push できる
+- [x] Cloud Build と GitHub が連携されている
+- [x] ビルドトリガーが作成されている
+- [x] main ブランチへの push で自動ビルドが開始される
+- [x] Cloud Run にデプロイされ、URLでアクセスできる
 
 ## 🔍 トラブルシューティング
 
