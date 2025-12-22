@@ -4,7 +4,7 @@
  */
 import { doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { UserProfile, UserProfileUpdateInput } from '@/types';
+import { UserProfile, UserProfileUpdateInput, InstagramAccount } from '@/types';
 
 /**
  * Firestore Timestamp を Date に変換
@@ -12,6 +12,25 @@ import { UserProfile, UserProfileUpdateInput } from '@/types';
 function timestampToDate(timestamp: Timestamp | undefined | null): Date | undefined {
   if (!timestamp) return undefined;
   return timestamp.toDate();
+}
+
+/**
+ * Firestore の instagramAccounts 配列を InstagramAccount[] 型に変換
+ */
+function parseInstagramAccounts(data: unknown): InstagramAccount[] {
+  if (!data || !Array.isArray(data)) {
+    return [];
+  }
+
+  return data
+    .filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null)
+    .map((item) => ({
+      accountId: (item.accountId as string) || '',
+      username: (item.username as string) || '',
+      name: (item.name as string) || '',
+      profilePictureUrl: (item.profile_picture_url as string) || '',
+    }))
+    .filter((account) => account.accountId); // accountIdがないものは除外
 }
 
 /**
@@ -46,6 +65,7 @@ function docToUserProfile(uid: string, data: Record<string, unknown>): UserProfi
           accountHolder: (data.bankAccount as Record<string, unknown>).accountHolder as string,
         }
       : null,
+    instagramAccounts: parseInstagramAccounts(data.instagramAccounts),
     createdAt: timestampToDate(data.createdAt as Timestamp) || new Date(),
     updatedAt: timestampToDate(data.updatedAt as Timestamp) || new Date(),
     lastLoginAt: timestampToDate(data.lastLoginAt as Timestamp),
@@ -67,7 +87,7 @@ export async function createUserProfile(
 
   try {
     const userRef = doc(db, 'users', uid);
-    
+
     const newProfile = {
       email: initialData.email,
       displayName: initialData.displayName || null,
@@ -75,6 +95,7 @@ export async function createUserProfile(
       phone: null,
       address: null,
       bankAccount: null,
+      instagramAccounts: [],
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -90,6 +111,7 @@ export async function createUserProfile(
       phone: null,
       address: null,
       bankAccount: null,
+      instagramAccounts: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -212,7 +234,8 @@ export const validators = {
    * 口座名義の形式をチェック（全角カタカナ）
    */
   isValidAccountHolder: (accountHolder: string): boolean => {
-    const holderPattern = /^[ァ-ヶー　]+$/;
+    // 全角カタカナと全角スペース（\u3000）を許可
+    const holderPattern = /^[ァ-ヶー\u3000]+$/;
     return holderPattern.test(accountHolder);
   },
 
@@ -232,4 +255,3 @@ export const validators = {
     return codePattern.test(branchCode);
   },
 };
-

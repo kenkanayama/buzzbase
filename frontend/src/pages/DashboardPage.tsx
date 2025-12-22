@@ -1,100 +1,125 @@
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Instagram, Music2, Plus, Eye, Calendar, ChevronRight } from 'lucide-react';
+import { Instagram, Music2, Calendar, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
-import { formatNumber } from '@/lib/utils';
+import { getUserProfile } from '@/lib/firestore/users';
+import { InstagramAccount } from '@/types';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export function DashboardPage() {
   const { user } = useAuth();
+  const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
-  // TODO: Firestoreから実際のデータを取得
-  const snsAccounts = [
-    { platform: 'Instagram', username: '@example_user', connected: true },
-    { platform: 'TikTok', username: '@example_tiktok', connected: false },
-  ];
+  // Firestoreからユーザーデータを取得
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
-  const recentPosts = [
-    {
-      id: '1',
-      platform: 'Instagram',
-      productName: 'サンプル商品A',
-      postDate: new Date('2024-12-10'),
-      viewCount: 15420,
-      status: 'completed',
-    },
-    {
-      id: '2',
-      platform: 'TikTok',
-      productName: 'サンプル商品B',
-      postDate: new Date('2024-12-15'),
-      viewCount: null,
-      status: 'pending',
-    },
-  ];
+      try {
+        const profile = await getUserProfile(user.uid);
+        if (profile) {
+          setInstagramAccounts(profile.instagramAccounts || []);
+        }
+      } catch (error) {
+        console.error('ユーザーデータの取得に失敗しました:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
+  // TODO: 投稿データはFirestoreから取得するように実装予定
+  const recentPosts: {
+    id: string;
+    platform: string;
+    productName: string;
+    postDate: Date;
+    viewCount: number | null;
+    status: string;
+  }[] = [];
 
   return (
     <div className="animate-fade-in space-y-8">
-      {/* ウェルカムセクション */}
-      <section>
-        <h1 className="font-display text-2xl font-bold text-gray-900">
-          こんにちは、{user?.displayName || 'ユーザー'}さん 👋
-        </h1>
-        <p className="mt-1 text-gray-500">今日も素敵な投稿を管理しましょう</p>
-      </section>
-
-      {/* クイックアクション */}
-      <section className="card !p-4">
-        <Link to="/post/new" className="group flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/20 transition-transform group-hover:scale-105">
-            <Plus className="h-6 w-6 text-white" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900">新しい投稿を登録</h3>
-            <p className="text-sm text-gray-500">商品PRの投稿URLを追加</p>
-          </div>
-          <ChevronRight className="h-5 w-5 text-gray-400 transition-colors group-hover:text-brand-500" />
-        </Link>
-      </section>
-
-      {/* SNS連携状況 */}
+      {/* 連携済みSNS */}
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">SNS連携</h2>
-          <button className="text-sm text-brand-500 hover:underline">設定</button>
+          <h2 className="text-lg font-semibold text-gray-900">連携済みSNS</h2>
+          <button
+            onClick={() => setIsSettingsModalOpen(true)}
+            className="text-sm font-medium hover:underline"
+            style={{ color: '#f29801' }}
+          >
+            設定
+          </button>
         </div>
-        <div className="grid gap-3">
-          {snsAccounts.map((account) => (
-            <div key={account.platform} className="card flex items-center gap-4 !p-4">
-              <div
-                className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                  account.platform === 'Instagram'
-                    ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500'
-                    : 'bg-black'
-                }`}
-              >
-                {account.platform === 'Instagram' ? (
-                  <Instagram className="h-5 w-5 text-white" />
-                ) : (
-                  <Music2 className="h-5 w-5 text-white" />
-                )}
+
+        {loading ? (
+          <div className="card flex items-center justify-center py-8">
+            <LoadingSpinner size="md" />
+          </div>
+        ) : (
+          <div className="card !p-4">
+            {instagramAccounts.length > 0 ? (
+              <div className="space-y-3">
+                {instagramAccounts.map((account) => (
+                  <div
+                    key={account.accountId}
+                    className="flex items-center gap-3 rounded-lg bg-gray-50 p-3"
+                  >
+                    {/* プロフィール画像 */}
+                    {account.profilePictureUrl ? (
+                      <img
+                        src={account.profilePictureUrl}
+                        alt={account.name || account.username}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
+                        <User className="h-5 w-5 text-gray-400" />
+                      </div>
+                    )}
+                    {/* アカウント情報 */}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-gray-900">
+                        {account.name || account.username}
+                      </p>
+                      <p className="truncate text-sm text-gray-500">@{account.username}</p>
+                    </div>
+                    {/* Instagramアイコン */}
+                    <div
+                      className="flex h-6 w-6 items-center justify-center rounded-md"
+                      style={{
+                        background:
+                          'linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #F77737 100%)',
+                      }}
+                    >
+                      <Instagram className="h-3.5 w-3.5 text-white" />
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex-1">
-                <h3 className="font-medium text-gray-900">{account.platform}</h3>
-                <p className="text-sm text-gray-500">{account.username}</p>
-              </div>
-              <span className={`${account.connected ? 'badge-success' : 'badge-warning'}`}>
-                {account.connected ? '連携済み' : '要再連携'}
-              </span>
-            </div>
-          ))}
-        </div>
+            ) : (
+              <p className="py-4 text-center text-sm text-gray-500">
+                連携されているSNSアカウントはありません
+              </p>
+            )}
+          </div>
+        )}
       </section>
 
       {/* 最近の投稿 */}
       <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">最近の投稿</h2>
-          <Link to="/posts" className="text-sm text-brand-500 hover:underline">
+          <Link to="/posts" className="text-sm hover:underline" style={{ color: '#f29801' }}>
             すべて見る
           </Link>
         </div>
@@ -118,11 +143,15 @@ export function DashboardPage() {
               <div key={post.id} className="card !p-4">
                 <div className="flex items-start gap-4">
                   <div
-                    className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${
+                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
+                    style={
                       post.platform === 'Instagram'
-                        ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500'
-                        : 'bg-black'
-                    }`}
+                        ? {
+                            background:
+                              'linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #F77737 100%)',
+                          }
+                        : { backgroundColor: 'black' }
+                    }
                   >
                     {post.platform === 'Instagram' ? (
                       <Instagram className="h-5 w-5 text-white" />
@@ -140,22 +169,71 @@ export function DashboardPage() {
                       })}
                     </p>
                   </div>
-                  <div className="text-right">
-                    {post.viewCount !== null ? (
-                      <div className="flex items-center gap-1 font-semibold text-gray-900">
-                        <Eye className="h-4 w-4 text-gray-400" />
-                        {formatNumber(post.viewCount)}
-                      </div>
-                    ) : (
-                      <span className="badge-warning">計測中</span>
-                    )}
-                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </section>
+
+      {/* SNS連携設定モーダル */}
+      {isSettingsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* オーバーレイ */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setIsSettingsModalOpen(false)}
+          />
+          {/* モーダルコンテンツ */}
+          <div className="relative z-10 mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            {/* ヘッダー */}
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">SNS連携設定</h3>
+              <button
+                onClick={() => setIsSettingsModalOpen(false)}
+                className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* 連携ボタン一覧 */}
+            <div className="space-y-3">
+              {/* Instagram連携ボタン */}
+              <button
+                className="flex w-full items-center gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+                onClick={() => {
+                  // TODO: Instagram連携処理を実装
+                }}
+              >
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl"
+                  style={{
+                    background: 'linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #F77737 100%)',
+                  }}
+                >
+                  <Instagram className="h-5 w-5 text-white" />
+                </div>
+                <span className="font-medium text-gray-900">Instagramを連携する</span>
+              </button>
+
+              {/* TikTok連携ボタン（近日対応予定） */}
+              <button
+                className="flex w-full cursor-not-allowed items-center gap-4 rounded-xl border border-gray-200 p-4 opacity-60"
+                disabled
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black">
+                  <Music2 className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1 text-left">
+                  <span className="font-medium text-gray-900">TikTokを連携する</span>
+                  <p className="text-sm text-gray-500">近日対応予定</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,6 +3,18 @@
 // =============================================================================
 
 /**
+ * Instagram連携アカウント情報
+ * @see https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user
+ * @see docs/API_RESOURCES.md - Users リソース定義
+ */
+export interface InstagramAccount {
+  accountId: string; // InstagramアカウントID（Graph API の id フィールド）
+  username: string; // ユーザー名（例: "@example_user"）
+  name: string; // プロフィール名（表示名）
+  profilePictureUrl: string; // プロフィール画像URL
+}
+
+/**
  * ユーザー情報
  * @see docs/API_RESOURCES.md - Users リソース定義
  */
@@ -37,6 +49,9 @@ export interface UserProfile {
     accountNumber: string; // 口座番号（例: "1234567"）
     accountHolder: string; // 口座名義（カタカナ）
   } | null;
+
+  // === Instagram連携情報 ===
+  instagramAccounts: InstagramAccount[]; // 連携済みInstagramアカウント
 
   // === メタデータ ===
   createdAt: Date; // 作成日時

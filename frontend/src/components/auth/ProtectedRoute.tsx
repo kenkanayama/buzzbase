@@ -12,7 +12,10 @@ interface ProtectedRouteProps {
  * - Google認証ユーザー: 常に確認済みとして扱う（Googleで既に確認済み）
  * - メール/パスワードユーザー: emailVerifiedフラグを確認
  */
-function isEmailVerified(user: { emailVerified: boolean; providerData: { providerId: string }[] }): boolean {
+function isEmailVerified(user: {
+  emailVerified: boolean;
+  providerData: { providerId: string }[];
+}): boolean {
   // Google認証ユーザーは確認済みとして扱う
   const isGoogleUser = user.providerData.some((provider) => provider.providerId === 'google.com');
   if (isGoogleUser) {

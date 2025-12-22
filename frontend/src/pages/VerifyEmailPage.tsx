@@ -180,11 +180,7 @@ export function VerifyEmailPage() {
 
           {/* ボタン */}
           <div className="space-y-3">
-            <Button
-              onClick={handleCheckVerification}
-              loading={checking}
-              className="w-full"
-            >
+            <Button onClick={handleCheckVerification} loading={checking} className="w-full">
               <RefreshCw className="mr-2 h-4 w-4" />
               確認状態を更新
             </Button>
@@ -228,10 +224,7 @@ export function VerifyEmailPage() {
           </div>
 
           {/* ヘルプテキスト */}
-          <div
-            className="mt-6 rounded-xl p-4"
-            style={{ backgroundColor: COLORS.neutral50 }}
-          >
+          <div className="mt-6 rounded-xl p-4" style={{ backgroundColor: COLORS.neutral50 }}>
             <p className="text-xs" style={{ color: COLORS.neutral500 }}>
               メールが届かない場合は、迷惑メールフォルダを確認するか、
               上のボタンから確認メールを再送信してください。
@@ -242,4 +235,3 @@ export function VerifyEmailPage() {
     </div>
   );
 }
-

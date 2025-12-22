@@ -66,10 +66,24 @@ interface User {
     accountHolder: string;       // 口座名義（カタカナ）
   } | null;
 
+  // === Instagram連携情報 ===
+  instagramAccounts: InstagramAccount[];  // 連携済みInstagramアカウント
+
   // === メタデータ ===
   createdAt: timestamp;          // 作成日時
   updatedAt: timestamp;          // 更新日時
   lastLoginAt: timestamp;        // 最終ログイン日時
+}
+
+/**
+ * Instagram連携アカウント情報
+ * @see https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user
+ */
+interface InstagramAccount {
+  accountId: string;             // InstagramアカウントID（Graph API の id フィールド）
+  username: string;              // ユーザー名（例: "@example_user"）
+  name: string;                  // プロフィール名（表示名）
+  profile_picture_url: string;   // プロフィール画像URL
 }
 ```
 
@@ -80,6 +94,7 @@ interface User {
 | email, displayName, photoURL | 認証・プロフィール表示 |
 | phone, address | 商品発送時の連絡先 |
 | bankAccount | 再生数補償の振込先 |
+| instagramAccounts | Instagram連携済みアカウントの表示・投稿時の連携アカウント選択 |
 
 ### バリデーションルール
 

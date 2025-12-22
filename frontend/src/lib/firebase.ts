@@ -1,10 +1,6 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, Auth } from 'firebase/auth';
-import {
-  connectFirestoreEmulator,
-  Firestore,
-  initializeFirestore,
-} from 'firebase/firestore';
+import { connectFirestoreEmulator, Firestore, initializeFirestore } from 'firebase/firestore';
 
 // Firebase設定
 const firebaseConfig = {

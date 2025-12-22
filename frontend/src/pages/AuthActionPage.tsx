@@ -85,9 +85,7 @@ export function AuthActionPage() {
             );
             break;
           case 'auth/invalid-action-code':
-            setErrorMessage(
-              'このリンクは既に使用されているか、無効です。'
-            );
+            setErrorMessage('このリンクは既に使用されているか、無効です。');
             break;
           case 'auth/user-disabled':
             setErrorMessage('このアカウントは無効化されています。');
@@ -226,4 +224,3 @@ export function AuthActionPage() {
     </div>
   );
 }
-

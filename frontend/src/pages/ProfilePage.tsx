@@ -1,20 +1,15 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { getUserProfile, updateUserProfile, createUserProfile, validators } from '@/lib/firestore/users';
+import {
+  getUserProfile,
+  updateUserProfile,
+  createUserProfile,
+  validators,
+} from '@/lib/firestore/users';
 import { UserProfile } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import {
-  User,
-  Phone,
-  MapPin,
-  Building2,
-  Pencil,
-  X,
-  Check,
-  Mail,
-  ChevronRight,
-} from 'lucide-react';
+import { User, Phone, MapPin, Building2, Pencil, X, Check, Mail, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // =====================================================
@@ -223,7 +218,8 @@ export function ProfilePage() {
           phone: formData.phone || null,
         });
       } else if (editSection === 'address') {
-        const hasAddress = formData.postalCode && formData.prefecture && formData.city && formData.street;
+        const hasAddress =
+          formData.postalCode && formData.prefecture && formData.city && formData.street;
         await updateUserProfile(user.uid, {
           address: hasAddress
             ? {
@@ -316,7 +312,11 @@ export function ProfilePage() {
         ) : (
           <div className="space-y-3">
             <InfoRow label="表示名" value={profile?.displayName || '未設定'} />
-            <InfoRow label="メールアドレス" value={profile?.email || ''} icon={<Mail className="h-4 w-4 text-gray-400" />} />
+            <InfoRow
+              label="メールアドレス"
+              value={profile?.email || ''}
+              icon={<Mail className="h-4 w-4 text-gray-400" />}
+            />
           </div>
         )}
       </ProfileSection>
@@ -616,9 +616,7 @@ function InfoRow({ label, value, icon }: InfoRowProps) {
       <span className="text-sm text-gray-500">{label}</span>
       <div className="flex items-center gap-2">
         {icon}
-        <span
-          className={cn('text-sm font-medium', isNotSet ? 'text-gray-400' : 'text-gray-900')}
-        >
+        <span className={cn('text-sm font-medium', isNotSet ? 'text-gray-400' : 'text-gray-900')}>
           {value}
         </span>
         {!isNotSet && <ChevronRight className="h-4 w-4 text-gray-300" />}
@@ -626,4 +624,3 @@ function InfoRow({ label, value, icon }: InfoRowProps) {
     </div>
   );
 }
-
