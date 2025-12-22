@@ -10,10 +10,10 @@
 | カテゴリ | 実装状況 | 備考 |
 |---------|---------|------|
 | ダッシュボードUI | ⚠️ 部分的 | モックデータで表示中 |
-| ユーザー情報編集 | ❌ 未実装 | ページ・機能なし |
+| ユーザー情報編集 | ✅ 実装済み | ProfilePage.tsx 作成完了、Firestore連携確認済み |
 | 投稿登録機能 | ❌ 未実装 | ページ・機能なし |
 | 投稿一覧機能 | ❌ 未実装 | ページ・機能なし |
-| Firestore CRUD | ❌ 未実装 | データ取得・保存なし |
+| Firestore CRUD | ⚠️ 部分的 | ユーザー情報の読み書き実装・動作確認済み |
 | SNS API連携 | ❌ 未実装 | Instagram/TikTok |
 | 再生数取得バッチ | ❌ 未実装 | Cloud Functions |
 
@@ -25,7 +25,7 @@
 
 以下のページとルートが未実装です。
 
-- [ ] **マイページ（プロフィール編集）**
+- [x] **マイページ（プロフィール編集）**
   - パス: `/profile`
   - ファイル: `frontend/src/pages/ProfilePage.tsx`
   - 機能: ユーザー情報の表示・編集
@@ -40,43 +40,54 @@
   - ファイル: `frontend/src/pages/PostsPage.tsx`
   - 機能: 登録済み投稿のリスト表示
 
-- [ ] **App.tsx にルート追加**
-  - 上記3ページのルーティング設定
+- [x] **App.tsx にルート追加**（一部）
+  - `/profile` ルートを追加済み
+  - `/post/new`, `/posts` は未実装
 
 ---
 
-### 2. ユーザー情報編集機能（/profile）
+### 2. ユーザー情報編集機能（/profile） ✅ 完了
 
 ドキュメント要件:
 > **ユーザー情報:** 名前（表示）、編集ボタン（名前・住所・電話・振込先）。
 
-- [ ] **ProfilePage.tsx の作成**
+- [x] **ProfilePage.tsx の作成**
   - ユーザー情報表示
   - 編集フォーム（名前・住所・電話・振込先）
 
-- [ ] **Firestore ユーザーコレクション設計**
+- [x] **Firestore ユーザーコレクション設計**
   ```
   users/{userId}
   ├── displayName: string
   ├── email: string
-  ├── address: string (住所)
   ├── phone: string (電話番号)
+  ├── address: object (住所)
+  │   ├── postalCode: string
+  │   ├── prefecture: string
+  │   ├── city: string
+  │   ├── street: string
+  │   └── building: string | null
   ├── bankAccount: object (振込先)
   │   ├── bankName: string
+  │   ├── bankCode: string
   │   ├── branchName: string
+  │   ├── branchCode: string
   │   ├── accountType: string
   │   ├── accountNumber: string
   │   └── accountHolder: string
   ├── createdAt: timestamp
-  └── updatedAt: timestamp
+  ├── updatedAt: timestamp
+  └── lastLoginAt: timestamp
   ```
 
-- [ ] **ユーザー情報 CRUD ユーティリティ**
+- [x] **ユーザー情報 CRUD ユーティリティ**
   - `lib/firestore/users.ts` 作成
-  - getUser, updateUser 関数
+  - getUserProfile, updateUserProfile 関数
 
-- [ ] **フォームバリデーション**
+- [x] **フォームバリデーション**
   - 電話番号形式チェック
+  - 郵便番号形式チェック
+  - 銀行コード・支店コード・口座番号・口座名義チェック
   - 必須項目チェック
 
 ---
@@ -205,15 +216,15 @@ const snsAccounts = [
 ```
 frontend/src/
 ├── pages/
-│   ├── ProfilePage.tsx      # NEW: マイページ
+│   ├── ProfilePage.tsx      # ✅ 作成済み: マイページ
 │   ├── PostNewPage.tsx      # NEW: 投稿登録
 │   └── PostsPage.tsx        # NEW: 投稿一覧
 ├── lib/
 │   └── firestore/
-│       ├── users.ts         # NEW: ユーザーCRUD
+│       ├── users.ts         # ✅ 作成済み: ユーザーCRUD
 │       └── posts.ts         # NEW: 投稿CRUD
 └── types/
-    └── index.ts             # UPDATE: 型定義追加
+    └── index.ts             # ✅ 更新済み: UserProfile型拡張
 
 functions/                    # NEW: Cloud Functions
 ├── src/
@@ -238,5 +249,7 @@ functions/                    # NEW: Cloud Functions
 | 日付 | 内容 |
 |------|------|
 | 2025-12-22 | 初版作成 - 調査結果をもとにTODOリスト化 |
+| 2025-12-22 | マイページ（ProfilePage.tsx）実装完了 - ユーザー情報CRUD機能追加 |
+| 2025-12-22 | Firestore連携の動作確認完了 - ユーザー情報の保存・更新が正常動作 |
 
 
