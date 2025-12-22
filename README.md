@@ -81,9 +81,9 @@ docker compose up frontend
 
 1. ✅ **Infrastructure** - Terraform による GCP 基盤構築
 2. ✅ **Dev Environment** - Docker / Vite + React 初期構築
-3. ✅ **CI/CD** - Cloud Build 設定 *(GitHub連携待ち)*
-4. ⬜ **Authentication** - Firebase Auth + Resend 連携
-5. ⬜ **Frontend & DB** - ダッシュボード UI と Firestore CRUD
+3. ✅ **CI/CD** - Cloud Build + GitHub 連携
+4. ✅ **Authentication** - Firebase Authentication
+5. 🔄 **Frontend & DB** - ダッシュボード UI と Firestore CRUD
 6. ⬜ **Backend Logic** - Cloud Functions（再生数取得バッチ）
 7. ⬜ **SNS API** - Instagram / TikTok API 連携
 

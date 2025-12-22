@@ -83,6 +83,62 @@
 
 ---
 
+## インフラ管理方針（Terraform / IaC）
+
+### GCP設定のTerraform管理
+
+**⚠️ 重要**: GCPの設定内容は、可能なものはすべてTerraformで管理すること。
+
+#### 基本方針
+
+1. **Infrastructure as Code（IaC）を徹底する**
+   - GCPリソース（Cloud Run、Firestore、Cloud Functions、IAMなど）の設定は、手動でGCPコンソールから行わず、Terraformで定義する
+   - 設定の再現性、バージョン管理、レビュー可能性を確保する
+
+2. **Terraformで管理すべきリソース**
+   - Cloud Run サービス設定
+   - Artifact Registry
+   - Cloud Firestore
+   - Cloud Functions
+   - Cloud Scheduler
+   - IAM ポリシー・サービスアカウント
+   - VPCネットワーク（必要な場合）
+   - Secret Manager（シークレットの存在のみ、値は除く）
+
+3. **Terraformで管理しないもの（例外）**
+   - Firebase Authentication の設定（Firebase Console で管理）
+   - 機密情報の値（環境変数や `.env` で管理）
+   - 一時的な検証・テスト用リソース
+
+#### Terraformファイルの配置
+
+すべてのTerraformファイルは `terraform/` ディレクトリに配置する：
+
+```
+terraform/
+├── main.tf           # メインのリソース定義
+├── variables.tf      # 変数定義
+├── outputs.tf        # 出力定義
+├── terraform.tfvars  # 変数値（.gitignoreに含む）
+└── terraform.tfvars.example  # 変数値のサンプル
+```
+
+#### GCP設定変更時のワークフロー
+
+1. **手動で設定しない** - GCPコンソールで直接変更せず、Terraformを使用する
+2. **Terraformファイルを更新** - 必要な変更を `.tf` ファイルに反映
+3. **プランを確認** - `terraform plan` で変更内容を確認
+4. **適用** - `terraform apply` で変更を適用
+5. **コミット** - Terraformファイルの変更をGitにコミット
+
+```bash
+# Terraformコマンド（Docker環境で実行）
+docker compose --profile terraform run --rm terraform plan
+docker compose --profile terraform run --rm terraform apply
+```
+
+---
+
 ## Docker環境でのコマンド実行
 
 基本的にすべてのコマンドはDocker環境内で実行すること。
