@@ -229,6 +229,7 @@ functions/                    # NEW: Cloud Functions
 - [アプリ開発概要.md](../アプリ開発概要.md) - 機能詳細・要件定義
 - [README.md](../README.md) - 開発ステップ進捗
 - [DEVELOPMENT.md](./DEVELOPMENT.md) - 開発ガイド
+- [API_RESOURCES.md](./API_RESOURCES.md) - RESTful APIリソース設計
 
 ---
 

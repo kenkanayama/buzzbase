@@ -119,6 +119,7 @@ docker compose --profile terraform run --rm terraform apply
 | [SETUP_CICD.md](docs/SETUP_CICD.md) | GitHub + Cloud Build 連携手順（完了済み） |
 | [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | UI/UX デザインガイドライン |
 | [DASHBOARD_TODO.md](docs/DASHBOARD_TODO.md) | ダッシュボード機能開発TODO |
+| [API_RESOURCES.md](docs/API_RESOURCES.md) | RESTful APIリソース設計 |
 | [アプリ開発概要.md](アプリ開発概要.md) | 機能要件・仕様書 |
 
 ## 📄 ライセンス
