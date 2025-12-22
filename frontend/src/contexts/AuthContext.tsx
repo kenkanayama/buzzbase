@@ -26,7 +26,12 @@ import { auth, db, isFirebaseConfigured } from '@/lib/firebase';
  *
  * TODO: 本番リリース時にALLOWED_AUTH_DOMAINSをnullまたは空配列に変更する
  */
-const ALLOWED_AUTH_DOMAINS: string[] | null = ['hayashi-rice.tech'];
+const ALLOWED_AUTH_DOMAINS: string[] | null = [
+  'hayashi-rice.tech',
+  'ricecurry.co.jp',
+  'ricecurryplus.co.jp',
+  'muscatgroup.co.jp',
+];
 
 /**
  * ドメイン制限のエラーメッセージを生成
