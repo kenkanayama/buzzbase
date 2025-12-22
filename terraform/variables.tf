@@ -59,3 +59,13 @@ variable "github_repo" {
   type        = string
 }
 
+# -----------------------------------------------------------------------------
+# Frontend Configuration
+# -----------------------------------------------------------------------------
+
+variable "frontend_url" {
+  description = "Frontend URL for redirects after OAuth"
+  type        = string
+  default     = "https://buzzbase-444823.web.app"
+}
+

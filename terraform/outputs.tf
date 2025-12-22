@@ -21,3 +21,13 @@ output "cloud_build_service_account" {
   description = "Cloud Build service account email"
   value       = google_service_account.cloud_build.email
 }
+
+output "instagram_callback_url" {
+  description = "Instagram OAuth callback URL (register this in Meta App Dashboard)"
+  value       = google_cloudfunctions_function.instagram_callback.https_trigger_url
+}
+
+output "cloud_functions_service_account" {
+  description = "Cloud Functions service account email"
+  value       = google_service_account.cloud_functions.email
+}
