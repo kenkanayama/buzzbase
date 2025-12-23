@@ -27,6 +27,13 @@
 }
 
 @layer components {
+  /* Glass Effect - ヘッダー・ナビゲーション用 */
+  .glass {
+    background-color: rgba(245, 245, 245, 0.85); /* neutral-100 with opacity */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
   /* Primary Button */
   .btn-primary {
     @apply inline-flex items-center justify-center rounded-lg px-6 py-3 font-semibold text-white transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;

@@ -239,10 +239,10 @@ export function DashboardPage() {
         )}
       </section>
 
-      {/* 最近の投稿 */}
+      {/* PR投稿 */}
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">最近の投稿</h2>
+          <h2 className="text-lg font-semibold text-gray-900">PR投稿</h2>
           <Link to="/posts" className="text-sm hover:underline" style={{ color: '#f29801' }}>
             すべて見る
           </Link>
@@ -297,16 +297,16 @@ export function DashboardPage() {
         )}
       </section>
 
-      {/* 投稿取得セクション */}
+      {/* PR投稿の登録セクション */}
       {instagramAccounts.length > 0 && (
         <section>
           <div className="mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">投稿を取得・登録</h2>
+            <h2 className="text-lg font-semibold text-gray-900">PR投稿を登録</h2>
           </div>
 
           <div className="card !p-4">
             <p className="mb-4 text-sm text-gray-500">
-              選択中のアカウントから直近の投稿を取得します
+              Instagramから直近の投稿を取得し、PR投稿として登録します
             </p>
             <Button
               onClick={handleFetchPosts}
@@ -321,7 +321,7 @@ export function DashboardPage() {
               ) : (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4" />
-                  直近の投稿を取得し登録する
+                  投稿を取得して登録
                 </>
               )}
             </Button>

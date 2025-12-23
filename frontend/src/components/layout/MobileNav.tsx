@@ -1,10 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { Home, PlusCircle, User } from 'lucide-react';
+import { Home, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/dashboard', icon: Home, label: 'ホーム' },
-  { to: '/post/new', icon: PlusCircle, label: '投稿登録' },
   { to: '/profile', icon: User, label: 'マイページ' },
 ];
 
