@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Instagram, Music2, Calendar, User, X } from 'lucide-react';
+import { Instagram, Music2, Calendar, User, X, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
 import { getUserProfile } from '@/lib/firestore/users';
@@ -17,6 +17,8 @@ export function DashboardPage() {
   const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccountWithId[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  // 選択中のInstagramアカウントID（投稿登録時に使用）
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
   // Firestoreからユーザーデータを取得
   useEffect(() => {
@@ -37,6 +39,10 @@ export function DashboardPage() {
             })
           );
           setInstagramAccounts(accountsArray);
+          // デフォルトで最初のアカウントを選択
+          if (accountsArray.length > 0) {
+            setSelectedAccountId(accountsArray[0].accountId);
+          }
         }
       } catch (error) {
         console.error('ユーザーデータの取得に失敗しました:', error);
@@ -47,6 +53,13 @@ export function DashboardPage() {
 
     fetchUserData();
   }, [user]);
+
+  // アカウント選択ハンドラー
+  const handleAccountSelect = (accountId: string) => {
+    // アカウントが1つしかない場合は選択変更を許可しない
+    if (instagramAccounts.length === 1) return;
+    setSelectedAccountId(accountId);
+  };
 
   // Instagram認証URLを生成
   const handleInstagramConnect = () => {
@@ -95,42 +108,63 @@ export function DashboardPage() {
           <div className="card !p-4">
             {instagramAccounts.length > 0 ? (
               <div className="space-y-3">
-                {instagramAccounts.map((account) => (
-                  <div
-                    key={account.accountId}
-                    className="flex items-center gap-3 rounded-lg bg-gray-50 p-3"
-                  >
-                    {/* プロフィール画像 */}
-                    {account.profilePictureUrl ? (
-                      <img
-                        src={account.profilePictureUrl}
-                        alt={account.name || account.username}
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
-                        <User className="h-5 w-5 text-gray-400" />
-                      </div>
-                    )}
-                    {/* アカウント情報 */}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-gray-900">
-                        {account.name || account.username}
-                      </p>
-                      <p className="truncate text-sm text-gray-500">@{account.username}</p>
-                    </div>
-                    {/* Instagramアイコン */}
-                    <div
-                      className="flex h-6 w-6 items-center justify-center rounded-md"
-                      style={{
-                        background:
-                          'linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #F77737 100%)',
-                      }}
+                {instagramAccounts.map((account) => {
+                  const isSelected = selectedAccountId === account.accountId;
+                  const isSingleAccount = instagramAccounts.length === 1;
+                  return (
+                    <button
+                      key={account.accountId}
+                      onClick={() => handleAccountSelect(account.accountId)}
+                      className={`flex w-full items-center gap-3 rounded-lg p-3 text-left transition-all ${
+                        isSelected
+                          ? 'bg-green-50 ring-2 ring-green-500 ring-opacity-50'
+                          : 'bg-gray-50 hover:bg-gray-100'
+                      } ${isSingleAccount ? 'cursor-default' : 'cursor-pointer'}`}
                     >
-                      <Instagram className="h-3.5 w-3.5 text-white" />
-                    </div>
-                  </div>
-                ))}
+                      {/* 選択チェックマーク */}
+                      <div className="relative flex-shrink-0">
+                        {/* プロフィール画像 */}
+                        {account.profilePictureUrl ? (
+                          <img
+                            src={account.profilePictureUrl}
+                            alt={account.name || account.username}
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
+                            <User className="h-5 w-5 text-gray-400" />
+                          </div>
+                        )}
+                        {/* 選択中の場合、緑色のチェックマークを左上に表示 */}
+                        {isSelected && (
+                          <div className="absolute -left-1 -top-1">
+                            <CheckCircle2
+                              className="h-5 w-5 fill-green-500 text-white"
+                              strokeWidth={2}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      {/* アカウント情報 */}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-gray-900">
+                          {account.name || account.username}
+                        </p>
+                        <p className="truncate text-sm text-gray-500">@{account.username}</p>
+                      </div>
+                      {/* Instagramアイコン */}
+                      <div
+                        className="flex h-6 w-6 items-center justify-center rounded-md"
+                        style={{
+                          background:
+                            'linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #F77737 100%)',
+                        }}
+                      >
+                        <Instagram className="h-3.5 w-3.5 text-white" />
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <p className="py-4 text-center text-sm text-gray-500">
@@ -159,8 +193,13 @@ export function DashboardPage() {
             <p className="mb-4 text-sm text-gray-500">
               最初の投稿を登録して、再生数をトラッキングしましょう
             </p>
-            <Link to="/post/new">
-              <Button size="sm">投稿を登録する</Button>
+            <Link
+              to="/post/new"
+              state={{ selectedAccountId }}
+            >
+              <Button size="sm" disabled={!selectedAccountId}>
+                投稿を登録する
+              </Button>
             </Link>
           </div>
         ) : (
