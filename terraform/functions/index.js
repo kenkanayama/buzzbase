@@ -5,6 +5,7 @@
 
 const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 const { Firestore, FieldValue } = require('@google-cloud/firestore');
+const { Storage } = require('@google-cloud/storage');
 // Node.js 20 has native fetch API
 
 // =============================================================================
@@ -17,6 +18,12 @@ const SECRET_NAME = `projects/${PROJECT_ID}/secrets/meta-instagram-app-secret/ve
 
 // フロントエンドURL（環境変数から取得、デフォルトは本番URL）
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://buzzbase-1028492470102.asia-northeast1.run.app';
+
+// プロフィール画像保存用バケット名
+const PROFILE_IMAGES_BUCKET = process.env.PROFILE_IMAGES_BUCKET || `${PROJECT_ID}-profile-images`;
+
+// Cloud Storageクライアント
+const storage = new Storage();
 
 // Instagram OAuth コールバックURL（固定値 - Metaアプリコンソールに登録したものと一致させる）
 const INSTAGRAM_CALLBACK_URL = 'https://asia-northeast1-sincere-kit.cloudfunctions.net/instagramCallback';
@@ -128,6 +135,56 @@ async function saveInstagramToken(accountId, tokenData) {
 }
 
 /**
+ * プロフィール画像をCloud Storageに保存
+ * @param {string} accountId - InstagramアカウントID
+ * @param {string} imageUrl - Instagramから取得した画像URL
+ * @returns {Promise<string|null>} - Cloud StorageのURL、画像がない場合はnull
+ */
+async function saveProfileImageToStorage(accountId, imageUrl) {
+  if (!imageUrl) {
+    console.log('プロフィール画像URLがありません');
+    return null;
+  }
+
+  try {
+    // 画像をダウンロード
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      console.error('プロフィール画像ダウンロードエラー:', response.status);
+      return null;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Content-Typeを取得（デフォルトはjpeg）
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const extension = contentType.includes('png') ? 'png' : 'jpg';
+
+    // Cloud Storageにアップロード
+    const fileName = `instagram/${accountId}.${extension}`;
+    const bucket = storage.bucket(PROFILE_IMAGES_BUCKET);
+    const file = bucket.file(fileName);
+
+    await file.save(buffer, {
+      metadata: {
+        contentType: contentType,
+        cacheControl: 'public, max-age=86400', // 24時間キャッシュ
+      },
+    });
+
+    // 公開URLを生成
+    const publicUrl = `https://storage.googleapis.com/${PROFILE_IMAGES_BUCKET}/${fileName}`;
+    console.log(`プロフィール画像をCloud Storageに保存: ${publicUrl}`);
+    
+    return publicUrl;
+  } catch (error) {
+    console.error('プロフィール画像保存エラー:', error);
+    return null;
+  }
+}
+
+/**
  * usersコレクションにInstagramアカウント情報を保存（Map形式）
  */
 async function saveInstagramAccountToUser(userId, accountData) {
@@ -233,30 +290,35 @@ exports.instagramCallback = async (req, res) => {
     const userInfo = await getInstagramUserInfo(longLivedData.access_token);
     console.log('ユーザー情報取得成功:', userInfo.username);
 
-    // 5. Firestoreに保存
+    // 5. プロフィール画像をCloud Storageに保存
+    console.log('プロフィール画像をCloud Storageに保存中...');
+    const accountId = userInfo.id;
+    const storedImageUrl = await saveProfileImageToStorage(accountId, userInfo.profile_picture_url);
+    
+    // 6. Firestoreに保存
     console.log('Firestoreに保存中...');
     
-    const accountId = userInfo.id;
     const tokenExpiresAt = new Date(Date.now() + longLivedData.expires_in * 1000);
     
-    // 5a. instagramAccountsコレクションにトークン情報を保存
+    // 6a. instagramAccountsコレクションにトークン情報を保存
     await saveInstagramToken(accountId, {
       username: userInfo.username,
       accessToken: longLivedData.access_token,
       tokenExpiresAt: tokenExpiresAt,
     });
     
-    // 5b. usersコレクションにアカウント情報を保存（Map形式）
+    // 6b. usersコレクションにアカウント情報を保存（Map形式）
+    // Cloud Storageに保存したURLを使用（有効期限なし）
     await saveInstagramAccountToUser(userId, {
       accountId: accountId,
       username: userInfo.username,
       name: userInfo.name || '',
-      profile_picture_url: userInfo.profile_picture_url || '',
+      profile_picture_url: storedImageUrl || '', // Cloud StorageのURL
     });
     
     console.log('Firestore保存成功');
 
-    // 6. フロントエンドにリダイレクト（成功）
+    // 7. フロントエンドにリダイレクト（成功）
     res.redirect(`${FRONTEND_URL}/dashboard?instagram_connected=true`);
 
   } catch (err) {
