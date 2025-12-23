@@ -126,14 +126,55 @@ resource "google_cloudfunctions_function" "instagram_callback" {
 }
 
 # -----------------------------------------------------------------------------
+# Cloud Function: Instagram投稿取得
+# -----------------------------------------------------------------------------
+
+resource "google_cloudfunctions_function" "get_instagram_media" {
+  name        = "getInstagramMedia"
+  description = "Instagram投稿一覧を取得（認証必須）"
+  runtime     = "nodejs20"
+  region      = var.region
+
+  available_memory_mb   = 256
+  source_archive_bucket = google_storage_bucket.functions_bucket.name
+  source_archive_object = google_storage_bucket_object.functions_zip.name
+  trigger_http          = true
+  entry_point           = "getInstagramMedia"
+
+  service_account_email = google_service_account.cloud_functions.email
+
+  environment_variables = {
+    GCP_PROJECT           = var.project_id
+    FRONTEND_URL          = var.frontend_url
+    PROFILE_IMAGES_BUCKET = google_storage_bucket.profile_images.name
+  }
+
+  depends_on = [
+    google_project_service.required_apis,
+    google_service_account.cloud_functions,
+  ]
+}
+
+# -----------------------------------------------------------------------------
 # Public Access
 # -----------------------------------------------------------------------------
 
-# 未認証アクセスを許可（公開API）
+# Instagram OAuth Callback: 未認証アクセスを許可（公開API）
 resource "google_cloudfunctions_function_iam_member" "invoker" {
   project        = var.project_id
   region         = var.region
   cloud_function = google_cloudfunctions_function.instagram_callback.name
+  role           = "roles/cloudfunctions.invoker"
+  member         = "allUsers"
+}
+
+# Instagram投稿取得: 認証済みユーザーのみアクセス可能
+# 注意: エンドポイント内でFirebase IDトークンを検証するため、allUsersに設定
+# 実際の認証はエンドポイント内で行う
+resource "google_cloudfunctions_function_iam_member" "get_instagram_media_invoker" {
+  project        = var.project_id
+  region         = var.region
+  cloud_function = google_cloudfunctions_function.get_instagram_media.name
   role           = "roles/cloudfunctions.invoker"
   member         = "allUsers"
 }

@@ -39,6 +39,11 @@ output "instagram_callback_url" {
   value       = google_cloudfunctions_function.instagram_callback.https_trigger_url
 }
 
+output "get_instagram_media_url" {
+  description = "Instagram投稿取得API URL (認証必須)"
+  value       = google_cloudfunctions_function.get_instagram_media.https_trigger_url
+}
+
 output "cloud_functions_service_account" {
   description = "Cloud Functions service account email"
   value       = google_service_account.cloud_functions.email

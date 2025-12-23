@@ -5,11 +5,8 @@ import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserProfile } from '@/lib/firestore/users';
-import { getInstagramAccountToken } from '@/lib/firestore/instagram';
-import { InstagramAccountWithId, InstagramMedia, InstagramMediaResponse } from '@/types';
-
-// Instagram Graph API バージョン
-const INSTAGRAM_API_VERSION = 'v24.0';
+import { getInstagramMedia } from '@/lib/api/instagram';
+import { InstagramAccountWithId, InstagramMedia } from '@/types';
 
 export function PostNewPage() {
   const location = useLocation();
@@ -63,36 +60,9 @@ export function PostNewPage() {
     setPosts([]);
 
     try {
-      // Firestoreからアクセストークンを取得
-      const accountDoc = await getInstagramAccountToken(selectedAccountId);
-      if (!accountDoc) {
-        setError('Instagramアカウントのトークンが見つかりません。再連携が必要です。');
-        setFetchingPosts(false);
-        return;
-      }
-
-      // トークンの有効期限をチェック
-      if (accountDoc.tokenExpiresAt < new Date()) {
-        setError('Instagramのアクセストークンが期限切れです。再連携してください。');
-        setFetchingPosts(false);
-        return;
-      }
-
-      // Instagram Graph APIからメディア一覧を取得
-      // Note: thumbnail_urlはVIDEOタイプのみ返却される
-      const apiUrl = `https://graph.instagram.com/${INSTAGRAM_API_VERSION}/${selectedAccountId}?fields=media{id,media_type,media_url,thumbnail_url,timestamp,permalink}&access_token=${accountDoc.accessToken}`;
-
-      const response = await fetch(apiUrl);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Instagram API error:', errorData);
-        setError(`Instagram APIエラー: ${errorData.error?.message || '不明なエラー'}`);
-        setFetchingPosts(false);
-        return;
-      }
-
-      const data: InstagramMediaResponse = await response.json();
+      // バックエンドAPI経由でInstagram投稿一覧を取得
+      // トークンはバックエンドで安全に取得・使用される
+      const data = await getInstagramMedia(selectedAccountId);
 
       if (data.media && data.media.data) {
         setPosts(data.media.data);
@@ -101,7 +71,11 @@ export function PostNewPage() {
       }
     } catch (err) {
       console.error('投稿の取得に失敗しました:', err);
-      setError('投稿の取得に失敗しました。ネットワークエラーが発生した可能性があります。');
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : '投稿の取得に失敗しました。ネットワークエラーが発生した可能性があります。';
+      setError(errorMessage);
     } finally {
       setFetchingPosts(false);
     }
@@ -207,8 +181,7 @@ export function PostNewPage() {
       <div className="card !p-6">
         <h2 className="mb-2 text-base font-semibold text-gray-900">投稿一覧を取得</h2>
         <p className="mb-4 text-sm text-gray-500">
-          選択中のアカウントから直近の投稿を取得します。
-          PR投稿を選択して登録してください。
+          選択中のアカウントから直近の投稿を取得します。 PR投稿を選択して登録してください。
         </p>
         <Button
           onClick={handleFetchPosts}
@@ -306,4 +279,3 @@ export function PostNewPage() {
     </div>
   );
 }
-

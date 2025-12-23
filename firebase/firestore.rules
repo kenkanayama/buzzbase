@@ -8,12 +8,15 @@ service cloud.firestore {
     }
     
     // Instagramアカウントトークン
-    // 注意: ユーザーが自分の連携したアカウントのみアクセス可能
-    // ユーザーのinstagramAccountsにこのaccountIdが存在する場合のみ許可
+    // セキュリティ上の理由から、フロントエンドからの直接アクセスを禁止
+    // トークンはバックエンド（Cloud Functions）経由でのみ取得可能
+    // Cloud FunctionsはAdmin SDKを使用するため、このルールをバイパスしてアクセス可能
     match /instagramAccounts/{accountId} {
-      allow read: if request.auth != null && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.instagramAccounts[accountId] != null;
+      // フロントエンドからの読み取りを禁止（セキュリティ強化）
+      // トークンはバックエンドAPI経由でのみ取得すること
+      allow read: if false;
+      // 書き込みも禁止（Cloud Functions経由でのみ更新可能）
+      allow write: if false;
     }
     
     // SNSアカウント連携

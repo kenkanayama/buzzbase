@@ -9,8 +9,10 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 // Instagram認証URL生成用の定数
 const INSTAGRAM_APP_ID = '1395033632016244';
-const INSTAGRAM_REDIRECT_URI = 'https://asia-northeast1-sincere-kit.cloudfunctions.net/instagramCallback';
-const INSTAGRAM_SCOPES = 'instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_content_publish,instagram_business_manage_insights';
+const INSTAGRAM_REDIRECT_URI =
+  'https://asia-northeast1-sincere-kit.cloudfunctions.net/instagramCallback';
+const INSTAGRAM_SCOPES =
+  'instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_content_publish,instagram_business_manage_insights';
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -64,14 +66,14 @@ export function DashboardPage() {
   // Instagram認証URLを生成
   const handleInstagramConnect = () => {
     if (!user) return;
-    
+
     const authUrl = new URL('https://www.instagram.com/oauth/authorize');
     authUrl.searchParams.set('client_id', INSTAGRAM_APP_ID);
     authUrl.searchParams.set('redirect_uri', INSTAGRAM_REDIRECT_URI);
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('scope', INSTAGRAM_SCOPES);
     authUrl.searchParams.set('state', user.uid); // ユーザーIDをstateに設定
-    
+
     window.location.href = authUrl.toString();
   };
 
@@ -193,10 +195,7 @@ export function DashboardPage() {
             <p className="mb-4 text-sm text-gray-500">
               最初の投稿を登録して、再生数をトラッキングしましょう
             </p>
-            <Link
-              to="/post/new"
-              state={{ selectedAccountId }}
-            >
+            <Link to="/post/new" state={{ selectedAccountId }}>
               <Button size="sm" disabled={!selectedAccountId}>
                 投稿を登録する
               </Button>

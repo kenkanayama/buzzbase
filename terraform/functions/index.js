@@ -6,6 +6,7 @@
 const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 const { Firestore, FieldValue } = require('@google-cloud/firestore');
 const { Storage } = require('@google-cloud/storage');
+const admin = require('firebase-admin');
 // Node.js 20 has native fetch API
 
 // =============================================================================
@@ -38,6 +39,13 @@ const firestore = new Firestore({
 
 // Secret Managerクライアント
 const secretClient = new SecretManagerServiceClient();
+
+// Firebase Admin SDK初期化（Cloud Functions環境では自動的に認証情報が設定される）
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+  });
+}
 
 // =============================================================================
 // ユーティリティ関数
@@ -210,6 +218,56 @@ async function saveInstagramAccountToUser(userId, accountData) {
 }
 
 // =============================================================================
+// ユーティリティ関数（追加）
+// =============================================================================
+
+/**
+ * FirestoreからInstagramアカウントのトークンを取得
+ * @param {string} accountId - InstagramアカウントID
+ * @returns {Promise<{accessToken: string, tokenExpiresAt: Date} | null>}
+ */
+async function getInstagramToken(accountId) {
+  try {
+    const tokenRef = firestore.collection('instagramAccounts').doc(accountId);
+    const tokenDoc = await tokenRef.get();
+    
+    if (!tokenDoc.exists) {
+      return null;
+    }
+    
+    const data = tokenDoc.data();
+    return {
+      accessToken: data.accessToken,
+      tokenExpiresAt: data.tokenExpiresAt.toDate(),
+    };
+  } catch (error) {
+    console.error('トークン取得エラー:', error);
+    throw error;
+  }
+}
+
+/**
+ * Instagram Graph APIからメディア一覧を取得
+ * @param {string} accountId - InstagramアカウントID
+ * @param {string} accessToken - アクセストークン
+ * @returns {Promise<object>} Instagram APIレスポンス
+ */
+async function getInstagramMedia(accountId, accessToken) {
+  const INSTAGRAM_API_VERSION = 'v24.0';
+  const apiUrl = `https://graph.instagram.com/${INSTAGRAM_API_VERSION}/${accountId}?fields=media{id,media_type,media_url,thumbnail_url,timestamp,permalink}&access_token=${accessToken}`;
+  
+  const response = await fetch(apiUrl);
+  
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error('Instagram API error:', errorData);
+    throw new Error(errorData.error?.message || 'Instagram APIエラー');
+  }
+  
+  return response.json();
+}
+
+// =============================================================================
 // Cloud Function: Instagram OAuth コールバック
 // =============================================================================
 
@@ -324,5 +382,123 @@ exports.instagramCallback = async (req, res) => {
   } catch (err) {
     console.error('Instagram連携処理エラー:', err);
     res.redirect(`${FRONTEND_URL}/dashboard?error=instagram_error&message=${encodeURIComponent(err.message)}`);
+  }
+};
+
+// =============================================================================
+// Cloud Function: Instagram投稿取得
+// =============================================================================
+
+/**
+ * Instagram投稿一覧を取得
+ * HTTPトリガー（GET）
+ * 
+ * 認証: Firebase Authentication IDトークンをAuthorizationヘッダーで受け取る
+ * 
+ * リクエスト:
+ *   GET /getInstagramMedia?accountId={accountId}
+ *   Headers:
+ *     Authorization: Bearer {Firebase ID Token}
+ * 
+ * レスポンス:
+ *   200 OK: { media: { data: [...] } }
+ *   400 Bad Request: { error: "..." }
+ *   401 Unauthorized: { error: "..." }
+ *   404 Not Found: { error: "..." }
+ */
+exports.getInstagramMedia = async (req, res) => {
+  // CORSヘッダー設定
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // プリフライトリクエスト対応
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+
+  // メソッドチェック
+  if (req.method !== 'GET') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  const { accountId } = req.query;
+
+  // パラメータチェック
+  if (!accountId) {
+    res.status(400).json({ error: 'accountIdパラメータが必要です' });
+    return;
+  }
+
+  // 認証チェック（Firebase IDトークン）
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: '認証が必要です' });
+    return;
+  }
+
+  const idToken = authHeader.split('Bearer ')[1];
+  
+  if (!idToken) {
+    res.status(401).json({ error: '無効な認証トークンです' });
+    return;
+  }
+
+  // Firebase Admin SDKでトークンを検証
+  let decodedToken;
+  try {
+    decodedToken = await admin.auth().verifyIdToken(idToken);
+  } catch (error) {
+    console.error('トークン検証エラー:', error);
+    res.status(401).json({ error: '認証トークンの検証に失敗しました' });
+    return;
+  }
+
+  const userId = decodedToken.uid;
+
+  try {
+    // 1. ユーザーがこのアカウントを連携しているか確認
+    const userRef = firestore.collection('users').doc(userId);
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists) {
+      res.status(404).json({ error: 'ユーザーが見つかりません' });
+      return;
+    }
+    
+    const userData = userDoc.data();
+    if (!userData.instagramAccounts || !userData.instagramAccounts[accountId]) {
+      res.status(403).json({ error: 'このInstagramアカウントへのアクセス権限がありません' });
+      return;
+    }
+
+    // 2. Firestoreからトークンを取得
+    const tokenData = await getInstagramToken(accountId);
+    
+    if (!tokenData) {
+      res.status(404).json({ error: 'Instagramアカウントのトークンが見つかりません。再連携が必要です。' });
+      return;
+    }
+
+    // 3. トークンの有効期限をチェック
+    if (tokenData.tokenExpiresAt < new Date()) {
+      res.status(400).json({ error: 'Instagramのアクセストークンが期限切れです。再連携してください。' });
+      return;
+    }
+
+    // 4. Instagram Graph APIからメディア一覧を取得
+    const mediaData = await getInstagramMedia(accountId, tokenData.accessToken);
+
+    // 5. レスポンスを返す
+    res.status(200).json(mediaData);
+
+  } catch (err) {
+    console.error('Instagram投稿取得エラー:', err);
+    res.status(500).json({ 
+      error: '投稿の取得に失敗しました',
+      message: err.message 
+    });
   }
 };

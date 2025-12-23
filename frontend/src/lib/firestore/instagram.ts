@@ -27,6 +27,11 @@ function timestampToDate(timestamp: Timestamp | undefined | null): Date | undefi
 
 /**
  * InstagramアカウントのアクセストークンをFirestoreから取得
+ *
+ * @deprecated セキュリティ上の理由から、この関数は使用禁止です。
+ * トークンはバックエンド（Cloud Functions）経由でのみ取得してください。
+ * フロントエンドからは `@/lib/api/instagram.getInstagramMedia()` を使用してください。
+ *
  * @param accountId - InstagramアカウントID
  * @returns InstagramAccountDocument | null
  */
@@ -61,4 +66,3 @@ export async function getInstagramAccountToken(
     throw error;
   }
 }
-
