@@ -8,6 +8,7 @@ import { VerifyEmailPage } from '@/pages/VerifyEmailPage';
 import { AuthActionPage } from '@/pages/AuthActionPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { RegisterPostPage } from '@/pages/RegisterPostPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 function App() {
@@ -40,6 +41,14 @@ function App() {
                 <Layout>
                   <ProfilePage />
                 </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/register-post"
+            element={
+              <ProtectedRoute>
+                <RegisterPostPage />
               </ProtectedRoute>
             }
           />

@@ -26,11 +26,28 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
     
-    // 投稿データ
+    // 投稿データ（旧: posts - 後方互換性のため残す）
     match /posts/{postId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // キャンペーン（商品/案件）マスター
+    // 認証済みユーザーなら誰でも読み取り可能
+    // 書き込みは管理者のみ（Cloud Functions経由またはFirebase Console）
+    match /campaigns/{campaignId} {
+      allow read: if request.auth != null;
+      allow write: if false; // 管理者のみ（Cloud Functions経由）
+    }
+    
+    // PR投稿データ
+    // ドキュメントID = userId
+    match /prPosts/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false; // 削除は禁止（データ保全のため）
     }
   }
 }

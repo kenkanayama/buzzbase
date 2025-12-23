@@ -131,3 +131,77 @@ export interface InstagramMediaResponse {
   };
   id: string; // ユーザーID
 }
+
+// =============================================================================
+// Campaign Related Types
+// =============================================================================
+
+/**
+ * キャンペーン（商品/案件）情報
+ * Firestore: campaigns コレクション
+ */
+export interface Campaign {
+  id: string; // ドキュメントID
+  name: string; // 商品/案件名（例: "チョコレート新商品PR"）
+  description?: string; // 説明
+  imageUrl?: string; // 商品画像URL
+  status: 'active' | 'inactive'; // ステータス
+  startDate?: Date; // 開始日
+  endDate?: Date; // 終了日
+  createdAt: Date; // 作成日時
+  updatedAt?: Date; // 更新日時
+}
+
+// =============================================================================
+// PR Post Related Types
+// =============================================================================
+
+/**
+ * PR投稿データ（個別の投稿情報）
+ */
+export interface PRPostItem {
+  campaignId: string; // 商品/案件ID
+  campaignName: string; // 商品/案件名（スナップショット）
+  mediaId: string; // Instagram Media ID
+  mediaType: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM'; // メディアタイプ
+  permalink: string; // 投稿URL
+  thumbnailUrl?: string; // サムネイル画像URL
+  postedAt: Date; // 投稿日時
+
+  // 計測データ
+  viewCount?: number; // 再生数（7日後に取得）
+  viewCountFetchedAt?: Date; // 再生数取得日時
+
+  // メタデータ
+  registeredAt: Date; // バズベース登録日時
+  status: 'pending' | 'measured'; // ステータス
+}
+
+/**
+ * PR投稿データ（アカウントIDをキーとしたMap形式）
+ * キー: InstagramアカウントID
+ * 値: PRPostItem の配列
+ */
+export type PRPostDataMap = Record<string, PRPostItem[]>;
+
+/**
+ * PR投稿ドキュメント
+ * Firestore: prPosts コレクション（ドキュメントID = userId）
+ */
+export interface PRPostDocument {
+  userId: string; // Firebase UID
+  postData: PRPostDataMap; // アカウントIDをキーとした投稿データ
+}
+
+/**
+ * PR投稿登録用の入力型
+ */
+export interface PRPostRegisterInput {
+  campaignId: string;
+  campaignName: string;
+  mediaId: string;
+  mediaType: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
+  permalink: string;
+  thumbnailUrl?: string;
+  postedAt: Date;
+}
