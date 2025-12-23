@@ -362,6 +362,42 @@ interface InstagramToken {
 - **ユーザーとの紐付け**: `users`コレクションの`instagramAccounts`フィールド（Map）のキーがInstagramアカウントIDとなっており、このコレクションと紐付けが可能
 - **トークンリフレッシュ**: 長期トークンは60日で期限切れになるため、定期的なリフレッシュが必要
 
+### Instagram連携設定情報
+
+| 項目 | 値 |
+|------|-----|
+| **Meta App ID** | `1395033632016244` |
+| **OAuth コールバックURL** | `https://asia-northeast1-sincere-kit.cloudfunctions.net/instagramCallback` |
+| **Cloud Function名** | `instagramCallback` |
+| **リージョン** | `asia-northeast1` |
+
+#### OAuth スコープ
+
+```
+instagram_business_basic
+instagram_business_manage_messages
+instagram_business_manage_comments
+instagram_business_content_publish
+instagram_business_manage_insights
+```
+
+#### 認証フロー
+
+1. フロントエンドで認証URLを生成（`state`パラメータにユーザーUIDを含める）
+2. ユーザーがInstagramで認可を承認
+3. Cloud Function（`instagramCallback`）がコールバックを受け取り：
+   - 認可コード → 短期トークン取得
+   - 短期トークン → 長期トークン取得（60日有効）
+   - 長期トークン → ユーザープロフィール取得
+   - `instagramAccounts`コレクションにトークン保存
+   - `users`コレクションにアカウント情報保存（Map形式）
+4. ダッシュボードにリダイレクト
+
+#### 関連ドキュメント
+
+- [Business Login for Instagram](https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/business-login) - Meta公式ドキュメント
+- [IG User Reference](https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user) - Instagram Graph API
+
 ---
 
 ## Firestore コレクション設計

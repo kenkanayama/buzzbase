@@ -29,8 +29,6 @@ const firestore = new Firestore({
   databaseId: FIRESTORE_DATABASE_ID,
 });
 
-console.log('Firestore initialized:', { projectId: PROJECT_ID || 'sincere-kit', databaseId: FIRESTORE_DATABASE_ID });
-
 // Secret Managerクライアント
 const secretClient = new SecretManagerServiceClient();
 
@@ -206,8 +204,6 @@ exports.instagramCallback = async (req, res) => {
 
     // リダイレクトURIは固定値を使用（Metaアプリコンソールに登録したものと完全一致させる）
     const redirectUri = INSTAGRAM_CALLBACK_URL;
-
-    console.log('Redirect URI:', redirectUri);
 
     // 1. アプリシークレットを取得
     const appSecret = await getAppSecret();
