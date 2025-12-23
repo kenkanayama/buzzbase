@@ -304,28 +304,31 @@ export function DashboardPage() {
             <h2 className="text-lg font-semibold text-gray-900">PR投稿を登録</h2>
           </div>
 
-          <div className="card !p-4">
-            <p className="mb-4 text-sm text-gray-500">
-              Instagramから直近の投稿を取得し、PR投稿として登録します
-            </p>
-            <Button
-              onClick={handleFetchPosts}
-              disabled={fetchingPosts || !selectedAccountId}
-              className="w-full"
-            >
-              {fetchingPosts ? (
-                <>
-                  <LoadingSpinner size="sm" className="mr-2" />
-                  取得中...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  投稿を取得して登録
-                </>
-              )}
-            </Button>
-          </div>
+          {/* 投稿データが取得されていない場合のみ表示 */}
+          {instagramPosts.length === 0 && (
+            <div className="card !p-4">
+              <p className="mb-4 text-sm text-gray-500">
+                Instagramから直近の投稿を取得し、PR投稿として登録します
+              </p>
+              <Button
+                onClick={handleFetchPosts}
+                disabled={fetchingPosts || !selectedAccountId}
+                className="w-full"
+              >
+                {fetchingPosts ? (
+                  <>
+                    <LoadingSpinner size="sm" className="mr-2" />
+                    取得中...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    投稿を取得して登録
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
 
           {/* エラー表示 */}
           {fetchError && (
