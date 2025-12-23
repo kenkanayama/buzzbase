@@ -67,7 +67,9 @@ interface User {
   } | null;
 
   // === Instagram連携情報 ===
-  instagramAccounts: InstagramAccount[];  // 連携済みInstagramアカウント
+  instagramAccounts: {                    // 連携済みInstagramアカウント（Map形式）
+    [accountId: string]: InstagramAccountInfo;  // キー: InstagramアカウントID
+  };
 
   // === メタデータ ===
   createdAt: timestamp;          // 作成日時
@@ -76,12 +78,11 @@ interface User {
 }
 
 /**
- * Instagram連携アカウント情報
+ * Instagram連携アカウント情報（users.instagramAccountsのValue）
  * @see https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user
  */
-interface InstagramAccount {
-  accountId: string;             // InstagramアカウントID（Graph API の id フィールド）
-  username: string;              // ユーザー名（例: "@example_user"）
+interface InstagramAccountInfo {
+  username: string;              // ユーザー名（例: "example_user"）
   name: string;                  // プロフィール名（表示名）
   profile_picture_url: string;   // プロフィール画像URL
 }
@@ -94,7 +95,7 @@ interface InstagramAccount {
 | email, displayName, photoURL | 認証・プロフィール表示 |
 | phone, address | 商品発送時の連絡先 |
 | bankAccount | 再生数補償の振込先 |
-| instagramAccounts | Instagram連携済みアカウントの表示・投稿時の連携アカウント選択 |
+| instagramAccounts | Instagram連携済みアカウントの表示・投稿時の連携アカウント選択（Map形式：アカウントIDをキーに効率的な検索が可能） |
 
 ### バリデーションルール
 
@@ -319,6 +320,50 @@ interface BatchJob {
 
 ---
 
+## 5. InstagramTokens（Instagramトークン管理）
+
+Instagramアカウントのアクセストークン情報を管理するリソース。
+セキュリティ上の理由から、トークン情報はusersコレクションとは別に管理する。
+
+### リソース定義
+
+```typescript
+/**
+ * Instagramトークン情報
+ * @description アクセストークンを安全に管理するためのコレクション
+ * @collection instagramAccounts（ドキュメントID = InstagramアカウントID）
+ */
+interface InstagramToken {
+  // === 識別情報 ===
+  accountId: string;             // InstagramアカウントID（ドキュメントIDと同一）
+  username: string;              // ユーザー名（参照用）
+  
+  // === トークン情報 ===
+  accessToken: string;           // 長期アクセストークン（60日有効）
+  tokenExpiresAt: timestamp;     // トークン有効期限
+  
+  // === メタデータ ===
+  createdAt: timestamp;          // 初回連携日時
+  updatedAt: timestamp;          // 最終更新日時
+}
+```
+
+### 用途
+
+| フィールド | 用途 |
+|-----------|------|
+| accessToken | Instagram Graph APIへのリクエスト認証 |
+| tokenExpiresAt | トークンリフレッシュのタイミング判定 |
+| accountId | usersコレクションのinstagramAccountsキーとの紐付け |
+
+### 補足
+
+- **複数ユーザーが同一アカウントを連携可能**: 同じInstagramアカウントを複数のBuzzBaseユーザーが連携した場合、トークン情報は上書きされる
+- **ユーザーとの紐付け**: `users`コレクションの`instagramAccounts`フィールド（Map）のキーがInstagramアカウントIDとなっており、このコレクションと紐付けが可能
+- **トークンリフレッシュ**: 長期トークンは60日で期限切れになるため、定期的なリフレッシュが必要
+
+---
+
 ## Firestore コレクション設計
 
 ### コレクション構造
@@ -327,10 +372,16 @@ interface BatchJob {
 firestore/
 ├── users/{userId}                    # ユーザー情報
 │   ├── [User fields]
+│   │   └── instagramAccounts: {      # Map形式（キー: InstagramアカウントID）
+│   │         [accountId]: { username, name, profile_picture_url }
+│   │       }
 │   ├── snsAccounts/{snsAccountId}    # SNS連携情報（サブコレクション）
 │   │   └── [SnsAccount fields]
 │   └── posts/{postId}                # 投稿情報（サブコレクション）
 │       └── [Post fields]
+│
+├── instagramAccounts/{accountId}     # Instagramトークン管理（ルートコレクション）
+│   └── [InstagramToken fields]       # アクセストークン、有効期限など
 │
 ├── batchJobs/{batchJobId}            # バッチジョブ履歴
 │   └── [BatchJob fields]

@@ -102,9 +102,27 @@ async function getInstagramUserInfo(accessToken) {
 }
 
 /**
- * FirestoreにInstagramアカウント情報を保存
+ * instagramAccountsコレクションにトークン情報を保存
  */
-async function saveInstagramAccount(userId, accountData) {
+async function saveInstagramToken(accountId, tokenData) {
+  const tokenRef = firestore.collection('instagramAccounts').doc(accountId);
+  
+  await tokenRef.set({
+    accountId: accountId,
+    username: tokenData.username,
+    accessToken: tokenData.accessToken,
+    tokenExpiresAt: tokenData.tokenExpiresAt,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+  
+  console.log(`instagramAccountsコレクションに保存: ${accountId}`);
+}
+
+/**
+ * usersコレクションにInstagramアカウント情報を保存（Map形式）
+ */
+async function saveInstagramAccountToUser(userId, accountData) {
   const userRef = firestore.collection('users').doc(userId);
   const userDoc = await userRef.get();
 
@@ -112,29 +130,18 @@ async function saveInstagramAccount(userId, accountData) {
     throw new Error('ユーザーが見つかりません');
   }
 
-  const userData = userDoc.data();
-  const existingAccounts = userData.instagramAccounts || [];
-
-  // 既存のアカウントを更新または新規追加
-  const accountIndex = existingAccounts.findIndex(
-    (acc) => acc.accountId === accountData.accountId
-  );
-
-  if (accountIndex >= 0) {
-    // 既存アカウントを更新
-    existingAccounts[accountIndex] = {
-      ...existingAccounts[accountIndex],
-      ...accountData,
-    };
-  } else {
-    // 新規アカウントを追加
-    existingAccounts.push(accountData);
-  }
-
-  await userRef.update({
-    instagramAccounts: existingAccounts,
+  // Map形式でアカウント情報を更新（キー: accountId）
+  const accountUpdate = {
+    [`instagramAccounts.${accountData.accountId}`]: {
+      username: accountData.username,
+      name: accountData.name,
+      profile_picture_url: accountData.profile_picture_url,
+    },
     updatedAt: FieldValue.serverTimestamp(),
-  });
+  };
+
+  await userRef.update(accountUpdate);
+  console.log(`usersコレクションに保存: userId=${userId}, accountId=${accountData.accountId}`);
 }
 
 // =============================================================================
@@ -224,17 +231,25 @@ exports.instagramCallback = async (req, res) => {
 
     // 5. Firestoreに保存
     console.log('Firestoreに保存中...');
-    const accountData = {
-      accountId: userInfo.id,
+    
+    const accountId = userInfo.id;
+    const tokenExpiresAt = new Date(Date.now() + longLivedData.expires_in * 1000);
+    
+    // 5a. instagramAccountsコレクションにトークン情報を保存
+    await saveInstagramToken(accountId, {
+      username: userInfo.username,
+      accessToken: longLivedData.access_token,
+      tokenExpiresAt: tokenExpiresAt,
+    });
+    
+    // 5b. usersコレクションにアカウント情報を保存（Map形式）
+    await saveInstagramAccountToUser(userId, {
+      accountId: accountId,
       username: userInfo.username,
       name: userInfo.name || '',
       profile_picture_url: userInfo.profile_picture_url || '',
-      accessToken: longLivedData.access_token,
-      tokenExpiresAt: new Date(Date.now() + longLivedData.expires_in * 1000),
-      connectedAt: new Date(),
-    };
-
-    await saveInstagramAccount(userId, accountData);
+    });
+    
     console.log('Firestore保存成功');
 
     // 6. フロントエンドにリダイレクト（成功）

@@ -4,12 +4,17 @@ import { Instagram, Music2, Calendar, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
 import { getUserProfile } from '@/lib/firestore/users';
-import { InstagramAccount } from '@/types';
+import { InstagramAccountWithId } from '@/types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+
+// Instagram認証URL生成用の定数
+const INSTAGRAM_APP_ID = '1395033632016244';
+const INSTAGRAM_REDIRECT_URI = 'https://asia-northeast1-sincere-kit.cloudfunctions.net/instagramCallback';
+const INSTAGRAM_SCOPES = 'instagram_business_basic,instagram_business_content_publish';
 
 export function DashboardPage() {
   const { user } = useAuth();
-  const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccount[]>([]);
+  const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccountWithId[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
@@ -23,8 +28,15 @@ export function DashboardPage() {
 
       try {
         const profile = await getUserProfile(user.uid);
-        if (profile) {
-          setInstagramAccounts(profile.instagramAccounts || []);
+        if (profile && profile.instagramAccounts) {
+          // Map形式からUI表示用の配列に変換
+          const accountsArray = Object.entries(profile.instagramAccounts).map(
+            ([accountId, accountInfo]) => ({
+              accountId,
+              ...accountInfo,
+            })
+          );
+          setInstagramAccounts(accountsArray);
         }
       } catch (error) {
         console.error('ユーザーデータの取得に失敗しました:', error);
@@ -35,6 +47,20 @@ export function DashboardPage() {
 
     fetchUserData();
   }, [user]);
+
+  // Instagram認証URLを生成
+  const handleInstagramConnect = () => {
+    if (!user) return;
+    
+    const authUrl = new URL('https://www.instagram.com/oauth/authorize');
+    authUrl.searchParams.set('client_id', INSTAGRAM_APP_ID);
+    authUrl.searchParams.set('redirect_uri', INSTAGRAM_REDIRECT_URI);
+    authUrl.searchParams.set('response_type', 'code');
+    authUrl.searchParams.set('scope', INSTAGRAM_SCOPES);
+    authUrl.searchParams.set('state', user.uid); // ユーザーIDをstateに設定
+    
+    window.location.href = authUrl.toString();
+  };
 
   // TODO: 投稿データはFirestoreから取得するように実装予定
   const recentPosts: {
@@ -202,9 +228,7 @@ export function DashboardPage() {
               {/* Instagram連携ボタン */}
               <button
                 className="flex w-full items-center gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:bg-gray-50"
-                onClick={() => {
-                  // TODO: Instagram連携処理を実装
-                }}
+                onClick={handleInstagramConnect}
               >
                 <div
                   className="flex h-10 w-10 items-center justify-center rounded-xl"

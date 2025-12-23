@@ -4,7 +4,7 @@
  */
 import { doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { UserProfile, UserProfileUpdateInput, InstagramAccount } from '@/types';
+import { UserProfile, UserProfileUpdateInput, InstagramAccountsMap } from '@/types';
 
 /**
  * Firestore Timestamp を Date に変換
@@ -15,22 +15,28 @@ function timestampToDate(timestamp: Timestamp | undefined | null): Date | undefi
 }
 
 /**
- * Firestore の instagramAccounts 配列を InstagramAccount[] 型に変換
+ * Firestore の instagramAccounts Map を InstagramAccountsMap 型に変換
  */
-function parseInstagramAccounts(data: unknown): InstagramAccount[] {
-  if (!data || !Array.isArray(data)) {
-    return [];
+function parseInstagramAccounts(data: unknown): InstagramAccountsMap {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return {};
   }
 
-  return data
-    .filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null)
-    .map((item) => ({
-      accountId: (item.accountId as string) || '',
-      username: (item.username as string) || '',
-      name: (item.name as string) || '',
-      profilePictureUrl: (item.profile_picture_url as string) || '',
-    }))
-    .filter((account) => account.accountId); // accountIdがないものは除外
+  const result: InstagramAccountsMap = {};
+  const dataRecord = data as Record<string, unknown>;
+
+  for (const [accountId, accountData] of Object.entries(dataRecord)) {
+    if (typeof accountData === 'object' && accountData !== null) {
+      const account = accountData as Record<string, unknown>;
+      result[accountId] = {
+        username: (account.username as string) || '',
+        name: (account.name as string) || '',
+        profilePictureUrl: (account.profile_picture_url as string) || '',
+      };
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -95,7 +101,7 @@ export async function createUserProfile(
       phone: null,
       address: null,
       bankAccount: null,
-      instagramAccounts: [],
+      instagramAccounts: {}, // Map形式（空オブジェクト）
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -111,7 +117,7 @@ export async function createUserProfile(
       phone: null,
       address: null,
       bankAccount: null,
-      instagramAccounts: [],
+      instagramAccounts: {}, // Map形式（空オブジェクト）
       createdAt: new Date(),
       updatedAt: new Date(),
     };

@@ -3,15 +3,28 @@
 // =============================================================================
 
 /**
- * Instagram連携アカウント情報
+ * Instagram連携アカウント情報（Map形式のValue）
  * @see https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user
  * @see docs/API_RESOURCES.md - Users リソース定義
  */
-export interface InstagramAccount {
-  accountId: string; // InstagramアカウントID（Graph API の id フィールド）
-  username: string; // ユーザー名（例: "@example_user"）
+export interface InstagramAccountInfo {
+  username: string; // ユーザー名（例: "example_user"）
   name: string; // プロフィール名（表示名）
   profilePictureUrl: string; // プロフィール画像URL
+}
+
+/**
+ * Instagram連携アカウント（Map形式）
+ * キー: InstagramアカウントID
+ * 値: InstagramAccountInfo
+ */
+export type InstagramAccountsMap = Record<string, InstagramAccountInfo>;
+
+/**
+ * Instagram連携アカウント情報（UI表示用にaccountIdを含む）
+ */
+export interface InstagramAccountWithId extends InstagramAccountInfo {
+  accountId: string; // InstagramアカウントID
 }
 
 /**
@@ -51,7 +64,7 @@ export interface UserProfile {
   } | null;
 
   // === Instagram連携情報 ===
-  instagramAccounts: InstagramAccount[]; // 連携済みInstagramアカウント
+  instagramAccounts: InstagramAccountsMap; // 連携済みInstagramアカウント（Map形式）
 
   // === メタデータ ===
   createdAt: Date; // 作成日時
