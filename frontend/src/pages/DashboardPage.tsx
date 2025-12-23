@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Instagram, Music2, Calendar, User, X, CheckCircle2 } from 'lucide-react';
+import {
+  Instagram,
+  Music2,
+  Calendar,
+  User,
+  X,
+  CheckCircle2,
+  RefreshCw,
+  AlertCircle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
 import { getUserProfile } from '@/lib/firestore/users';
-import { InstagramAccountWithId } from '@/types';
+import { getInstagramMedia } from '@/lib/api/instagram';
+import { InstagramAccountWithId, InstagramMedia } from '@/types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 // Instagram認証URL生成用の定数
@@ -21,6 +31,11 @@ export function DashboardPage() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   // 選択中のInstagramアカウントID（投稿登録時に使用）
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+
+  // 投稿取得関連の状態
+  const [fetchingPosts, setFetchingPosts] = useState(false);
+  const [instagramPosts, setInstagramPosts] = useState<InstagramMedia[]>([]);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Firestoreからユーザーデータを取得
   useEffect(() => {
@@ -75,6 +90,53 @@ export function DashboardPage() {
     authUrl.searchParams.set('state', user.uid); // ユーザーIDをstateに設定
 
     window.location.href = authUrl.toString();
+  };
+
+  // 直近の投稿を取得
+  const handleFetchPosts = async () => {
+    if (!selectedAccountId) return;
+
+    setFetchingPosts(true);
+    setFetchError(null);
+    setInstagramPosts([]);
+
+    try {
+      // バックエンドAPI経由でInstagram投稿一覧を取得
+      const data = await getInstagramMedia(selectedAccountId);
+
+      if (data.media && data.media.data) {
+        setInstagramPosts(data.media.data);
+      } else {
+        setInstagramPosts([]);
+      }
+    } catch (err) {
+      console.error('投稿の取得に失敗しました:', err);
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : '投稿の取得に失敗しました。ネットワークエラーが発生した可能性があります。';
+      setFetchError(errorMessage);
+    } finally {
+      setFetchingPosts(false);
+    }
+  };
+
+  // 投稿画像URLを取得（VIDEOはthumbnail_url、それ以外はmedia_url）
+  const getPostImageUrl = (post: InstagramMedia): string | null => {
+    if (post.media_type === 'VIDEO') {
+      return post.thumbnail_url || null;
+    }
+    return post.media_url || null;
+  };
+
+  // 日付フォーマット
+  const formatDate = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   // TODO: 投稿データはFirestoreから取得するように実装予定
@@ -192,14 +254,9 @@ export function DashboardPage() {
               <Calendar className="h-8 w-8 text-gray-400" />
             </div>
             <h3 className="mb-2 font-medium text-gray-900">まだ投稿がありません</h3>
-            <p className="mb-4 text-sm text-gray-500">
+            <p className="text-sm text-gray-500">
               最初の投稿を登録して、再生数をトラッキングしましょう
             </p>
-            <Link to="/post/new" state={{ selectedAccountId }}>
-              <Button size="sm" disabled={!selectedAccountId}>
-                投稿を登録する
-              </Button>
-            </Link>
           </div>
         ) : (
           <div className="space-y-3">
@@ -239,6 +296,104 @@ export function DashboardPage() {
           </div>
         )}
       </section>
+
+      {/* 投稿取得セクション */}
+      {instagramAccounts.length > 0 && (
+        <section>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">投稿を取得・登録</h2>
+          </div>
+
+          <div className="card !p-4">
+            <p className="mb-4 text-sm text-gray-500">
+              選択中のアカウントから直近の投稿を取得します
+            </p>
+            <Button
+              onClick={handleFetchPosts}
+              disabled={fetchingPosts || !selectedAccountId}
+              className="w-full"
+            >
+              {fetchingPosts ? (
+                <>
+                  <LoadingSpinner size="sm" className="mr-2" />
+                  取得中...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  直近の投稿を取得し登録する
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* エラー表示 */}
+          {fetchError && (
+            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-500" />
+                <p className="text-sm text-red-700">{fetchError}</p>
+              </div>
+            </div>
+          )}
+
+          {/* 投稿一覧 */}
+          {instagramPosts.length > 0 && (
+            <div className="card mt-4 !p-4">
+              <h3 className="mb-4 text-base font-semibold text-gray-900">
+                直近の投稿（{instagramPosts.length}件）
+              </h3>
+              <div className="grid grid-cols-3 gap-2">
+                {instagramPosts.map((post) => {
+                  const imageUrl = getPostImageUrl(post);
+                  return (
+                    <div
+                      key={post.id}
+                      className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg bg-gray-100"
+                    >
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={`投稿 ${post.id}`}
+                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <Instagram className="h-8 w-8 text-gray-300" />
+                        </div>
+                      )}
+                      {/* ホバー時のオーバーレイ */}
+                      <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+                        <div className="w-full p-2">
+                          <p className="text-xs text-white">{formatDate(post.timestamp)}</p>
+                          {post.media_type === 'VIDEO' && (
+                            <span className="mt-1 inline-block rounded bg-white/20 px-1.5 py-0.5 text-xs text-white">
+                              動画
+                            </span>
+                          )}
+                          {post.media_type === 'CAROUSEL_ALBUM' && (
+                            <span className="mt-1 inline-block rounded bg-white/20 px-1.5 py-0.5 text-xs text-white">
+                              アルバム
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {/* 動画バッジ（常時表示） */}
+                      {post.media_type === 'VIDEO' && (
+                        <div className="absolute right-1 top-1">
+                          <span className="inline-flex items-center rounded bg-black/50 px-1.5 py-0.5 text-xs text-white">
+                            ▶
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* SNS連携設定モーダル */}
       {isSettingsModalOpen && (
