@@ -2,13 +2,7 @@
  * Firestore キャンペーン操作ユーティリティ
  * campaigns コレクションの読み取り操作
  */
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  Timestamp,
-} from 'firebase/firestore';
+import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Campaign } from '@/types';
 
@@ -23,10 +17,7 @@ function timestampToDate(timestamp: Timestamp | undefined | null): Date | undefi
 /**
  * Firestore ドキュメントを Campaign 型に変換
  */
-function docToCampaign(
-  id: string,
-  data: Record<string, unknown>
-): Campaign {
+function docToCampaign(id: string, data: Record<string, unknown>): Campaign {
   return {
     id,
     name: (data.name as string) || '',
@@ -53,10 +44,7 @@ export async function getActiveCampaigns(): Promise<Campaign[]> {
   try {
     const campaignsRef = collection(db, 'campaigns');
     // 複合インデックス不要にするため、whereのみでクエリし、ソートはJS側で行う
-    const q = query(
-      campaignsRef,
-      where('status', '==', 'active')
-    );
+    const q = query(campaignsRef, where('status', '==', 'active'));
 
     const snapshot = await getDocs(q);
     const campaigns: Campaign[] = [];
@@ -103,4 +91,3 @@ export async function getAllCampaigns(): Promise<Campaign[]> {
     return [];
   }
 }
-

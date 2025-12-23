@@ -9,6 +9,7 @@ import { AuthActionPage } from '@/pages/AuthActionPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { RegisterPostPage } from '@/pages/RegisterPostPage';
+import { PostsPage } from '@/pages/PostsPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 function App() {
@@ -49,6 +50,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <RegisterPostPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/posts"
+            element={
+              <ProtectedRoute>
+                <PostsPage />
               </ProtectedRoute>
             }
           />

@@ -18,12 +18,7 @@ import { getUserProfile } from '@/lib/firestore/users';
 import { getActiveCampaigns } from '@/lib/firestore/campaigns';
 import { registerPRPost, isMediaIdAlreadyRegistered } from '@/lib/firestore/prPosts';
 import { getInstagramMedia } from '@/lib/api/instagram';
-import {
-  Campaign,
-  InstagramMedia,
-  InstagramAccountWithId,
-  PRPostRegisterInput,
-} from '@/types';
+import { Campaign, InstagramMedia, InstagramAccountWithId, PRPostRegisterInput } from '@/types';
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -106,11 +101,7 @@ export function RegisterPostPage() {
       }
     } catch (err) {
       console.error('投稿の取得に失敗しました:', err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : '投稿の取得に失敗しました'
-      );
+      setError(err instanceof Error ? err.message : '投稿の取得に失敗しました');
     } finally {
       setFetchingPosts(false);
     }
@@ -121,7 +112,7 @@ export function RegisterPostPage() {
     if (!user) return;
 
     setDuplicateError(null);
-    
+
     // 重複チェック
     const isDuplicate = await isMediaIdAlreadyRegistered(user.uid, post.id);
     if (isDuplicate) {
@@ -154,11 +145,7 @@ export function RegisterPostPage() {
       setCurrentStep(4); // 完了画面へ
     } catch (err) {
       console.error('登録に失敗しました:', err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : '登録に失敗しました'
-      );
+      setError(err instanceof Error ? err.message : '登録に失敗しました');
     } finally {
       setRegistering(false);
     }
@@ -229,18 +216,19 @@ export function RegisterPostPage() {
           <p className="mb-6 text-gray-500">
             PR投稿を登録するには、Instagramアカウントの連携が必要です
           </p>
-          <Button onClick={() => navigate('/dashboard')}>
-            ダッシュボードに戻る
-          </Button>
+          <Button onClick={() => navigate('/dashboard')}>ダッシュボードに戻る</Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="animate-fade-in min-h-screen bg-white">
+    <div className="min-h-screen animate-fade-in bg-white">
       {/* ヘッダー */}
-      <header className="sticky top-0 z-20 border-b bg-white px-4 py-4" style={{ borderColor: '#e5e5e5' }}>
+      <header
+        className="sticky top-0 z-20 border-b bg-white px-4 py-4"
+        style={{ borderColor: '#e5e5e5' }}
+      >
         <div className="mx-auto flex max-w-lg items-center">
           <button
             onClick={goBack}
@@ -311,21 +299,20 @@ export function RegisterPostPage() {
           {/* Step 1: 商品選択 */}
           {currentStep === 1 && (
             <div className="animate-fade-in space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                どの商品のPR投稿ですか？
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-900">どの商品のPR投稿ですか？</h2>
 
               {campaigns.length === 0 ? (
-                <div className="rounded-2xl border p-6 text-center" style={{ borderColor: '#e5e5e5' }}>
+                <div
+                  className="rounded-2xl border p-6 text-center"
+                  style={{ borderColor: '#e5e5e5' }}
+                >
                   <div
                     className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full"
                     style={{ backgroundColor: '#f5f5f5' }}
                   >
                     <Package className="h-6 w-6 text-gray-400" />
                   </div>
-                  <p className="text-gray-500">
-                    現在登録可能な商品がありません
-                  </p>
+                  <p className="text-gray-500">現在登録可能な商品がありません</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -336,9 +323,7 @@ export function RegisterPostPage() {
                         key={campaign.id}
                         onClick={() => setSelectedCampaign(campaign)}
                         className={`relative flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-all ${
-                          isSelected
-                            ? 'ring-2 ring-opacity-50'
-                            : 'hover:border-gray-300'
+                          isSelected ? 'ring-2 ring-opacity-50' : 'hover:border-gray-300'
                         }`}
                         style={{
                           borderColor: isSelected ? '#f29801' : '#e5e5e5',
@@ -362,9 +347,7 @@ export function RegisterPostPage() {
                         </div>
                         {/* 商品情報 */}
                         <div className="min-w-0 flex-1">
-                          <p className="truncate font-semibold text-gray-900">
-                            {campaign.name}
-                          </p>
+                          <p className="truncate font-semibold text-gray-900">{campaign.name}</p>
                           {campaign.description && (
                             <p className="mt-1 line-clamp-2 text-sm text-gray-500">
                               {campaign.description}
@@ -390,28 +373,15 @@ export function RegisterPostPage() {
           {currentStep === 2 && (
             <div className="animate-fade-in space-y-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  どの投稿を登録しますか？
-                </h2>
-                <p className="mt-1 text-sm text-gray-500">
-                  {selectedCampaign?.name}
-                </p>
+                <h2 className="text-lg font-semibold text-gray-900">どの投稿を登録しますか？</h2>
+                <p className="mt-1 text-sm text-gray-500">{selectedCampaign?.name}</p>
               </div>
 
               {/* Instagram投稿取得ボタン */}
               {instagramPosts.length === 0 && !fetchingPosts && (
-                <div
-                  className="rounded-2xl border p-6"
-                  style={{ borderColor: '#e5e5e5' }}
-                >
-                  <p className="mb-4 text-sm text-gray-500">
-                    Instagramから直近の投稿を取得します
-                  </p>
-                  <Button
-                    onClick={handleFetchPosts}
-                    disabled={fetchingPosts}
-                    className="w-full"
-                  >
+                <div className="rounded-2xl border p-6" style={{ borderColor: '#e5e5e5' }}>
+                  <p className="mb-4 text-sm text-gray-500">Instagramから直近の投稿を取得します</p>
+                  <Button onClick={handleFetchPosts} disabled={fetchingPosts} className="w-full">
                     <RefreshCw className="mr-2 h-4 w-4" />
                     投稿を取得
                   </Button>
@@ -464,7 +434,11 @@ export function RegisterPostPage() {
                         className={`group relative aspect-square overflow-hidden rounded-lg bg-gray-100 transition-all ${
                           isSelected ? 'ring-2' : ''
                         }`}
-                        style={isSelected ? { outlineColor: '#f29801', boxShadow: '0 0 0 2px #f29801' } : {}}
+                        style={
+                          isSelected
+                            ? { outlineColor: '#f29801', boxShadow: '0 0 0 2px #f29801' }
+                            : {}
+                        }
                       >
                         {imageUrl ? (
                           <img
@@ -488,9 +462,7 @@ export function RegisterPostPage() {
                         )}
                         {/* 日付 */}
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                          <p className="text-xs text-white">
-                            {formatDate(post.timestamp)}
-                          </p>
+                          <p className="text-xs text-white">{formatDate(post.timestamp)}</p>
                         </div>
                         {/* 動画バッジ */}
                         {post.media_type === 'VIDEO' && (
@@ -524,9 +496,7 @@ export function RegisterPostPage() {
           {/* Step 3: 確認 */}
           {currentStep === 3 && selectedCampaign && selectedPost && (
             <div className="animate-fade-in space-y-6">
-              <h2 className="text-lg font-semibold text-gray-900">
-                以下の内容で登録しますか？
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-900">以下の内容で登録しますか？</h2>
 
               <div
                 className="overflow-hidden rounded-2xl border"
@@ -551,9 +521,7 @@ export function RegisterPostPage() {
                 <div className="space-y-4 p-4">
                   <div>
                     <p className="text-sm text-gray-500">商品</p>
-                    <p className="font-semibold text-gray-900">
-                      {selectedCampaign.name}
-                    </p>
+                    <p className="font-semibold text-gray-900">{selectedCampaign.name}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">投稿日</p>
@@ -576,9 +544,7 @@ export function RegisterPostPage() {
                 style={{ backgroundColor: '#fff8ed' }}
               >
                 <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: '#f29801' }} />
-                <p className="text-sm text-gray-600">
-                  再生数は7日後に自動取得されます
-                </p>
+                <p className="text-sm text-gray-600">再生数は7日後に自動取得されます</p>
               </div>
 
               {/* エラー表示 */}
@@ -605,12 +571,8 @@ export function RegisterPostPage() {
               >
                 <CheckCircle2 className="h-10 w-10 text-green-500" />
               </div>
-              <h2 className="mb-2 text-2xl font-bold text-gray-900">
-                登録が完了しました！
-              </h2>
-              <p className="mb-8 text-gray-500">
-                7日後に再生数が自動で取得されます
-              </p>
+              <h2 className="mb-2 text-2xl font-bold text-gray-900">登録が完了しました！</h2>
+              <p className="mb-8 text-gray-500">7日後に再生数が自動で取得されます</p>
 
               <div className="space-y-3">
                 <Button
@@ -651,11 +613,7 @@ export function RegisterPostPage() {
               {currentStep === 1 ? 'キャンセル' : '戻る'}
             </button>
             {currentStep === 3 ? (
-              <Button
-                onClick={handleRegister}
-                disabled={registering}
-                className="flex-1"
-              >
+              <Button onClick={handleRegister} disabled={registering} className="flex-1">
                 {registering ? (
                   <>
                     <LoadingSpinner size="sm" className="mr-2" />
@@ -669,8 +627,7 @@ export function RegisterPostPage() {
               <Button
                 onClick={goNext}
                 disabled={
-                  (currentStep === 1 && !selectedCampaign) ||
-                  (currentStep === 2 && !selectedPost)
+                  (currentStep === 1 && !selectedCampaign) || (currentStep === 2 && !selectedPost)
                 }
                 className="flex-1"
               >
@@ -684,4 +641,3 @@ export function RegisterPostPage() {
     </div>
   );
 }
-

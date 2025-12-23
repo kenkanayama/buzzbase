@@ -2,13 +2,7 @@
  * Firestore PR投稿操作ユーティリティ
  * prPosts コレクションの CRUD 操作
  */
-import {
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp,
-  Timestamp,
-} from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { PRPostDocument, PRPostItem, PRPostRegisterInput, PRPostDataMap } from '@/types';
 
@@ -234,4 +228,3 @@ export async function getAllPRPostsFlat(
     return [];
   }
 }
-

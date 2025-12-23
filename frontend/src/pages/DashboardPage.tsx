@@ -1,14 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import {
-  Instagram,
-  Music2,
-  Calendar,
-  User,
-  X,
-  CheckCircle2,
-  Plus,
-} from 'lucide-react';
+import { Instagram, Music2, Calendar, User, X, CheckCircle2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import { getUserProfile } from '@/lib/firestore/users';
