@@ -35,7 +35,7 @@ if (isFirebaseConfigured) {
     if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
       connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
       connectFirestoreEmulator(db, 'localhost', 8080);
-      console.log('🔧 Firebase Emulator に接続しました');
+      console.warn('🔧 Firebase Emulator に接続しました');
     }
   } catch (error) {
     console.error('Firebase初期化エラー:', error);
