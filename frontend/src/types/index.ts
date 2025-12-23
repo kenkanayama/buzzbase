@@ -161,3 +161,39 @@ export interface ViewCountBatchResult {
   error?: string;
   fetchedAt: Date;
 }
+
+// =============================================================================
+// Instagram API Related Types
+// =============================================================================
+
+/**
+ * Instagram Graph APIから取得したメディア情報
+ * @see https://developers.facebook.com/docs/instagram-platform/reference/instagram-media
+ */
+export interface InstagramMedia {
+  id: string; // メディアID
+  media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM'; // メディアタイプ
+  media_url?: string; // メディアURL（IMAGE, VIDEO）
+  thumbnail_url?: string; // サムネイルURL（VIDEOのみ）
+  timestamp: string; // 投稿日時（ISO 8601形式）
+  permalink?: string; // 投稿のパーマリンク
+  caption?: string; // キャプション
+}
+
+/**
+ * Instagram Graph APIのmediaエッジレスポンス
+ */
+export interface InstagramMediaResponse {
+  media: {
+    data: InstagramMedia[];
+    paging?: {
+      cursors: {
+        before: string;
+        after: string;
+      };
+      next?: string;
+      previous?: string;
+    };
+  };
+  id: string; // ユーザーID
+}

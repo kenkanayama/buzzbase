@@ -7,6 +7,15 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // Instagramアカウントトークン
+    // 注意: ユーザーが自分の連携したアカウントのみアクセス可能
+    // ユーザーのinstagramAccountsにこのaccountIdが存在する場合のみ許可
+    match /instagramAccounts/{accountId} {
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.instagramAccounts[accountId] != null;
+    }
+    
     // SNSアカウント連携
     match /snsAccounts/{accountId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;

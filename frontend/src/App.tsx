@@ -8,6 +8,7 @@ import { VerifyEmailPage } from '@/pages/VerifyEmailPage';
 import { AuthActionPage } from '@/pages/AuthActionPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { PostNewPage } from '@/pages/PostNewPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 function App() {
@@ -39,6 +40,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ProfilePage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/post/new"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <PostNewPage />
                 </Layout>
               </ProtectedRoute>
             }
