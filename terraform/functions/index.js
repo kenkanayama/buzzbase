@@ -18,6 +18,9 @@ const SECRET_NAME = `projects/${PROJECT_ID}/secrets/meta-instagram-app-secret/ve
 // フロントエンドURL（環境変数から取得、デフォルトは本番URL）
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://buzzbase-1028492470102.asia-northeast1.run.app';
 
+// Instagram OAuth コールバックURL（固定値 - Metaアプリコンソールに登録したものと一致させる）
+const INSTAGRAM_CALLBACK_URL = 'https://asia-northeast1-sincere-kit.cloudfunctions.net/instagramCallback';
+
 // Firestoreクライアント
 const firestore = new Firestore();
 
@@ -194,10 +197,8 @@ exports.instagramCallback = async (req, res) => {
     // stateからユーザーIDを取得
     const userId = state;
 
-    // リダイレクトURIを構築（Metaに登録したものと一致する必要がある）
-    const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
-    const host = req.get('host');
-    const redirectUri = `${protocol}://${host}${req.path}`;
+    // リダイレクトURIは固定値を使用（Metaアプリコンソールに登録したものと完全一致させる）
+    const redirectUri = INSTAGRAM_CALLBACK_URL;
 
     console.log('Redirect URI:', redirectUri);
 
