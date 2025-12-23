@@ -21,8 +21,15 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'https://buzzbase-1028492470102
 // Instagram OAuth コールバックURL（固定値 - Metaアプリコンソールに登録したものと一致させる）
 const INSTAGRAM_CALLBACK_URL = 'https://asia-northeast1-sincere-kit.cloudfunctions.net/instagramCallback';
 
-// Firestoreクライアント
-const firestore = new Firestore();
+// Firestoreクライアント（プロジェクトID・データベースIDを明示的に指定）
+// データベース名: sincere-kit-buzzbase（名前付きデータベース）
+const FIRESTORE_DATABASE_ID = 'sincere-kit-buzzbase';
+const firestore = new Firestore({
+  projectId: PROJECT_ID || 'sincere-kit',
+  databaseId: FIRESTORE_DATABASE_ID,
+});
+
+console.log('Firestore initialized:', { projectId: PROJECT_ID || 'sincere-kit', databaseId: FIRESTORE_DATABASE_ID });
 
 // Secret Managerクライアント
 const secretClient = new SecretManagerServiceClient();

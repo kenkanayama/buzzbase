@@ -366,6 +366,25 @@ interface InstagramToken {
 
 ## Firestore コレクション設計
 
+### データベース情報
+
+| 項目 | 値 |
+|------|-----|
+| **プロジェクトID** | `sincere-kit` |
+| **データベースID** | `sincere-kit-buzzbase` |
+| **リージョン** | `asia-northeast1`（東京） |
+
+> ⚠️ **重要**: このプロジェクトでは名前付きデータベース（`sincere-kit-buzzbase`）を使用しています。
+> Firestoreクライアントを初期化する際は、必ず`databaseId`を指定してください。
+
+```javascript
+// Cloud Functions / バックエンドでの初期化例
+const firestore = new Firestore({
+  projectId: 'sincere-kit',
+  databaseId: 'sincere-kit-buzzbase',
+});
+```
+
 ### コレクション構造
 
 ```
