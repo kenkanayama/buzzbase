@@ -16,7 +16,7 @@ const PROJECT_ID = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
 const SECRET_NAME = `projects/${PROJECT_ID}/secrets/meta-instagram-app-secret/versions/latest`;
 
 // フロントエンドURL（環境変数から取得、デフォルトは本番URL）
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://buzzbase-444823.web.app';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://buzzbase-1028492470102.asia-northeast1.run.app';
 
 // Firestoreクライアント
 const firestore = new Firestore();

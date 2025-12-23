@@ -10,7 +10,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 // Instagram認証URL生成用の定数
 const INSTAGRAM_APP_ID = '1395033632016244';
 const INSTAGRAM_REDIRECT_URI = 'https://asia-northeast1-sincere-kit.cloudfunctions.net/instagramCallback';
-const INSTAGRAM_SCOPES = 'instagram_business_basic,instagram_business_content_publish';
+const INSTAGRAM_SCOPES = 'instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_content_publish,instagram_business_manage_insights';
 
 export function DashboardPage() {
   const { user } = useAuth();

@@ -66,6 +66,6 @@ variable "github_repo" {
 variable "frontend_url" {
   description = "Frontend URL for redirects after OAuth"
   type        = string
-  default     = "https://buzzbase-444823.web.app"
+  default     = "https://buzzbase-1028492470102.asia-northeast1.run.app"
 }
 
