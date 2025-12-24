@@ -23,7 +23,7 @@ terraform/*.tfstate
 terraform/*.tfstate.*
 terraform/*.tfvars
 !terraform/*.tfvars.example
-terraform/.terraform.lock.hcl
+# Note: .terraform.lock.hcl はプロバイダーバージョンを固定するためコミット対象
 terraform/crash.log
 terraform/functions.zip
 
