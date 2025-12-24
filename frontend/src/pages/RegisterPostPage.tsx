@@ -225,10 +225,7 @@ export function RegisterPostPage() {
   return (
     <div className="min-h-screen animate-fade-in bg-white">
       {/* ヘッダー */}
-      <header
-        className="sticky top-0 z-20 border-b bg-white px-4 py-4"
-        style={{ borderColor: '#e5e5e5' }}
-      >
+      <header className="glass sticky top-0 z-20 border-b border-gray-200/50 px-4 py-4">
         <div className="mx-auto flex max-w-lg items-center">
           <button
             onClick={goBack}
@@ -600,10 +597,7 @@ export function RegisterPostPage() {
 
       {/* フッターナビゲーション */}
       {currentStep < 4 && (
-        <footer
-          className="fixed bottom-0 left-0 right-0 border-t bg-white px-4 py-4"
-          style={{ borderColor: '#e5e5e5' }}
-        >
+        <footer className="glass safe-bottom fixed bottom-0 left-0 right-0 border-t border-gray-200/50 px-4 py-4">
           <div className="mx-auto flex max-w-lg gap-3">
             <button
               onClick={goBack}
