@@ -54,3 +54,52 @@ export async function getInstagramMedia(accountId: string): Promise<InstagramMed
   const data: InstagramMediaResponse = await response.json();
   return data;
 }
+
+/**
+ * サムネイル画像をCloud Storageに保存
+ * @param thumbnailUrl - Instagram APIから取得したサムネイルURL
+ * @param accountId - InstagramアカウントID
+ * @param mediaId - Instagram Media ID
+ * @returns Cloud Storageの公開URL
+ */
+export async function saveThumbnailToStorage(
+  thumbnailUrl: string,
+  accountId: string,
+  mediaId: string
+): Promise<string> {
+  if (!thumbnailUrl) {
+    throw new Error('thumbnailUrlが必要です');
+  }
+  if (!accountId) {
+    throw new Error('accountIdが必要です');
+  }
+  if (!mediaId) {
+    throw new Error('mediaIdが必要です');
+  }
+
+  // Firebase IDトークンを取得
+  const idToken = await getIdToken();
+
+  // バックエンドAPIを呼び出し
+  const url = `${CLOUD_FUNCTIONS_BASE_URL}/saveThumbnailToStorage`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      thumbnailUrl,
+      accountId,
+      mediaId,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: '不明なエラー' }));
+    throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.url;
+}

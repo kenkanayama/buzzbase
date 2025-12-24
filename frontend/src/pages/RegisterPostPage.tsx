@@ -19,7 +19,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { getUserProfile } from '@/lib/firestore/users';
 import { getActiveCampaigns } from '@/lib/firestore/campaigns';
 import { registerPRPost, isMediaIdAlreadyRegistered } from '@/lib/firestore/prPosts';
-import { getInstagramMedia } from '@/lib/api/instagram';
+import { getInstagramMedia, saveThumbnailToStorage } from '@/lib/api/instagram';
 import { Campaign, InstagramMedia, InstagramAccountWithId, PRPostRegisterInput } from '@/types';
 
 type Step = 1 | 2 | 3 | 4;
@@ -140,13 +140,25 @@ export function RegisterPostPage() {
     setError(null);
 
     try {
+      // Instagram APIから取得したサムネイルURLをGCSに保存して永続URLに変換
+      const originalThumbnailUrl = selectedPost.thumbnail_url || selectedPost.media_url;
+      let persistentThumbnailUrl: string | undefined = undefined;
+
+      if (originalThumbnailUrl) {
+        persistentThumbnailUrl = await saveThumbnailToStorage(
+          originalThumbnailUrl,
+          selectedAccountId,
+          selectedPost.id
+        );
+      }
+
       const input: PRPostRegisterInput = {
         campaignId: selectedCampaign.id,
         campaignName: selectedCampaign.name,
         mediaId: selectedPost.id,
         mediaType: selectedPost.media_type,
         permalink: selectedPost.permalink || '',
-        thumbnailUrl: selectedPost.thumbnail_url || selectedPost.media_url,
+        thumbnailUrl: persistentThumbnailUrl,
         postedAt: new Date(selectedPost.timestamp),
       };
 

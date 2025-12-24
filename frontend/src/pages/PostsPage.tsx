@@ -8,7 +8,8 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export function PostsPage() {
   const { user } = useAuth();
-  const [prPosts, setPrPosts] = useState<Array<PRPostItem & { accountId: string }>>([]);
+  // PRPostItemは既にaccountIdを含む
+  const [prPosts, setPrPosts] = useState<PRPostItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

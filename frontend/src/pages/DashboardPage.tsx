@@ -8,6 +8,7 @@ import { getAllPRPostsFlat } from '@/lib/firestore/prPosts';
 import { InstagramAccountWithId, PRPostItem } from '@/types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
+
 // Instagram認証URL生成用の定数
 const INSTAGRAM_APP_ID = '1395033632016244';
 const INSTAGRAM_REDIRECT_URI =
@@ -24,8 +25,8 @@ export function DashboardPage() {
   // 選択中のInstagramアカウントID
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
-  // PR投稿一覧
-  const [prPosts, setPrPosts] = useState<Array<PRPostItem & { accountId: string }>>([]);
+  // PR投稿一覧（PRPostItemは既にaccountIdを含む）
+  const [prPosts, setPrPosts] = useState<PRPostItem[]>([]);
 
   // Firestoreからユーザーデータを取得
   useEffect(() => {

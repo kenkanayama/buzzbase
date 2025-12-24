@@ -82,6 +82,29 @@ resource "google_storage_bucket_iam_member" "profile_images_public" {
   member = "allUsers"
 }
 
+# -----------------------------------------------------------------------------
+# Post Thumbnails Storage
+# -----------------------------------------------------------------------------
+
+# 投稿サムネイル保存用バケット
+resource "google_storage_bucket" "post_thumbnails" {
+  name     = "sincere-kit-post-thumbnails"
+  location = var.region
+
+  uniform_bucket_level_access = true
+
+  # 画像は永続的に保持（ライフサイクルルールなし）
+
+  depends_on = [google_project_service.required_apis]
+}
+
+# 投稿サムネイルバケットを公開読み取り可能に設定
+resource "google_storage_bucket_iam_member" "post_thumbnails_public" {
+  bucket = google_storage_bucket.post_thumbnails.name
+  role   = "roles/storage.objectViewer"
+  member = "allUsers"
+}
+
 # ソースコードをZIPにしてアップロード
 data "archive_file" "functions_source" {
   type        = "zip"
@@ -175,6 +198,47 @@ resource "google_cloudfunctions_function_iam_member" "get_instagram_media_invoke
   project        = var.project_id
   region         = var.region
   cloud_function = google_cloudfunctions_function.get_instagram_media.name
+  role           = "roles/cloudfunctions.invoker"
+  member         = "allUsers"
+}
+
+# -----------------------------------------------------------------------------
+# Cloud Function: サムネイル画像保存
+# -----------------------------------------------------------------------------
+
+resource "google_cloudfunctions_function" "save_thumbnail_to_storage" {
+  name        = "saveThumbnailToStorage"
+  description = "投稿サムネイル画像をCloud Storageに保存"
+  runtime     = "nodejs20"
+  region      = var.region
+
+  available_memory_mb   = 256
+  source_archive_bucket = google_storage_bucket.functions_bucket.name
+  source_archive_object = google_storage_bucket_object.functions_zip.name
+  trigger_http          = true
+  entry_point           = "saveThumbnailToStorage"
+
+  service_account_email = google_service_account.cloud_functions.email
+
+  environment_variables = {
+    GCP_PROJECT            = var.project_id
+    FRONTEND_URL           = var.frontend_url
+    POST_THUMBNAILS_BUCKET = google_storage_bucket.post_thumbnails.name
+  }
+
+  depends_on = [
+    google_project_service.required_apis,
+    google_service_account.cloud_functions,
+  ]
+}
+
+# サムネイル保存: 認証済みユーザーのみアクセス可能
+# 注意: エンドポイント内でFirebase IDトークンを検証するため、allUsersに設定
+# 実際の認証はエンドポイント内で行う
+resource "google_cloudfunctions_function_iam_member" "save_thumbnail_invoker" {
+  project        = var.project_id
+  region         = var.region
+  cloud_function = google_cloudfunctions_function.save_thumbnail_to_storage.name
   role           = "roles/cloudfunctions.invoker"
   member         = "allUsers"
 }

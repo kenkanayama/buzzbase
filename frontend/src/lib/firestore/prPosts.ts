@@ -4,7 +4,7 @@
  */
 import { doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { PRPostDocument, PRPostItem, PRPostRegisterInput, PRPostDataMap } from '@/types';
+import { PRPostDocument, PRPostItem, PRPostRegisterInput, PRPostDataMap, MediaPostMap } from '@/types';
 
 /**
  * Firestore Timestamp を Date に変換
@@ -16,6 +16,7 @@ function timestampToDate(timestamp: Timestamp | undefined | null): Date | undefi
 
 /**
  * Firestore の postData を PRPostDataMap 型に変換
+ * 新構造: postData[accountId][mediaId] = PRPostItem
  */
 function parsePostData(data: unknown): PRPostDataMap {
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
@@ -25,24 +26,41 @@ function parsePostData(data: unknown): PRPostDataMap {
   const result: PRPostDataMap = {};
   const dataRecord = data as Record<string, unknown>;
 
-  for (const [accountId, postsData] of Object.entries(dataRecord)) {
-    if (Array.isArray(postsData)) {
-      result[accountId] = postsData.map((post) => {
-        const postRecord = post as Record<string, unknown>;
-        return {
-          campaignId: (postRecord.campaignId as string) || '',
-          campaignName: (postRecord.campaignName as string) || '',
-          mediaId: (postRecord.mediaId as string) || '',
-          mediaType: (postRecord.mediaType as 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM') || 'IMAGE',
-          permalink: (postRecord.permalink as string) || '',
-          thumbnailUrl: (postRecord.thumbnailUrl as string) || undefined,
-          postedAt: timestampToDate(postRecord.postedAt as Timestamp) || new Date(),
-          viewCount: (postRecord.viewCount as number) || undefined,
-          viewCountFetchedAt: timestampToDate(postRecord.viewCountFetchedAt as Timestamp),
-          registeredAt: timestampToDate(postRecord.registeredAt as Timestamp) || new Date(),
-          status: (postRecord.status as 'pending' | 'measured') || 'pending',
-        };
-      });
+  for (const [accountId, mediaPosts] of Object.entries(dataRecord)) {
+    // 新構造: mediaPosts は mediaId をキーとしたオブジェクト
+    if (mediaPosts && typeof mediaPosts === 'object' && !Array.isArray(mediaPosts)) {
+      const mediaPostsRecord = mediaPosts as Record<string, unknown>;
+      const mediaPostMap: MediaPostMap = {};
+
+      for (const [mediaId, postData] of Object.entries(mediaPostsRecord)) {
+        if (postData && typeof postData === 'object') {
+          const postRecord = postData as Record<string, unknown>;
+          mediaPostMap[mediaId] = {
+            accountId: (postRecord.accountId as string) || accountId,
+            campaignId: (postRecord.campaignId as string) || '',
+            campaignName: (postRecord.campaignName as string) || '',
+            mediaId: (postRecord.mediaId as string) || mediaId,
+            mediaType: (postRecord.mediaType as 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM') || 'IMAGE',
+            permalink: (postRecord.permalink as string) || '',
+            thumbnailUrl: (postRecord.thumbnailUrl as string) || undefined,
+            postedAt: timestampToDate(postRecord.postedAt as Timestamp) || new Date(),
+            dataFetchedAt: timestampToDate(postRecord.dataFetchedAt as Timestamp),
+            igReelsAvgWatchTime: (postRecord.igReelsAvgWatchTime as number) || undefined,
+            igReelsVideoViewTotalTime: (postRecord.igReelsVideoViewTotalTime as number) || undefined,
+            reach: (postRecord.reach as number) || undefined,
+            saved: (postRecord.saved as number) || undefined,
+            views: (postRecord.views as number) || undefined,
+            likes: (postRecord.likes as number) || undefined,
+            comments: (postRecord.comments as number) || undefined,
+            registeredAt: timestampToDate(postRecord.registeredAt as Timestamp) || new Date(),
+            status: (postRecord.status as 'pending' | 'measured') || 'pending',
+          };
+        }
+      }
+
+      if (Object.keys(mediaPostMap).length > 0) {
+        result[accountId] = mediaPostMap;
+      }
     }
   }
 
@@ -93,7 +111,12 @@ export async function getPRPostsByAccount(
   if (!prPostDoc) {
     return [];
   }
-  return prPostDoc.postData[accountId] || [];
+  const mediaPostMap = prPostDoc.postData[accountId];
+  if (!mediaPostMap) {
+    return [];
+  }
+  // MediaPostMap から配列に変換
+  return Object.values(mediaPostMap);
 }
 
 /**
@@ -112,8 +135,9 @@ export async function isMediaIdAlreadyRegistered(
   }
 
   // 全アカウントの投稿をチェック
-  for (const posts of Object.values(prPostDoc.postData)) {
-    if (posts.some((post) => post.mediaId === mediaId)) {
+  for (const mediaPostMap of Object.values(prPostDoc.postData)) {
+    // mediaId がキーとして存在するかチェック
+    if (mediaId in mediaPostMap) {
       return true;
     }
   }
@@ -148,7 +172,9 @@ export async function registerPRPost(
     const docSnap = await getDoc(docRef);
 
     // 新しい投稿アイテムを作成（Firestoreに保存可能な形式）
+    // 新構造: postData[accountId][mediaId] = PRPostItem
     const newPostItem = {
+      accountId: accountId,
       campaignId: input.campaignId,
       campaignName: input.campaignName,
       mediaId: input.mediaId,
@@ -165,7 +191,9 @@ export async function registerPRPost(
       await setDoc(docRef, {
         userId,
         postData: {
-          [accountId]: [newPostItem],
+          [accountId]: {
+            [input.mediaId]: newPostItem,
+          },
         },
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -174,12 +202,16 @@ export async function registerPRPost(
       // ドキュメントが存在する場合は更新
       const existingData = docSnap.data();
       const existingPostData = existingData?.postData || {};
-      const existingAccountPosts = Array.isArray(existingPostData[accountId])
-        ? existingPostData[accountId]
-        : [];
+      const existingAccountPosts =
+        existingPostData[accountId] && typeof existingPostData[accountId] === 'object'
+          ? existingPostData[accountId]
+          : {};
 
-      // 新しい投稿を追加
-      const updatedAccountPosts = [...existingAccountPosts, newPostItem];
+      // 新しい投稿を追加（mediaIdをキーとして追加）
+      const updatedAccountPosts = {
+        ...existingAccountPosts,
+        [input.mediaId]: newPostItem,
+      };
 
       await setDoc(docRef, {
         userId,
@@ -199,22 +231,21 @@ export async function registerPRPost(
 /**
  * ユーザーの全PR投稿を取得（UI表示用にフラット化）
  * @param userId - Firebase UID
- * @returns 投稿一覧（アカウント情報付き）
+ * @returns 投稿一覧（PRPostItem型、既にaccountIdを含む）
  */
-export async function getAllPRPostsFlat(
-  userId: string
-): Promise<Array<PRPostItem & { accountId: string }>> {
+export async function getAllPRPostsFlat(userId: string): Promise<PRPostItem[]> {
   try {
     const prPostDoc = await getPRPosts(userId);
     if (!prPostDoc) {
       return [];
     }
 
-    const result: Array<PRPostItem & { accountId: string }> = [];
+    const result: PRPostItem[] = [];
 
-    for (const [accountId, posts] of Object.entries(prPostDoc.postData)) {
-      for (const post of posts) {
-        result.push({ ...post, accountId });
+    // 新構造: postData[accountId][mediaId] = PRPostItem
+    for (const mediaPostMap of Object.values(prPostDoc.postData)) {
+      for (const post of Object.values(mediaPostMap)) {
+        result.push(post);
       }
     }
 

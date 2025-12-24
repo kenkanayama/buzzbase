@@ -23,6 +23,9 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'https://buzzbase-1028492470102
 // プロフィール画像保存用バケット名
 const PROFILE_IMAGES_BUCKET = process.env.PROFILE_IMAGES_BUCKET || `${PROJECT_ID}-profile-images`;
 
+// 投稿サムネイル保存用バケット名
+const POST_THUMBNAILS_BUCKET = process.env.POST_THUMBNAILS_BUCKET || 'sincere-kit-post-thumbnails';
+
 // Cloud Storageクライアント
 const storage = new Storage();
 
@@ -498,6 +501,135 @@ exports.getInstagramMedia = async (req, res) => {
     console.error('Instagram投稿取得エラー:', err);
     res.status(500).json({ 
       error: '投稿の取得に失敗しました',
+      message: err.message 
+    });
+  }
+};
+
+// =============================================================================
+// Cloud Function: サムネイル画像保存
+// =============================================================================
+
+/**
+ * 投稿サムネイル画像をCloud Storageに保存
+ * HTTPトリガー（POST）
+ * 
+ * 認証: Firebase Authentication IDトークンをAuthorizationヘッダーで受け取る
+ * 
+ * リクエスト:
+ *   POST /saveThumbnailToStorage
+ *   Headers:
+ *     Authorization: Bearer {Firebase ID Token}
+ *     Content-Type: application/json
+ *   Body:
+ *     { thumbnailUrl: string, accountId: string, mediaId: string }
+ * 
+ * レスポンス:
+ *   200 OK: { url: string }
+ *   400 Bad Request: { error: "..." }
+ *   401 Unauthorized: { error: "..." }
+ *   500 Internal Server Error: { error: "..." }
+ */
+exports.saveThumbnailToStorage = async (req, res) => {
+  // CORSヘッダー設定
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // プリフライトリクエスト対応
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+
+  // メソッドチェック
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  // 認証チェック（Firebase IDトークン）
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: '認証が必要です' });
+    return;
+  }
+
+  const idToken = authHeader.split('Bearer ')[1];
+  
+  if (!idToken) {
+    res.status(401).json({ error: '無効な認証トークンです' });
+    return;
+  }
+
+  // Firebase Admin SDKでトークンを検証
+  try {
+    await admin.auth().verifyIdToken(idToken);
+  } catch (error) {
+    console.error('トークン検証エラー:', error);
+    res.status(401).json({ error: '認証トークンの検証に失敗しました' });
+    return;
+  }
+
+  const { thumbnailUrl, accountId, mediaId } = req.body;
+
+  // パラメータチェック
+  if (!thumbnailUrl) {
+    res.status(400).json({ error: 'thumbnailUrlが必要です' });
+    return;
+  }
+
+  if (!accountId) {
+    res.status(400).json({ error: 'accountIdが必要です' });
+    return;
+  }
+
+  if (!mediaId) {
+    res.status(400).json({ error: 'mediaIdが必要です' });
+    return;
+  }
+
+  try {
+    // 画像をダウンロード
+    console.log(`サムネイルをダウンロード中: ${thumbnailUrl}`);
+    const response = await fetch(thumbnailUrl);
+    
+    if (!response.ok) {
+      console.error('サムネイルダウンロードエラー:', response.status);
+      res.status(400).json({ error: '画像のダウンロードに失敗しました' });
+      return;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Content-Typeを取得（デフォルトはjpeg）
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const extension = contentType.includes('png') ? 'png' : 'jpg';
+
+    // Cloud Storageにアップロード
+    // ファイル名: {accountId}/{mediaId}.{extension}
+    const fileName = `${accountId}/${mediaId}.${extension}`;
+    const bucket = storage.bucket(POST_THUMBNAILS_BUCKET);
+    const file = bucket.file(fileName);
+
+    await file.save(buffer, {
+      metadata: {
+        contentType: contentType,
+        cacheControl: 'public, max-age=86400', // 24時間キャッシュ
+      },
+    });
+
+    // 公開URLを生成
+    const publicUrl = `https://storage.googleapis.com/${POST_THUMBNAILS_BUCKET}/${fileName}`;
+    console.log(`サムネイルをCloud Storageに保存: ${publicUrl}`);
+
+    res.status(200).json({ url: publicUrl });
+
+  } catch (err) {
+    console.error('サムネイル保存エラー:', err);
+    res.status(500).json({ 
+      error: 'サムネイルの保存に失敗しました',
       message: err.message 
     });
   }

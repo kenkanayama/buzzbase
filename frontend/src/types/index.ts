@@ -158,31 +158,46 @@ export interface Campaign {
 
 /**
  * PR投稿データ（個別の投稿情報）
+ * 新構造: postData[accountId][mediaId] にこのオブジェクトが格納される
  */
 export interface PRPostItem {
+  accountId: string; // InstagramアカウントID
   campaignId: string; // 商品/案件ID
   campaignName: string; // 商品/案件名（スナップショット）
   mediaId: string; // Instagram Media ID
   mediaType: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM'; // メディアタイプ
   permalink: string; // 投稿URL
   thumbnailUrl?: string; // サムネイル画像URL
-  postedAt: Date; // 投稿日時
+  postedAt: Date; // 投稿日時（日本時間）
 
   // 計測データ
-  viewCount?: number; // 再生数（7日後に取得）
-  viewCountFetchedAt?: Date; // 再生数取得日時
+  dataFetchedAt?: Date; // データ取得日時（日本時間）
+  igReelsAvgWatchTime?: number; // リールの平均視聴時間
+  igReelsVideoViewTotalTime?: number; // リールの総視聴時間
+  reach?: number; // リーチ数
+  saved?: number; // 保存数
+  views?: number; // 再生数
+  likes?: number; // いいね数
+  comments?: number; // コメント数
 
   // メタデータ
-  registeredAt: Date; // バズベース登録日時
+  registeredAt: Date; // バズベース登録日時（日本時間）
   status: 'pending' | 'measured'; // ステータス
 }
 
 /**
+ * メディアIDをキーとしたPR投稿データのMap
+ * キー: Instagram Media ID
+ * 値: PRPostItem
+ */
+export type MediaPostMap = Record<string, PRPostItem>;
+
+/**
  * PR投稿データ（アカウントIDをキーとしたMap形式）
  * キー: InstagramアカウントID
- * 値: PRPostItem の配列
+ * 値: MediaPostMap（メディアIDをキーとしたPR投稿データ）
  */
-export type PRPostDataMap = Record<string, PRPostItem[]>;
+export type PRPostDataMap = Record<string, MediaPostMap>;
 
 /**
  * PR投稿ドキュメント
