@@ -137,6 +137,20 @@ export interface InstagramMediaResponse {
 // =============================================================================
 
 /**
+ * SNSプラットフォームの種類
+ */
+export type SNSPlatform = 'instagram' | 'tiktok';
+
+/**
+ * SNS媒体ごとの投稿メディアID
+ * 各プラットフォームごとにメディアIDの配列を保持
+ */
+export interface PostedMediaByPlatform {
+  instagram?: string[]; // InstagramのメディアID配列
+  tiktok?: string[]; // TikTokのメディアID配列（将来対応予定）
+}
+
+/**
  * キャンペーン（商品/案件）情報
  * Firestore: campaigns コレクション
  */
@@ -148,6 +162,7 @@ export interface Campaign {
   status: 'active' | 'inactive'; // ステータス
   startDate?: Date; // 開始日
   endDate?: Date; // 終了日
+  postedMedia?: PostedMediaByPlatform; // SNS媒体ごとの投稿メディアID（重複なし）
   createdAt: Date; // 作成日時
   updatedAt?: Date; // 更新日時
 }

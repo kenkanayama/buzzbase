@@ -4,7 +4,14 @@
  */
 import { doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { PRPostDocument, PRPostItem, PRPostRegisterInput, PRPostDataMap, MediaPostMap } from '@/types';
+import {
+  PRPostDocument,
+  PRPostItem,
+  PRPostRegisterInput,
+  PRPostDataMap,
+  MediaPostMap,
+} from '@/types';
+import { addMediaIdToCampaign } from './campaigns';
 
 /**
  * Firestore Timestamp を Date に変換
@@ -46,7 +53,8 @@ function parsePostData(data: unknown): PRPostDataMap {
             postedAt: timestampToDate(postRecord.postedAt as Timestamp) || new Date(),
             dataFetchedAt: timestampToDate(postRecord.dataFetchedAt as Timestamp),
             igReelsAvgWatchTime: (postRecord.igReelsAvgWatchTime as number) || undefined,
-            igReelsVideoViewTotalTime: (postRecord.igReelsVideoViewTotalTime as number) || undefined,
+            igReelsVideoViewTotalTime:
+              (postRecord.igReelsVideoViewTotalTime as number) || undefined,
             reach: (postRecord.reach as number) || undefined,
             saved: (postRecord.saved as number) || undefined,
             views: (postRecord.views as number) || undefined,
@@ -222,6 +230,10 @@ export async function registerPRPost(
         updatedAt: serverTimestamp(),
       });
     }
+
+    // キャンペーンにメディアIDを追加（重複なし）
+    // 現在はInstagramのみ対応、将来的にTikTok等も追加予定
+    await addMediaIdToCampaign(input.campaignId, 'instagram', input.mediaId);
   } catch (error) {
     console.error('PR投稿の登録に失敗しました:', error);
     throw error;
