@@ -35,10 +35,15 @@ service cloud.firestore {
     
     // キャンペーン（商品/案件）マスター
     // 認証済みユーザーなら誰でも読み取り可能
-    // 書き込みは管理者のみ（Cloud Functions経由またはFirebase Console）
+    // 作成・削除は管理者のみ（Cloud Functions経由またはFirebase Console）
+    // 更新は postedMedia と updatedAt フィールドのみ許可
     match /campaigns/{campaignId} {
       allow read: if request.auth != null;
-      allow write: if false; // 管理者のみ（Cloud Functions経由）
+      // postedMedia フィールドのみ更新を許可（PR投稿登録時に使用）
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['postedMedia', 'updatedAt']);
+      allow create, delete: if false; // 管理者のみ（Cloud Functions経由）
     }
     
     // PR投稿データ
