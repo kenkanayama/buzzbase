@@ -64,6 +64,8 @@ resource "google_project_service" "required_apis" {
     "identitytoolkit.googleapis.com",
     "cloudfunctions.googleapis.com",
     "storage.googleapis.com",
+    "pubsub.googleapis.com",
+    "cloudscheduler.googleapis.com",
   ])
 
   service            = each.key

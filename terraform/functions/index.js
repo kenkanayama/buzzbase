@@ -1,11 +1,12 @@
 /**
- * BuzzBase - Instagram OAuth Callback Handler
+ * BuzzBase - Instagram OAuth Callback Handler & Batch Processing
  * Cloud Functions 1st Gen
  */
 
 const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 const { Firestore, FieldValue } = require('@google-cloud/firestore');
 const { Storage } = require('@google-cloud/storage');
+const { PubSub } = require('@google-cloud/pubsub');
 const admin = require('firebase-admin');
 // Node.js 20 has native fetch API
 
@@ -632,5 +633,330 @@ exports.saveThumbnailToStorage = async (req, res) => {
       error: 'サムネイルの保存に失敗しました',
       message: err.message 
     });
+  }
+};
+
+// =============================================================================
+// Cloud Function: PR投稿インサイトデータ取得（Pub/Subトリガー）
+// =============================================================================
+
+// Pub/Subクライアント
+const pubsub = new PubSub();
+
+// 環境変数
+const PUBSUB_TOPIC = process.env.PUBSUB_TOPIC || 'fetch-post-insights';
+const INSTAGRAM_API_VERSION = 'v24.0';
+
+/**
+ * 日本時間で現在の日付を取得（YYYY-MM-DD形式）
+ */
+function getJSTDateString(date = new Date()) {
+  const jstOffset = 9 * 60 * 60 * 1000; // UTC+9
+  const jstDate = new Date(date.getTime() + jstOffset);
+  return jstDate.toISOString().split('T')[0];
+}
+
+/**
+ * TimestampをJST日付文字列に変換
+ */
+function timestampToJSTDateString(timestamp) {
+  // Firestore Timestampの場合はtoDate()を呼び出す
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  return getJSTDateString(date);
+}
+
+/**
+ * 7日前の日付を取得（JST基準）
+ */
+function getSevenDaysAgoJSTDateString() {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  return getJSTDateString(sevenDaysAgo);
+}
+
+/**
+ * Firestoreから対象投稿を検索
+ * - statusが'pending'
+ * - postedAtがJST基準で7日前の日付
+ */
+async function findTargetPosts() {
+  const targetDateString = getSevenDaysAgoJSTDateString();
+  console.log(`対象日付 (JST): ${targetDateString}`);
+
+  const targetPosts = [];
+
+  // prPostsコレクションの全ドキュメントを取得
+  const prPostsSnapshot = await firestore.collection('prPosts').get();
+
+  for (const doc of prPostsSnapshot.docs) {
+    const data = doc.data();
+    const userId = doc.id;
+    const postData = data.postData;
+
+    if (!postData || typeof postData !== 'object') {
+      continue;
+    }
+
+    // postData[accountId][mediaId] の構造をループ
+    for (const [accountId, mediaPosts] of Object.entries(postData)) {
+      if (!mediaPosts || typeof mediaPosts !== 'object') {
+        continue;
+      }
+
+      for (const [mediaId, post] of Object.entries(mediaPosts)) {
+        // statusが'pending'かつpostedAtが7日前の日付の投稿を抽出
+        if (post.status === 'pending' && post.postedAt) {
+          const postedAtDateString = timestampToJSTDateString(post.postedAt);
+          
+          if (postedAtDateString === targetDateString) {
+            targetPosts.push({
+              userId,
+              accountId,
+              mediaId,
+              post,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  console.log(`対象投稿数: ${targetPosts.length}`);
+  return targetPosts;
+}
+
+/**
+ * instagramAccountsコレクションからアクセストークンを取得
+ */
+async function getAccessTokenForAccount(accountId) {
+  const tokenDoc = await firestore.collection('instagramAccounts').doc(accountId).get();
+  
+  if (!tokenDoc.exists) {
+    console.warn(`アカウント ${accountId} のトークンが見つかりません`);
+    return null;
+  }
+  
+  const data = tokenDoc.data();
+  return data.accessToken;
+}
+
+/**
+ * Instagram Media Insights APIからデータを取得
+ * @param {string} mediaId - Instagram Media ID
+ * @param {string} accessToken - アクセストークン
+ * @returns {Promise<object|null>} インサイトデータ
+ */
+async function fetchMediaInsights(mediaId, accessToken) {
+  // 取得するメトリクス
+  // REELSの場合: ig_reels_avg_watch_time, ig_reels_video_view_total_time, reach, saved, views, likes, comments
+  // 注意: 一部のメトリクスはメディアタイプによって利用できない場合がある
+  const metrics = [
+    'ig_reels_avg_watch_time',
+    'ig_reels_video_view_total_time',
+    'reach',
+    'saved',
+    'views',
+    'likes',
+    'comments',
+  ];
+
+  const url = `https://graph.instagram.com/${INSTAGRAM_API_VERSION}/${mediaId}/insights?metric=${metrics.join(',')}&access_token=${accessToken}`;
+
+  try {
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(`Instagram API エラー (mediaId: ${mediaId}):`, errorData);
+      return null;
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Instagram API リクエストエラー (mediaId: ${mediaId}):`, error);
+    return null;
+  }
+}
+
+/**
+ * インサイトレスポンスをパースして必要な値を抽出
+ */
+function parseInsightsData(insightsResponse) {
+  if (!insightsResponse || !insightsResponse.data) {
+    return null;
+  }
+
+  const result = {};
+
+  for (const metric of insightsResponse.data) {
+    const name = metric.name;
+    // values配列の最初の要素のvalueを取得（lifetimeメトリクスの場合）
+    const value = metric.values?.[0]?.value ?? null;
+
+    switch (name) {
+      case 'ig_reels_avg_watch_time':
+        result.igReelsAvgWatchTime = value;
+        break;
+      case 'ig_reels_video_view_total_time':
+        result.igReelsVideoViewTotalTime = value;
+        break;
+      case 'reach':
+        result.reach = value;
+        break;
+      case 'saved':
+        result.saved = value;
+        break;
+      case 'views':
+        result.views = value;
+        break;
+      case 'likes':
+        result.likes = value;
+        break;
+      case 'comments':
+        result.comments = value;
+        break;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Firestoreの投稿データを更新
+ */
+async function updatePostWithInsights(userId, accountId, mediaId, insightsData) {
+  const docRef = firestore.collection('prPosts').doc(userId);
+  
+  // 現在の日本時間を取得
+  const now = new Date();
+  const jstOffset = 9 * 60 * 60 * 1000;
+  const jstNow = new Date(now.getTime() + jstOffset);
+
+  // 更新データを構築
+  const updateData = {
+    [`postData.${accountId}.${mediaId}.status`]: 'measured',
+    [`postData.${accountId}.${mediaId}.dataFetchedAt`]: jstNow,
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+
+  // インサイトデータがある場合は追加
+  if (insightsData) {
+    if (insightsData.igReelsAvgWatchTime !== null && insightsData.igReelsAvgWatchTime !== undefined) {
+      updateData[`postData.${accountId}.${mediaId}.igReelsAvgWatchTime`] = insightsData.igReelsAvgWatchTime;
+    }
+    if (insightsData.igReelsVideoViewTotalTime !== null && insightsData.igReelsVideoViewTotalTime !== undefined) {
+      updateData[`postData.${accountId}.${mediaId}.igReelsVideoViewTotalTime`] = insightsData.igReelsVideoViewTotalTime;
+    }
+    if (insightsData.reach !== null && insightsData.reach !== undefined) {
+      updateData[`postData.${accountId}.${mediaId}.reach`] = insightsData.reach;
+    }
+    if (insightsData.saved !== null && insightsData.saved !== undefined) {
+      updateData[`postData.${accountId}.${mediaId}.saved`] = insightsData.saved;
+    }
+    if (insightsData.views !== null && insightsData.views !== undefined) {
+      updateData[`postData.${accountId}.${mediaId}.views`] = insightsData.views;
+    }
+    if (insightsData.likes !== null && insightsData.likes !== undefined) {
+      updateData[`postData.${accountId}.${mediaId}.likes`] = insightsData.likes;
+    }
+    if (insightsData.comments !== null && insightsData.comments !== undefined) {
+      updateData[`postData.${accountId}.${mediaId}.comments`] = insightsData.comments;
+    }
+  }
+
+  await docRef.update(updateData);
+  console.log(`投稿データを更新: userId=${userId}, accountId=${accountId}, mediaId=${mediaId}`);
+}
+
+/**
+ * 残りの処理対象をPub/Subにパブリッシュ
+ */
+async function publishRemainingPosts(remainingPosts) {
+  if (remainingPosts.length === 0) {
+    return;
+  }
+
+  const topic = pubsub.topic(PUBSUB_TOPIC);
+  const message = {
+    action: 'process',
+    posts: remainingPosts,
+  };
+
+  await topic.publishMessage({
+    data: Buffer.from(JSON.stringify(message)),
+  });
+
+  console.log(`残り ${remainingPosts.length} 件をPub/Subにパブリッシュしました`);
+}
+
+/**
+ * PR投稿インサイトデータ取得
+ * Pub/Subトリガー
+ * 
+ * メッセージフォーマット:
+ *   初回（Cloud Schedulerから）: { action: 'start' }
+ *   再帰呼び出し: { action: 'process', posts: [...] }
+ */
+exports.fetchPostInsights = async (event, context) => {
+  console.log('fetchPostInsights 開始');
+
+  try {
+    // Pub/Subメッセージをデコード
+    let message = {};
+    if (event.data) {
+      const decodedData = Buffer.from(event.data, 'base64').toString();
+      message = JSON.parse(decodedData);
+    }
+
+    console.log('受信メッセージ:', JSON.stringify(message));
+
+    let postsToProcess = [];
+
+    if (message.action === 'start' || !message.posts || message.posts.length === 0) {
+      // 初回実行: Firestoreから対象投稿を検索
+      console.log('初回実行: 対象投稿を検索中...');
+      postsToProcess = await findTargetPosts();
+    } else {
+      // 再帰実行: メッセージから処理対象を取得
+      postsToProcess = message.posts;
+    }
+
+    if (postsToProcess.length === 0) {
+      console.log('処理対象の投稿がありません。終了します。');
+      return;
+    }
+
+    // 1件取り出して処理
+    const currentPost = postsToProcess.shift();
+    const { userId, accountId, mediaId } = currentPost;
+
+    console.log(`処理中: userId=${userId}, accountId=${accountId}, mediaId=${mediaId}`);
+
+    // アクセストークンを取得
+    const accessToken = await getAccessTokenForAccount(accountId);
+
+    if (!accessToken) {
+      console.warn(`アクセストークンが取得できないため、この投稿をスキップします: mediaId=${mediaId}`);
+      // ステータスは pending のまま
+    } else {
+      // Instagram APIからインサイトデータを取得
+      const insightsResponse = await fetchMediaInsights(mediaId, accessToken);
+      const insightsData = parseInsightsData(insightsResponse);
+
+      // Firestoreを更新
+      await updatePostWithInsights(userId, accountId, mediaId, insightsData);
+    }
+
+    // 残りがあればPub/Subにパブリッシュ
+    if (postsToProcess.length > 0) {
+      await publishRemainingPosts(postsToProcess);
+    } else {
+      console.log('すべての投稿の処理が完了しました');
+    }
+
+  } catch (error) {
+    console.error('fetchPostInsights エラー:', error);
+    throw error; // エラーを再スローしてCloud Functionsにリトライさせる
   }
 };
