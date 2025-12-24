@@ -20,10 +20,13 @@
 
 | リソース名 | 説明 | ステータス |
 |-----------|------|-----------|
-| Users | ユーザー情報（プロフィール・住所・振込先） | 🔄 部分実装 |
-| SnsAccounts | SNS連携情報（Instagram/TikTok） | ❌ 未実装 |
-| Posts | 投稿情報（URL・再生数） | ❌ 未実装 |
-| ViewCountResults | 再生数取得バッチ結果 | ❌ 未実装 |
+| Users | ユーザー情報（プロフィール・住所・振込先・Instagram連携） | ✅ 実装済み |
+| InstagramAccounts | Instagramトークン管理 | ✅ 実装済み |
+| Campaigns | キャンペーン（商品/案件）マスター | ✅ 実装済み |
+| PRPosts | PR投稿情報（投稿データ・インサイト数値） | ✅ 実装済み |
+| ~~SnsAccounts~~ | ~~SNS連携情報~~ | ❌ 廃止（InstagramAccountsに統合） |
+| ~~Posts~~ | ~~投稿情報~~ | ❌ 廃止（PRPostsに統合） |
+| ~~ViewCountResults~~ | ~~再生数取得バッチ結果~~ | ❌ 廃止（PRPostsに直接保存） |
 
 ---
 
@@ -426,24 +429,33 @@ const firestore = new Firestore({
 ```
 firestore/
 ├── users/{userId}                    # ユーザー情報
-│   ├── [User fields]
-│   │   └── instagramAccounts: {      # Map形式（キー: InstagramアカウントID）
-│   │         [accountId]: { username, name, profile_picture_url }
-│   │       }
-│   ├── snsAccounts/{snsAccountId}    # SNS連携情報（サブコレクション）
-│   │   └── [SnsAccount fields]
-│   └── posts/{postId}                # 投稿情報（サブコレクション）
-│       └── [Post fields]
+│   └── [User fields]
+│       └── instagramAccounts: {      # Map形式（キー: InstagramアカウントID）
+│             [accountId]: { username, name, profile_picture_url }
+│           }
 │
 ├── instagramAccounts/{accountId}     # Instagramトークン管理（ルートコレクション）
 │   └── [InstagramToken fields]       # アクセストークン、有効期限など
 │
-├── batchJobs/{batchJobId}            # バッチジョブ履歴
-│   └── [BatchJob fields]
+├── campaigns/{campaignId}            # キャンペーン（商品/案件）マスター
+│   └── [Campaign fields]             # 商品名、ステータス、投稿済みメディアID等
 │
-└── viewCountResults/{resultId}       # 再生数取得結果（フラット）
-    └── [ViewCountResult fields]
+└── prPosts/{userId}                  # PR投稿データ（ドキュメントID = ユーザーID）
+    └── postData: {                   # Map形式（2階層のネスト構造）
+          [accountId]: {              # キー: InstagramアカウントID
+            [mediaId]: {              # キー: Instagram Media ID
+              accountId, campaignId, campaignName, mediaId, mediaType,
+              permalink, thumbnailUrl, postedAt, registeredAt, status,
+              // インサイトデータ（バッチ処理で取得）
+              dataFetchedAt, igReelsAvgWatchTime, igReelsVideoViewTotalTime,
+              reach, saved, views, likes, comments
+            }
+          }
+        }
 ```
+
+> **注意**: 旧設計では `users/{userId}/posts/{postId}` のサブコレクション構造でしたが、
+> 現在は `prPosts/{userId}` としてルートレベルのドキュメントにMap形式で格納しています。
 
 ### インデックス設計
 
@@ -614,4 +626,6 @@ firestore/
 | 日付 | 内容 |
 |------|------|
 | 2025-12-22 | 初版作成 - 全リソースのRESTful設計 |
+| 2025-12-24 | リソース一覧を実態に合わせて更新（InstagramAccounts, Campaigns, PRPosts を追加、廃止リソースを明記） |
+| 2025-12-24 | Firestoreコレクション設計を実態（prPostsのMap構造）に合わせて更新 |
 

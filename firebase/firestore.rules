@@ -19,19 +19,6 @@ service cloud.firestore {
       allow write: if false;
     }
     
-    // SNSアカウント連携
-    match /snsAccounts/{accountId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-    }
-    
-    // 投稿データ（旧: posts - 後方互換性のため残す）
-    match /posts/{postId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-    }
     
     // キャンペーン（商品/案件）マスター
     // 認証済みユーザーなら誰でも読み取り可能

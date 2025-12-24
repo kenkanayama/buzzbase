@@ -11,17 +11,16 @@
 
 #### デザインシステムドキュメントの場所
 
-以下のファイルを必ず参照すること：
+以下のファイルを参照すること：
 
-1. **メインドキュメント**: `docs/DESIGN_SYSTEM.md`
-2. **開発者向けコピー**: `frontend/src/styles/DESIGN_SYSTEM.md`
+- **デザインシステムガイドライン**: `docs/DESIGN_SYSTEM.md`
 
 #### デザインシステムの参照方法
 
 新しいUIコンポーネントやスタイリングを作成・修正する際は、**必ず以下の手順を実行すること**：
 
 1. **事前にデザインシステムドキュメントを読み込む**
-   - `read_file` ツールを使用して `docs/DESIGN_SYSTEM.md` または `frontend/src/styles/DESIGN_SYSTEM.md` を読み込む
+   - `read_file` ツールを使用して `docs/DESIGN_SYSTEM.md` を読み込む
    - カラーパレット、タイポグラフィ、コンポーネントパターンを確認する
 
 2. **デザインシステムに準拠した実装**
@@ -76,10 +75,9 @@
 
 #### デザインシステムの更新
 
-デザインシステムガイドラインを更新する場合は、以下の両方のファイルを更新すること：
+デザインシステムガイドラインを更新する場合は、以下のファイルを更新すること：
 
-1. `docs/DESIGN_SYSTEM.md`
-2. `frontend/src/styles/DESIGN_SYSTEM.md`
+- `docs/DESIGN_SYSTEM.md`
 
 ---
 
@@ -386,11 +384,10 @@ buzz_base/
 │   │   ├── lib/        # ユーティリティ
 │   │   ├── pages/      # ページコンポーネント
 │   │   ├── styles/     # グローバルスタイル
-│   │   │   └── DESIGN_SYSTEM.md  # デザインシステムガイドライン
 │   │   └── types/      # 型定義
 │   └── public/         # 静的ファイル
 ├── docs/               # ドキュメント
-│   └── DESIGN_SYSTEM.md  # デザインシステムガイドライン（メイン）
+│   └── DESIGN_SYSTEM.md  # デザインシステムガイドライン
 ├── firebase/           # Firestore ルール
 ├── terraform/          # インフラ定義（Terraform）
 │   ├── main.tf         # Terraform設定、プロバイダー、API有効化
