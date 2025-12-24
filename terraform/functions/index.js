@@ -828,15 +828,13 @@ function parseInsightsData(insightsResponse) {
 async function updatePostWithInsights(userId, accountId, mediaId, insightsData) {
   const docRef = firestore.collection('prPosts').doc(userId);
   
-  // 現在の日本時間を取得
+  // 現在時刻を取得（UTC。表示時にブラウザがローカルタイムに変換する）
   const now = new Date();
-  const jstOffset = 9 * 60 * 60 * 1000;
-  const jstNow = new Date(now.getTime() + jstOffset);
 
   // 更新データを構築
   const updateData = {
     [`postData.${accountId}.${mediaId}.status`]: 'measured',
-    [`postData.${accountId}.${mediaId}.dataFetchedAt`]: jstNow,
+    [`postData.${accountId}.${mediaId}.dataFetchedAt`]: now,
     updatedAt: FieldValue.serverTimestamp(),
   };
 
