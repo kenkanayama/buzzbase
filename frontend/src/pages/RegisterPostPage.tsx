@@ -10,6 +10,9 @@ import {
   Package,
   Image as ImageIcon,
   CheckCircle2,
+  HelpCircle,
+  ExternalLink,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -44,6 +47,13 @@ export function RegisterPostPage() {
   // エラー状態
   const [error, setError] = useState<string | null>(null);
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
+
+  // トラブルシューティングモーダル
+  const [isTroubleshootingOpen, setIsTroubleshootingOpen] = useState(false);
+
+  // サポートGoogleフォームURL
+  const SUPPORT_FORM_URL =
+    'https://docs.google.com/forms/d/e/1FAIpQLSfguUNAvmG2Px_ez47Pph0sFXkqbEcMV8RdRM98lhOAotCOOg/viewform';
 
   // 初期データ取得
   useEffect(() => {
@@ -463,17 +473,48 @@ export function RegisterPostPage() {
                 </div>
               )}
 
-              {/* 再取得ボタン */}
+              {/* サポート導線 */}
               {instagramPosts.length > 0 && (
-                <button
-                  onClick={handleFetchPosts}
-                  disabled={fetchingPosts}
-                  className="flex w-full items-center justify-center gap-2 py-2 text-sm transition-colors hover:underline"
-                  style={{ color: '#f29801' }}
+                <div
+                  className="mt-4 rounded-lg border p-4"
+                  style={{ borderColor: '#e5e5e5', backgroundColor: '#fafafa' }}
                 >
-                  <RefreshCw className="h-4 w-4" />
-                  投稿を再取得
-                </button>
+                  <div className="flex items-start gap-3">
+                    <button
+                      onClick={() => setIsTroubleshootingOpen(true)}
+                      className="flex-shrink-0 rounded-full p-1 transition-colors hover:bg-gray-200"
+                      aria-label="トラブルシューティング"
+                    >
+                      <HelpCircle className="h-5 w-5 text-gray-500" />
+                    </button>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm text-gray-600">
+                        投稿が表示されない場合は
+                        <button
+                          onClick={() => setIsTroubleshootingOpen(true)}
+                          className="mx-1 font-medium underline"
+                          style={{ color: '#f29801' }}
+                        >
+                          こちら
+                        </button>
+                        をご確認ください
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        解決しない場合は
+                        <a
+                          href={SUPPORT_FORM_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-1 inline-flex items-center gap-0.5 font-medium underline"
+                          style={{ color: '#f29801' }}
+                        >
+                          お問い合わせ
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -619,6 +660,87 @@ export function RegisterPostPage() {
             )}
           </div>
         </footer>
+      )}
+
+      {/* トラブルシューティングモーダル */}
+      {isTroubleshootingOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* オーバーレイ */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setIsTroubleshootingOpen(false)}
+          />
+          {/* モーダルコンテンツ */}
+          <div className="relative z-10 mx-4 max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+            {/* ヘッダー */}
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">
+                投稿が表示されない場合
+              </h3>
+              <button
+                onClick={() => setIsTroubleshootingOpen(false)}
+                className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* トラブルシューティング内容 */}
+            <div className="space-y-4">
+              <div
+                className="rounded-lg p-4"
+                style={{ backgroundColor: '#fff8ed' }}
+              >
+                <h4 className="mb-2 font-medium text-gray-900">
+                  1. アカウント設定を確認
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Instagramアカウントが「ビジネスアカウント」または「クリエイターアカウント」に設定されているか確認してください。個人アカウントでは投稿を取得できません。
+                </p>
+              </div>
+
+              <div
+                className="rounded-lg p-4"
+                style={{ backgroundColor: '#fff8ed' }}
+              >
+                <h4 className="mb-2 font-medium text-gray-900">
+                  2. Facebookページとの連携
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Instagramビジネスアカウントは、Facebookページと連携されている必要があります。Instagram設定から連携状況をご確認ください。
+                </p>
+              </div>
+
+              <div
+                className="rounded-lg p-4"
+                style={{ backgroundColor: '#fff8ed' }}
+              >
+                <h4 className="mb-2 font-medium text-gray-900">
+                  3. 再連携をお試しください
+                </h4>
+                <p className="text-sm text-gray-600">
+                  連携時に必要な権限が付与されていない可能性があります。ダッシュボードの「設定」からSNSアカウントを再連携してください。
+                </p>
+              </div>
+
+              <div className="border-t pt-4" style={{ borderColor: '#e5e5e5' }}>
+                <p className="text-sm text-gray-600">
+                  上記をお試しいただいても解決しない場合は、お手数ですがサポートまでお問い合わせください。
+                </p>
+                <a
+                  href={SUPPORT_FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border py-3 text-sm font-medium transition-colors hover:bg-gray-50"
+                  style={{ borderColor: '#e5e5e5', color: '#525252' }}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  お問い合わせフォームを開く
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
