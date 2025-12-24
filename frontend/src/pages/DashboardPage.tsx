@@ -179,9 +179,31 @@ export function DashboardPage() {
                 })}
               </div>
             ) : (
-              <p className="py-4 text-center text-sm text-gray-500">
-                連携されているSNSアカウントはありません
-              </p>
+              /* 空状態: SNSアカウント未連携 */
+              <div className="py-8 text-center">
+                <div
+                  className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full"
+                  style={{ backgroundColor: '#fff8ed' }}
+                >
+                  <Instagram className="h-7 w-7" style={{ color: '#f29801' }} />
+                </div>
+                <h3 className="mb-2 font-medium text-gray-900">
+                  SNSアカウントを連携しましょう
+                </h3>
+                <p className="mb-5 text-sm text-gray-500">
+                  PR投稿を登録するには、まずSNSアカウントの連携が必要です
+                </p>
+                <button
+                  onClick={() => setIsSettingsModalOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors"
+                  style={{ backgroundColor: '#f29801' }}
+                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e38500')}
+                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f29801')}
+                >
+                  <Plus className="h-4 w-4" />
+                  SNSアカウントを連携する
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -199,19 +221,28 @@ export function DashboardPage() {
         </div>
 
         {prPosts.length === 0 ? (
-          <div className="card py-12 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-              <Calendar className="h-8 w-8 text-gray-400" />
+          <div className="card py-10 text-center">
+            <div
+              className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full"
+              style={{ backgroundColor: '#fff8ed' }}
+            >
+              <Calendar className="h-7 w-7" style={{ color: '#f29801' }} />
             </div>
-            <h3 className="mb-2 font-medium text-gray-900">まだ投稿がありません</h3>
-            <p className="mb-6 text-sm text-gray-500">
-              最初の投稿を登録して、再生数をトラッキングしましょう
-            </p>
-            {instagramAccounts.length > 0 && (
-              <Button onClick={() => navigate('/register-post')}>
-                <Plus className="mr-2 h-4 w-4" />
-                PR投稿を登録
-              </Button>
+            <h3 className="mb-2 font-medium text-gray-900">まだPR投稿がありません</h3>
+            {instagramAccounts.length > 0 ? (
+              <>
+                <p className="mb-5 text-sm text-gray-500">
+                  最初の投稿を登録して、再生数をトラッキングしましょう
+                </p>
+                <Button onClick={() => navigate('/register-post')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  PR投稿を登録
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-gray-500">
+                PR投稿を登録するには、まずSNSアカウントを連携してください
+              </p>
             )}
           </div>
         ) : (

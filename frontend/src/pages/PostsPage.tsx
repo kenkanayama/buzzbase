@@ -52,7 +52,7 @@ export function PostsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white">
+      <header className="glass sticky top-0 z-10 border-b border-gray-200/50">
         <div className="mx-auto flex h-14 max-w-lg items-center gap-3 px-4">
           <Link
             to="/dashboard"
@@ -67,18 +67,23 @@ export function PostsPage() {
       {/* コンテンツ */}
       <main className="mx-auto max-w-lg px-4 py-6">
         {prPosts.length === 0 ? (
-          <div className="card py-12 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-              <Calendar className="h-8 w-8 text-gray-400" />
+          <div className="card py-10 text-center">
+            <div
+              className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full"
+              style={{ backgroundColor: '#fff8ed' }}
+            >
+              <Calendar className="h-7 w-7" style={{ color: '#f29801' }} />
             </div>
-            <h3 className="mb-2 font-medium text-gray-900">まだ投稿がありません</h3>
-            <p className="mb-6 text-sm text-gray-500">
+            <h3 className="mb-2 font-medium text-gray-900">まだPR投稿がありません</h3>
+            <p className="mb-5 text-sm text-gray-500">
               ダッシュボードから最初の投稿を登録しましょう
             </p>
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors"
               style={{ backgroundColor: '#f29801' }}
+              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e38500')}
+              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f29801')}
             >
               ダッシュボードへ戻る
             </Link>
