@@ -6,7 +6,6 @@ import {
   ArrowRight,
   Check,
   AlertCircle,
-  Instagram,
   RefreshCw,
   Package,
   Image as ImageIcon,
@@ -190,6 +189,13 @@ export function RegisterPostPage() {
     });
   };
 
+  // SNSアカウント未連携時はダッシュボードにリダイレクト
+  useEffect(() => {
+    if (!loading && instagramAccounts.length === 0) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [loading, instagramAccounts.length, navigate]);
+
   // ローディング画面
   if (loading) {
     return (
@@ -199,27 +205,9 @@ export function RegisterPostPage() {
     );
   }
 
-  // Instagramアカウント未連携
+  // SNSアカウント未連携の場合はリダイレクト中なのでnullを返す
   if (instagramAccounts.length === 0) {
-    return (
-      <div className="animate-fade-in px-4 py-8">
-        <div className="mx-auto max-w-md text-center">
-          <div
-            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
-            style={{ backgroundColor: '#fff8ed' }}
-          >
-            <Instagram className="h-8 w-8" style={{ color: '#f29801' }} />
-          </div>
-          <h2 className="mb-2 text-xl font-semibold text-gray-900">
-            Instagramアカウントを連携してください
-          </h2>
-          <p className="mb-6 text-gray-500">
-            PR投稿を登録するには、Instagramアカウントの連携が必要です
-          </p>
-          <Button onClick={() => navigate('/dashboard')}>ダッシュボードに戻る</Button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
