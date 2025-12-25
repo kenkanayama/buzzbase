@@ -744,21 +744,34 @@ async function getAccessTokenForAccount(accountId) {
  * Instagram Media Insights APIからデータを取得
  * @param {string} mediaId - Instagram Media ID
  * @param {string} accessToken - アクセストークン
+ * @param {string} mediaProductType - メディア製品タイプ（REELS, FEED等）
  * @returns {Promise<object|null>} インサイトデータ
  */
-async function fetchMediaInsights(mediaId, accessToken) {
-  // 取得するメトリクス
-  // REELSの場合: ig_reels_avg_watch_time, ig_reels_video_view_total_time, reach, saved, views, likes, comments
-  // 注意: 一部のメトリクスはメディアタイプによって利用できない場合がある
-  const metrics = [
-    'ig_reels_avg_watch_time',
-    'ig_reels_video_view_total_time',
-    'reach',
-    'saved',
-    'views',
-    'likes',
-    'comments',
-  ];
+async function fetchMediaInsights(mediaId, accessToken, mediaProductType) {
+  // 取得するメトリクスをmediaProductTypeに基づいて決定
+  let metrics;
+  
+  if (mediaProductType === 'REELS') {
+    // REELSの場合: REELS専用メトリクス + 共通メトリクス
+    metrics = [
+      'ig_reels_avg_watch_time',
+      'ig_reels_video_view_total_time',
+      'reach',
+      'saved',
+      'views',
+      'likes',
+      'comments',
+    ];
+  } else {
+    // REELSではない場合: 共通メトリクスのみ
+    metrics = [
+      'reach',
+      'saved',
+      'views',
+      'likes',
+      'comments',
+    ];
+  }
 
   const url = `https://graph.instagram.com/${INSTAGRAM_API_VERSION}/${mediaId}/insights?metric=${metrics.join(',')}&access_token=${accessToken}`;
 
@@ -927,7 +940,7 @@ exports.fetchPostInsights = async (event, context) => {
 
     // 1件取り出して処理
     const currentPost = postsToProcess.shift();
-    const { userId, accountId, mediaId } = currentPost;
+    const { userId, accountId, mediaId, post } = currentPost;
 
     console.log(`処理中: userId=${userId}, accountId=${accountId}, mediaId=${mediaId}`);
 
@@ -938,8 +951,11 @@ exports.fetchPostInsights = async (event, context) => {
       console.warn(`アクセストークンが取得できないため、この投稿をスキップします: mediaId=${mediaId}`);
       // ステータスは pending のまま
     } else {
+      // mediaProductTypeを取得（デフォルトはundefined）
+      const mediaProductType = post?.mediaProductType || undefined;
+      
       // Instagram APIからインサイトデータを取得
-      const insightsResponse = await fetchMediaInsights(mediaId, accessToken);
+      const insightsResponse = await fetchMediaInsights(mediaId, accessToken, mediaProductType);
       const insightsData = parseInsightsData(insightsResponse);
 
       // Firestoreを更新
