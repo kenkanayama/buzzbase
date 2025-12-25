@@ -27,9 +27,19 @@ export const ComponentName: FC<ComponentNameProps> = ({ ...props }) => {
 ```
 
 ### コンポーネントの配置
-- `components/ui/`: 汎用UIコンポーネント（Button, Input, LoadingSpinner等）
-- `components/auth/`: 認証関連コンポーネント
+- `components/ui/`: 汎用UIコンポーネント
+  - `Button.tsx`: ボタンコンポーネント（プライマリ、セカンダリ、ゴースト、デンジャー）
+  - `Input.tsx`: 入力フィールドコンポーネント
+  - `LoadingSpinner.tsx`: ローディングスピナー
+  - `Modal.tsx`: モーダルダイアログ（オーバーレイ、ヘッダー、閉じるボタン付き）
+  - `StatusBadge.tsx`: ステータスバッジ（計測完了/計測待ち）
+  - `ErrorAlert.tsx`: エラー表示アラート
+  - `EmptyState.tsx`: 空状態表示（アイコン、タイトル、説明、アクション付き）
+- `components/auth/`: 認証関連コンポーネント（ProtectedRoute等）
 - `components/layout/`: レイアウトコンポーネント（Header, Layout, MobileNav等）
+- `components/posts/`: PR投稿関連コンポーネント
+  - `PostCard.tsx`: PR投稿カード表示（サムネイル、タイトル、ステータスバッジ付き）
+  - `PostDetailModal.tsx`: PR投稿詳細モーダル（計測データ表示、Instagramリンク付き）
 - `pages/`: ページコンポーネント
 
 ---

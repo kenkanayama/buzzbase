@@ -254,17 +254,35 @@ Tailwind CSS の標準スペーシングスケールを使用（1単位 = 4px）
 
 ### バッジ
 
+`StatusBadge` コンポーネントを使用（推奨）
+
 ```tsx
-// プライマリバッジ
+import { StatusBadge } from '@/components/ui/StatusBadge';
+
+// 計測完了
+<StatusBadge status="measured" />
+
+// 計測待ち
+<StatusBadge status="pending" />
+```
+
+手動実装する場合：
+
+```tsx
+// 計測完了バッジ
 <span
-  className="px-3 py-1 text-xs font-semibold rounded-full border"
-  style={{
-    color: '#e38500',
-    backgroundColor: '#fff8ed',
-    borderColor: '#ffdba8',
-  }}
+  className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
+  style={{ backgroundColor: '#dcfce7', color: '#16a34a' }}
 >
   計測完了
+</span>
+
+// 計測待ちバッジ
+<span
+  className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
+  style={{ backgroundColor: '#fff8ed', color: '#f29801' }}
+>
+  計測待ち
 </span>
 ```
 
@@ -286,6 +304,50 @@ Tailwind CSS の標準スペーシングスケールを使用（1単位 = 4px）
 >
   <Zap className="w-6 h-6" style={{ color: '#e61f13' }} />
 </div>
+```
+
+### モーダル
+
+`Modal` コンポーネントを使用（推奨）
+
+```tsx
+import { Modal } from '@/components/ui/Modal';
+
+<Modal
+  isOpen={isOpen}
+  onClose={() => setIsOpen(false)}
+  title="モーダルタイトル"
+  maxHeight="max-h-[90vh]"
+  className="p-6"
+>
+  {/* コンテンツ */}
+</Modal>
+```
+
+### エラー表示
+
+`ErrorAlert` コンポーネントを使用（推奨）
+
+```tsx
+import { ErrorAlert } from '@/components/ui/ErrorAlert';
+
+<ErrorAlert message="エラーメッセージ" />
+```
+
+### 空状態表示
+
+`EmptyState` コンポーネントを使用（推奨）
+
+```tsx
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Calendar } from 'lucide-react';
+
+<EmptyState
+  icon={<Calendar className="h-7 w-7" style={{ color: '#f29801' }} />}
+  title="まだPR投稿がありません"
+  description="最初の投稿を登録して、再生数をトラッキングしましょう"
+  action={<Button>投稿を登録</Button>}
+/>
 ```
 
 ---

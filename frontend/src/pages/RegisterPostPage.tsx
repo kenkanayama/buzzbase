@@ -12,10 +12,11 @@ import {
   CheckCircle2,
   HelpCircle,
   ExternalLink,
-  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { Modal } from '@/components/ui/Modal';
 import { getUserProfile } from '@/lib/firestore/users';
 import { getActiveCampaigns } from '@/lib/firestore/campaigns';
 import { registerPRPost, isMediaIdAlreadyRegistered } from '@/lib/firestore/prPosts';
@@ -395,30 +396,10 @@ export function RegisterPostPage() {
               )}
 
               {/* エラー表示 */}
-              {error && (
-                <div
-                  className="flex items-start gap-3 rounded-lg border p-4"
-                  style={{ backgroundColor: '#fff1f0', borderColor: '#ffc8c4' }}
-                >
-                  <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: '#e61f13' }} />
-                  <p className="text-sm" style={{ color: '#e61f13' }}>
-                    {error}
-                  </p>
-                </div>
-              )}
+              {error && <ErrorAlert message={error} />}
 
               {/* 重複エラー表示 */}
-              {duplicateError && (
-                <div
-                  className="flex items-start gap-3 rounded-lg border p-4"
-                  style={{ backgroundColor: '#fff1f0', borderColor: '#ffc8c4' }}
-                >
-                  <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: '#e61f13' }} />
-                  <p className="text-sm" style={{ color: '#e61f13' }}>
-                    {duplicateError}
-                  </p>
-                </div>
-              )}
+              {duplicateError && <ErrorAlert message={duplicateError} />}
 
               {/* 投稿グリッド */}
               {instagramPosts.length > 0 && (
@@ -586,17 +567,7 @@ export function RegisterPostPage() {
               </div>
 
               {/* エラー表示 */}
-              {error && (
-                <div
-                  className="flex items-start gap-3 rounded-lg border p-4"
-                  style={{ backgroundColor: '#fff1f0', borderColor: '#ffc8c4' }}
-                >
-                  <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: '#e61f13' }} />
-                  <p className="text-sm" style={{ color: '#e61f13' }}>
-                    {error}
-                  </p>
-                </div>
-              )}
+              {error && <ErrorAlert message={error} />}
             </div>
           )}
 
@@ -675,68 +646,53 @@ export function RegisterPostPage() {
       )}
 
       {/* トラブルシューティングモーダル */}
-      {isTroubleshootingOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* オーバーレイ */}
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setIsTroubleshootingOpen(false)}
-          />
-          {/* モーダルコンテンツ */}
-          <div className="relative z-10 mx-4 max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
-            {/* ヘッダー */}
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">投稿が表示されない場合</h3>
-              <button
-                onClick={() => setIsTroubleshootingOpen(false)}
-                className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+      <Modal
+        isOpen={isTroubleshootingOpen}
+        onClose={() => setIsTroubleshootingOpen(false)}
+        title="投稿が表示されない場合"
+        maxHeight="max-h-[80vh]"
+        className="p-6"
+      >
+        {/* トラブルシューティング内容 */}
+        <div className="space-y-4">
+          <div className="rounded-lg p-4" style={{ backgroundColor: '#fff8ed' }}>
+            <h4 className="mb-2 font-medium text-gray-900">1. アカウント設定を確認</h4>
+            <p className="text-sm text-gray-600">
+              Instagramアカウントが「ビジネスアカウント」または「クリエイターアカウント」に設定されているか確認してください。個人アカウントでは投稿を取得できません。
+            </p>
+          </div>
 
-            {/* トラブルシューティング内容 */}
-            <div className="space-y-4">
-              <div className="rounded-lg p-4" style={{ backgroundColor: '#fff8ed' }}>
-                <h4 className="mb-2 font-medium text-gray-900">1. アカウント設定を確認</h4>
-                <p className="text-sm text-gray-600">
-                  Instagramアカウントが「ビジネスアカウント」または「クリエイターアカウント」に設定されているか確認してください。個人アカウントでは投稿を取得できません。
-                </p>
-              </div>
+          <div className="rounded-lg p-4" style={{ backgroundColor: '#fff8ed' }}>
+            <h4 className="mb-2 font-medium text-gray-900">2. Facebookページとの連携</h4>
+            <p className="text-sm text-gray-600">
+              Instagramビジネスアカウントは、Facebookページと連携されている必要があります。Instagram設定から連携状況をご確認ください。
+            </p>
+          </div>
 
-              <div className="rounded-lg p-4" style={{ backgroundColor: '#fff8ed' }}>
-                <h4 className="mb-2 font-medium text-gray-900">2. Facebookページとの連携</h4>
-                <p className="text-sm text-gray-600">
-                  Instagramビジネスアカウントは、Facebookページと連携されている必要があります。Instagram設定から連携状況をご確認ください。
-                </p>
-              </div>
+          <div className="rounded-lg p-4" style={{ backgroundColor: '#fff8ed' }}>
+            <h4 className="mb-2 font-medium text-gray-900">3. 再連携をお試しください</h4>
+            <p className="text-sm text-gray-600">
+              連携時に必要な権限が付与されていない可能性があります。ダッシュボードの「設定」からSNSアカウントを再連携してください。
+            </p>
+          </div>
 
-              <div className="rounded-lg p-4" style={{ backgroundColor: '#fff8ed' }}>
-                <h4 className="mb-2 font-medium text-gray-900">3. 再連携をお試しください</h4>
-                <p className="text-sm text-gray-600">
-                  連携時に必要な権限が付与されていない可能性があります。ダッシュボードの「設定」からSNSアカウントを再連携してください。
-                </p>
-              </div>
-
-              <div className="border-t pt-4" style={{ borderColor: '#e5e5e5' }}>
-                <p className="text-sm text-gray-600">
-                  上記をお試しいただいても解決しない場合は、お手数ですがサポートまでお問い合わせください。
-                </p>
-                <a
-                  href={SUPPORT_FORM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border py-3 text-sm font-medium transition-colors hover:bg-gray-50"
-                  style={{ borderColor: '#e5e5e5', color: '#525252' }}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  お問い合わせフォームを開く
-                </a>
-              </div>
-            </div>
+          <div className="border-t pt-4" style={{ borderColor: '#e5e5e5' }}>
+            <p className="text-sm text-gray-600">
+              上記をお試しいただいても解決しない場合は、お手数ですがサポートまでお問い合わせください。
+            </p>
+            <a
+              href={SUPPORT_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border py-3 text-sm font-medium transition-colors hover:bg-gray-50"
+              style={{ borderColor: '#e5e5e5', color: '#525252' }}
+            >
+              <ExternalLink className="h-4 w-4" />
+              お問い合わせフォームを開く
+            </a>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

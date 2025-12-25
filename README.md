@@ -55,7 +55,8 @@ buzz_base/
 │   │   ├── components/     # UIコンポーネント
 │   │   │   ├── auth/       # 認証関連
 │   │   │   ├── layout/     # レイアウト
-│   │   │   └── ui/         # 汎用UI
+│   │   │   ├── posts/       # PR投稿関連（PostCard, PostDetailModal）
+│   │   │   └── ui/         # 汎用UI（Button, Input, LoadingSpinner, Modal, StatusBadge, ErrorAlert, EmptyState）
 │   │   ├── contexts/       # React Context
 │   │   ├── hooks/          # カスタムフック
 │   │   ├── lib/            # ユーティリティ

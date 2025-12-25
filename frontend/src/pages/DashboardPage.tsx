@@ -1,22 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import {
-  Instagram,
-  Music2,
-  Calendar,
-  User,
-  X,
-  CheckCircle2,
-  Plus,
-  ExternalLink,
-} from 'lucide-react';
+import { Instagram, Music2, Calendar, User, CheckCircle2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import { getUserProfile } from '@/lib/firestore/users';
 import { getAllPRPostsFlat } from '@/lib/firestore/prPosts';
 import { InstagramAccountWithId, TikTokAccountWithId, PRPostItem } from '@/types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { getMeasurementDate, formatDate, formatNumber } from '@/lib/utils';
+import { Modal } from '@/components/ui/Modal';
+import { PostDetailModal } from '@/components/posts/PostDetailModal';
+import { PostCard } from '@/components/posts/PostCard';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 // Instagram認証URL生成用の定数
 const INSTAGRAM_APP_ID = '1395033632016244';
@@ -289,90 +283,29 @@ export function DashboardPage() {
         </div>
 
         {prPosts.length === 0 ? (
-          <div className="card py-10 text-center">
-            <div
-              className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full"
-              style={{ backgroundColor: '#fff8ed' }}
-            >
-              <Calendar className="h-7 w-7" style={{ color: '#f29801' }} />
-            </div>
-            <h3 className="mb-2 font-medium text-gray-900">まだPR投稿がありません</h3>
-            {instagramAccounts.length > 0 ? (
-              <>
-                <p className="mb-5 text-sm text-gray-500">
-                  最初の投稿を登録して、再生数をトラッキングしましょう
-                </p>
-                <Button onClick={() => navigate('/register-post')}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  PR投稿を登録
-                </Button>
-              </>
-            ) : (
-              <p className="text-sm text-gray-500">
-                PR投稿を登録するには、まずSNSアカウントを連携してください
-              </p>
-            )}
+          <div className="card">
+            <EmptyState
+              icon={<Calendar className="h-7 w-7" style={{ color: '#f29801' }} />}
+              title="まだPR投稿がありません"
+              description={
+                instagramAccounts.length > 0
+                  ? '最初の投稿を登録して、再生数をトラッキングしましょう'
+                  : 'PR投稿を登録するには、まずSNSアカウントを連携してください'
+              }
+              action={
+                instagramAccounts.length > 0 ? (
+                  <Button onClick={() => navigate('/register-post')}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    PR投稿を登録
+                  </Button>
+                ) : undefined
+              }
+            />
           </div>
         ) : (
           <div className="space-y-3">
             {prPosts.slice(0, 5).map((post) => (
-              <button
-                key={post.mediaId}
-                onClick={() => setSelectedPost(post)}
-                className="card w-full !p-4 text-left transition-colors hover:bg-gray-50"
-              >
-                <div className="flex items-start gap-4">
-                  {/* サムネイル */}
-                  <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                    {post.thumbnailUrl ? (
-                      <img
-                        src={post.thumbnailUrl}
-                        alt={post.campaignName}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center">
-                        <Instagram className="h-8 w-8 text-gray-300" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate font-medium text-gray-900">{post.campaignName}</h3>
-                    {/* 再生数表示（計測完了時）または空のスペース（計測待ち時） */}
-                    <div className="h-5">
-                      {post.status === 'measured' && post.views !== undefined ? (
-                        <p className="text-sm font-semibold" style={{ color: '#f87171' }}>
-                          {formatNumber(post.views)} ビュー
-                        </p>
-                      ) : (
-                        <div className="h-5" /> // 高さを確保するための空のdiv
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500">投稿日: {formatDate(post.postedAt)}</p>
-                    <p className="text-xs text-gray-400">
-                      計測日: {formatDate(getMeasurementDate(post.postedAt))}
-                    </p>
-                  </div>
-                  {/* ステータスバッジ */}
-                  <div className="flex-shrink-0">
-                    {post.status === 'measured' ? (
-                      <span
-                        className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
-                        style={{ backgroundColor: '#dcfce7', color: '#16a34a' }}
-                      >
-                        計測完了
-                      </span>
-                    ) : (
-                      <span
-                        className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
-                        style={{ backgroundColor: '#fff8ed', color: '#f29801' }}
-                      >
-                        計測待ち
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </button>
+              <PostCard key={post.mediaId} post={post} onClick={() => setSelectedPost(post)} />
             ))}
           </div>
         )}
@@ -389,239 +322,56 @@ export function DashboardPage() {
       )}
 
       {/* SNS連携設定モーダル */}
-      {isSettingsModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* オーバーレイ */}
-          <div
-            className="fixed bottom-0 left-0 right-0 top-0 bg-black/50"
-            onClick={() => setIsSettingsModalOpen(false)}
-          />
-          {/* モーダルコンテンツ */}
-          <div className="relative z-10 mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            {/* ヘッダー */}
-            <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">SNS連携設定</h3>
-              <button
-                onClick={() => setIsSettingsModalOpen(false)}
-                className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
+      <Modal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        title="SNS連携設定"
+        className="p-6"
+      >
+        {/* 連携ボタン一覧 */}
+        <div className="space-y-3">
+          {/* Instagram連携ボタン */}
+          <button
+            className="flex w-full items-center gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+            onClick={handleInstagramConnect}
+          >
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-xl"
+              style={{
+                background: 'linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #F77737 100%)',
+              }}
+            >
+              <Instagram className="h-5 w-5 text-white" />
             </div>
-
-            {/* 連携ボタン一覧 */}
-            <div className="space-y-3">
-              {/* Instagram連携ボタン */}
-              <button
-                className="flex w-full items-center gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:bg-gray-50"
-                onClick={handleInstagramConnect}
-              >
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-xl"
-                  style={{
-                    background: 'linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #F77737 100%)',
-                  }}
-                >
-                  <Instagram className="h-5 w-5 text-white" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-gray-900">Instagram</p>
-                  <p className="text-sm text-gray-500">Instagramアカウントを連携</p>
-                </div>
-              </button>
-
-              {/* TikTok連携ボタン */}
-              <button
-                className="flex w-full items-center gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:bg-gray-50"
-                onClick={handleTikTokConnect}
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black">
-                  <Instagram className="h-5 w-5 text-white" />
-                </div>
-                <span className="font-medium text-gray-900">Instagramを連携する</span>
-              </button>
-
-              {/* TikTok連携ボタン */}
-              <button
-                className="flex w-full items-center gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:bg-gray-50"
-                onClick={handleTikTokConnect}
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black">
-                  <Music2 className="h-5 w-5 text-white" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-gray-900">TikTok</p>
-                  <p className="text-sm text-gray-500">TikTokアカウントを連携</p>
-                </div>
-              </button>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-gray-900">Instagram</p>
+              <p className="text-sm text-gray-500">Instagramアカウントを連携</p>
             </div>
-          </div>
+          </button>
+
+          {/* TikTok連携ボタン */}
+          <button
+            className="flex w-full items-center gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+            onClick={handleTikTokConnect}
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black">
+              <Music2 className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-gray-900">TikTok</p>
+              <p className="text-sm text-gray-500">TikTokアカウントを連携</p>
+            </div>
+          </button>
         </div>
-      )}
+      </Modal>
 
       {/* PR投稿詳細ポップアップ */}
       {selectedPost && (
-        <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center">
-          {/* オーバーレイ */}
-          <div
-            className="fixed bottom-0 left-0 right-0 top-0 bg-black/50"
-            onClick={() => setSelectedPost(null)}
-          />
-          {/* モーダルコンテンツ */}
-          <div className="relative z-10 mx-4 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-xl">
-            {/* ヘッダー */}
-            <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white p-4">
-              <h3 className="text-lg font-semibold text-gray-900">投稿詳細</h3>
-              <button
-                onClick={() => setSelectedPost(null)}
-                className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* コンテンツ */}
-            <div className="p-6">
-              {/* サムネイル */}
-              <div className="mb-6 aspect-square overflow-hidden rounded-2xl bg-gray-100">
-                {selectedPost.thumbnailUrl ? (
-                  <img
-                    src={selectedPost.thumbnailUrl}
-                    alt={selectedPost.campaignName}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <Instagram className="h-16 w-16 text-gray-300" />
-                  </div>
-                )}
-              </div>
-
-              {/* 詳細情報 */}
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-500">商品</p>
-                  <p className="mt-1 font-semibold text-gray-900">{selectedPost.campaignName}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-500">投稿日</p>
-                  <p className="mt-1 font-semibold text-gray-900">
-                    {formatDate(selectedPost.postedAt)}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-500">計測日</p>
-                  <p className="mt-1 font-semibold text-gray-900">
-                    {formatDate(getMeasurementDate(selectedPost.postedAt))}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-500">アカウント</p>
-                  <p className="mt-1 font-semibold text-gray-900">
-                    @
-                    {instagramAccounts.find((a) => a.accountId === selectedPost.accountId)
-                      ?.username || '不明'}
-                  </p>
-                </div>
-
-                {/* 計測データ */}
-                <div className="border-t border-gray-200 pt-4">
-                  <p className="mb-3 text-sm font-medium text-gray-900">計測データ</p>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">再生数</span>
-                      <span className="font-semibold text-gray-900">
-                        {selectedPost.status === 'measured' &&
-                        typeof selectedPost.views === 'number'
-                          ? `${formatNumber(selectedPost.views)} ビュー`
-                          : 'ー'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">リーチ数</span>
-                      <span className="font-semibold text-gray-900">
-                        {selectedPost.status === 'measured' &&
-                        typeof selectedPost.reach === 'number'
-                          ? formatNumber(selectedPost.reach)
-                          : 'ー'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">保存数</span>
-                      <span className="font-semibold text-gray-900">
-                        {selectedPost.status === 'measured' &&
-                        typeof selectedPost.saved === 'number'
-                          ? formatNumber(selectedPost.saved)
-                          : 'ー'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">いいね数</span>
-                      <span className="font-semibold text-gray-900">
-                        {selectedPost.status === 'measured' &&
-                        typeof selectedPost.likes === 'number'
-                          ? formatNumber(selectedPost.likes)
-                          : 'ー'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">コメント数</span>
-                      <span className="font-semibold text-gray-900">
-                        {selectedPost.status === 'measured' &&
-                        typeof selectedPost.comments === 'number'
-                          ? formatNumber(selectedPost.comments)
-                          : 'ー'}
-                      </span>
-                    </div>
-                    {selectedPost.mediaType === 'VIDEO' && (
-                      <>
-                        {typeof selectedPost.igReelsAvgWatchTime === 'number' && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">平均視聴時間</span>
-                            <span className="font-semibold text-gray-900">
-                              {selectedPost.status === 'measured'
-                                ? `${(selectedPost.igReelsAvgWatchTime / 1000).toFixed(1)}秒`
-                                : 'ー'}
-                            </span>
-                          </div>
-                        )}
-                        {typeof selectedPost.igReelsVideoViewTotalTime === 'number' && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">総視聴時間</span>
-                            <span className="font-semibold text-gray-900">
-                              {selectedPost.status === 'measured'
-                                ? `${formatNumber(selectedPost.igReelsVideoViewTotalTime / 1000)}秒`
-                                : 'ー'}
-                            </span>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Instagramで見るボタン */}
-                {selectedPost.permalink && (
-                  <div className="border-t border-gray-200 pt-4">
-                    <a
-                      href={selectedPost.permalink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex w-full items-center justify-center gap-2 rounded-lg border py-3 text-sm font-medium transition-colors hover:bg-gray-50"
-                      style={{ borderColor: '#e5e5e5', color: '#525252' }}
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Instagramで見る
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <PostDetailModal
+          post={selectedPost}
+          instagramAccounts={instagramAccounts}
+          onClose={() => setSelectedPost(null)}
+        />
       )}
     </div>
   );

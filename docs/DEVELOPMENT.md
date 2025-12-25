@@ -149,6 +149,10 @@ buzz_base/
 ├── frontend/               # React アプリ
 │   ├── src/
 │   │   ├── components/     # UIコンポーネント
+│   │   │   ├── auth/       # 認証関連（ProtectedRoute等）
+│   │   │   ├── layout/     # レイアウト（Header, Layout, MobileNav等）
+│   │   │   ├── posts/      # PR投稿関連（PostCard, PostDetailModal）
+│   │   │   └── ui/         # 汎用UI（Button, Input, LoadingSpinner, Modal, StatusBadge, ErrorAlert, EmptyState）
 │   │   ├── contexts/       # React Context
 │   │   ├── hooks/          # カスタムフック
 │   │   ├── lib/            # ユーティリティ
