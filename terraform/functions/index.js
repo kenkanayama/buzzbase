@@ -258,7 +258,7 @@ async function getInstagramToken(accountId) {
  */
 async function getInstagramMedia(accountId, accessToken) {
   const INSTAGRAM_API_VERSION = 'v24.0';
-  const apiUrl = `https://graph.instagram.com/${INSTAGRAM_API_VERSION}/${accountId}?fields=media{id,media_type,media_url,thumbnail_url,timestamp,permalink}&access_token=${accessToken}`;
+  const apiUrl = `https://graph.instagram.com/${INSTAGRAM_API_VERSION}/${accountId}?fields=media{id,media_type,media_url,thumbnail_url,timestamp,permalink,media_product_type}&access_token=${accessToken}`;
   
   const response = await fetch(apiUrl);
   

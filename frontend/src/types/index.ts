@@ -112,6 +112,7 @@ export interface InstagramMedia {
   timestamp: string; // 投稿日時（ISO 8601形式）
   permalink?: string; // 投稿のパーマリンク
   caption?: string; // キャプション
+  media_product_type?: string; // メディア製品タイプ（FEED, REELS, STORY等）
 }
 
 /**
@@ -184,6 +185,7 @@ export interface PRPostItem {
   permalink: string; // 投稿URL
   thumbnailUrl?: string; // サムネイル画像URL
   postedAt: Date; // 投稿日時（日本時間）
+  mediaProductType?: string; // メディア製品タイプ（FEED, REELS, STORY等）
 
   // 計測データ
   dataFetchedAt?: Date; // データ取得日時（日本時間）
@@ -234,4 +236,5 @@ export interface PRPostRegisterInput {
   permalink: string;
   thumbnailUrl?: string;
   postedAt: Date;
+  mediaProductType?: string; // メディア製品タイプ（FEED, REELS, STORY等）
 }

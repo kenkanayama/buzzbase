@@ -160,6 +160,7 @@ export function RegisterPostPage() {
         permalink: selectedPost.permalink || '',
         thumbnailUrl: persistentThumbnailUrl,
         postedAt: new Date(selectedPost.timestamp),
+        mediaProductType: selectedPost.media_product_type,
       };
 
       await registerPRPost(user.uid, selectedAccountId, input);

@@ -51,6 +51,7 @@ function parsePostData(data: unknown): PRPostDataMap {
             permalink: (postRecord.permalink as string) || '',
             thumbnailUrl: (postRecord.thumbnailUrl as string) || undefined,
             postedAt: timestampToDate(postRecord.postedAt as Timestamp) || new Date(),
+            mediaProductType: (postRecord.mediaProductType as string) || undefined,
             dataFetchedAt: timestampToDate(postRecord.dataFetchedAt as Timestamp),
             igReelsAvgWatchTime: (postRecord.igReelsAvgWatchTime as number) || undefined,
             igReelsVideoViewTotalTime:
@@ -190,6 +191,7 @@ export async function registerPRPost(
       permalink: input.permalink,
       thumbnailUrl: input.thumbnailUrl || null,
       postedAt: input.postedAt,
+      mediaProductType: input.mediaProductType || null,
       registeredAt: new Date(),
       status: 'pending' as const,
     };
