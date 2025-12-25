@@ -53,14 +53,19 @@ function parsePostData(data: unknown): PRPostDataMap {
             postedAt: timestampToDate(postRecord.postedAt as Timestamp) || new Date(),
             mediaProductType: (postRecord.mediaProductType as string) || undefined,
             dataFetchedAt: timestampToDate(postRecord.dataFetchedAt as Timestamp),
-            igReelsAvgWatchTime: (postRecord.igReelsAvgWatchTime as number) || undefined,
+            igReelsAvgWatchTime:
+              typeof postRecord.igReelsAvgWatchTime === 'number'
+                ? postRecord.igReelsAvgWatchTime
+                : undefined,
             igReelsVideoViewTotalTime:
-              (postRecord.igReelsVideoViewTotalTime as number) || undefined,
-            reach: (postRecord.reach as number) || undefined,
-            saved: (postRecord.saved as number) || undefined,
-            views: (postRecord.views as number) || undefined,
-            likes: (postRecord.likes as number) || undefined,
-            comments: (postRecord.comments as number) || undefined,
+              typeof postRecord.igReelsVideoViewTotalTime === 'number'
+                ? postRecord.igReelsVideoViewTotalTime
+                : undefined,
+            reach: typeof postRecord.reach === 'number' ? postRecord.reach : undefined,
+            saved: typeof postRecord.saved === 'number' ? postRecord.saved : undefined,
+            views: typeof postRecord.views === 'number' ? postRecord.views : undefined,
+            likes: typeof postRecord.likes === 'number' ? postRecord.likes : undefined,
+            comments: typeof postRecord.comments === 'number' ? postRecord.comments : undefined,
             registeredAt: timestampToDate(postRecord.registeredAt as Timestamp) || new Date(),
             status: (postRecord.status as 'pending' | 'measured') || 'pending',
           };

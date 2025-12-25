@@ -1,57 +1,54 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Instagram, Calendar, ArrowLeft } from 'lucide-react';
+import { Instagram, Calendar, ArrowLeft, X, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getAllPRPostsFlat } from '@/lib/firestore/prPosts';
-import { PRPostItem } from '@/types';
+import { getUserProfile } from '@/lib/firestore/users';
+import { PRPostItem, InstagramAccountWithId } from '@/types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { getMeasurementDate, formatDate, formatNumber } from '@/lib/utils';
 
 export function PostsPage() {
   const { user } = useAuth();
   // PRPostItemは既にaccountIdを含む
   const [prPosts, setPrPosts] = useState<PRPostItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccountWithId[]>([]);
+  // 詳細ポップアップ用の状態
+  const [selectedPost, setSelectedPost] = useState<PRPostItem | null>(null);
 
   useEffect(() => {
-    const fetchPRPosts = async () => {
+    const fetchData = async () => {
       if (!user) {
         setLoading(false);
         return;
       }
 
       try {
+        // ユーザープロフィールを取得（アカウント情報用）
+        const profile = await getUserProfile(user.uid);
+        if (profile && profile.instagramAccounts) {
+          const accountsArray = Object.entries(profile.instagramAccounts).map(
+            ([accountId, accountInfo]) => ({
+              accountId,
+              ...accountInfo,
+            })
+          );
+          setInstagramAccounts(accountsArray);
+        }
+
         // PR投稿を取得（getAllPRPostsFlatは投稿日降順でソート済み）
         const posts = await getAllPRPostsFlat(user.uid);
         setPrPosts(posts);
       } catch (error) {
-        console.error('PR投稿の取得に失敗しました:', error);
+        console.error('データの取得に失敗しました:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPRPosts();
+    fetchData();
   }, [user]);
-
-  // 日付フォーマット
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  // 数値フォーマット（再生数など）
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) {
-      return `${(num / 1000000).toFixed(1)}M`;
-    }
-    if (num >= 1000) {
-      return `${(num / 1000).toFixed(1)}K`;
-    }
-    return num.toString();
-  };
 
   if (loading) {
     return (
@@ -103,10 +100,14 @@ export function PostsPage() {
         ) : (
           <div className="space-y-3">
             {prPosts.map((post) => (
-              <div key={post.mediaId} className="card !p-4">
+              <button
+                key={post.mediaId}
+                onClick={() => setSelectedPost(post)}
+                className="card w-full !p-4 text-left transition-colors hover:bg-gray-50"
+              >
                 <div className="flex items-start gap-4">
                   {/* サムネイル */}
-                  <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                  <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
                     {post.thumbnailUrl ? (
                       <img
                         src={post.thumbnailUrl}
@@ -131,7 +132,10 @@ export function PostsPage() {
                         <div className="h-5" /> // 高さを確保するための空のdiv
                       )}
                     </div>
-                    <p className="text-sm text-gray-500">{formatDate(post.postedAt)}</p>
+                    <p className="text-xs text-gray-500">投稿日: {formatDate(post.postedAt)}</p>
+                    <p className="text-xs text-gray-400">
+                      計測日: {formatDate(getMeasurementDate(post.postedAt))}
+                    </p>
                   </div>
                   {/* ステータスバッジ */}
                   <div className="flex-shrink-0">
@@ -152,11 +156,176 @@ export function PostsPage() {
                     )}
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
       </main>
+
+      {/* PR投稿詳細ポップアップ */}
+      {selectedPost && (
+        <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center">
+          {/* オーバーレイ */}
+          <div
+            className="fixed bottom-0 left-0 right-0 top-0 bg-black/50"
+            onClick={() => setSelectedPost(null)}
+          />
+          {/* モーダルコンテンツ */}
+          <div className="relative z-10 mx-4 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-xl">
+            {/* ヘッダー */}
+            <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white p-4">
+              <h3 className="text-lg font-semibold text-gray-900">投稿詳細</h3>
+              <button
+                onClick={() => setSelectedPost(null)}
+                className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* コンテンツ */}
+            <div className="p-6">
+              {/* サムネイル */}
+              <div className="mb-6 aspect-square overflow-hidden rounded-2xl bg-gray-100">
+                {selectedPost.thumbnailUrl ? (
+                  <img
+                    src={selectedPost.thumbnailUrl}
+                    alt={selectedPost.campaignName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Instagram className="h-16 w-16 text-gray-300" />
+                  </div>
+                )}
+              </div>
+
+              {/* 詳細情報 */}
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-500">商品</p>
+                  <p className="mt-1 font-semibold text-gray-900">{selectedPost.campaignName}</p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-500">投稿日</p>
+                  <p className="mt-1 font-semibold text-gray-900">
+                    {formatDate(selectedPost.postedAt)}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-500">計測日</p>
+                  <p className="mt-1 font-semibold text-gray-900">
+                    {formatDate(getMeasurementDate(selectedPost.postedAt))}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-500">アカウント</p>
+                  <p className="mt-1 font-semibold text-gray-900">
+                    @
+                    {instagramAccounts.find((a) => a.accountId === selectedPost.accountId)
+                      ?.username || '不明'}
+                  </p>
+                </div>
+
+                {/* 計測データ */}
+                <div className="border-t border-gray-200 pt-4">
+                  <p className="mb-3 text-sm font-medium text-gray-900">計測データ</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">再生数</span>
+                      <span className="font-semibold text-gray-900">
+                        {selectedPost.status === 'measured' &&
+                        typeof selectedPost.views === 'number'
+                          ? `${formatNumber(selectedPost.views)} ビュー`
+                          : 'ー'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">リーチ数</span>
+                      <span className="font-semibold text-gray-900">
+                        {selectedPost.status === 'measured' &&
+                        typeof selectedPost.reach === 'number'
+                          ? formatNumber(selectedPost.reach)
+                          : 'ー'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">保存数</span>
+                      <span className="font-semibold text-gray-900">
+                        {selectedPost.status === 'measured' &&
+                        typeof selectedPost.saved === 'number'
+                          ? formatNumber(selectedPost.saved)
+                          : 'ー'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">いいね数</span>
+                      <span className="font-semibold text-gray-900">
+                        {selectedPost.status === 'measured' &&
+                        typeof selectedPost.likes === 'number'
+                          ? formatNumber(selectedPost.likes)
+                          : 'ー'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">コメント数</span>
+                      <span className="font-semibold text-gray-900">
+                        {selectedPost.status === 'measured' &&
+                        typeof selectedPost.comments === 'number'
+                          ? formatNumber(selectedPost.comments)
+                          : 'ー'}
+                      </span>
+                    </div>
+                    {selectedPost.mediaType === 'VIDEO' && (
+                      <>
+                        {typeof selectedPost.igReelsAvgWatchTime === 'number' && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">平均視聴時間</span>
+                            <span className="font-semibold text-gray-900">
+                              {selectedPost.status === 'measured'
+                                ? `${(selectedPost.igReelsAvgWatchTime / 1000).toFixed(1)}秒`
+                                : 'ー'}
+                            </span>
+                          </div>
+                        )}
+                        {typeof selectedPost.igReelsVideoViewTotalTime === 'number' && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">総視聴時間</span>
+                            <span className="font-semibold text-gray-900">
+                              {selectedPost.status === 'measured'
+                                ? `${formatNumber(selectedPost.igReelsVideoViewTotalTime / 1000)}秒`
+                                : 'ー'}
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Instagramで見るボタン */}
+                {selectedPost.permalink && (
+                  <div className="border-t border-gray-200 pt-4">
+                    <a
+                      href={selectedPost.permalink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex w-full items-center justify-center gap-2 rounded-lg border py-3 text-sm font-medium transition-colors hover:bg-gray-50"
+                      style={{ borderColor: '#e5e5e5', color: '#525252' }}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Instagramで見る
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

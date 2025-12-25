@@ -21,6 +21,7 @@ import { getActiveCampaigns } from '@/lib/firestore/campaigns';
 import { registerPRPost, isMediaIdAlreadyRegistered } from '@/lib/firestore/prPosts';
 import { getInstagramMedia, saveThumbnailToStorage } from '@/lib/api/instagram';
 import { Campaign, InstagramMedia, InstagramAccountWithId, PRPostRegisterInput } from '@/types';
+import { getMeasurementDate, formatDate } from '@/lib/utils';
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -200,16 +201,6 @@ export function RegisterPostPage() {
       return post.thumbnail_url || null;
     }
     return post.media_url || null;
-  };
-
-  // 日付フォーマット
-  const formatDate = (timestamp: string): string => {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
   };
 
   // SNSアカウント未連携時はダッシュボードにリダイレクト
@@ -470,7 +461,9 @@ export function RegisterPostPage() {
                         )}
                         {/* 日付 */}
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                          <p className="text-xs text-white">{formatDate(post.timestamp)}</p>
+                          <p className="text-xs text-white">
+                            {formatDate(new Date(post.timestamp))}
+                          </p>
                         </div>
                         {/* 動画バッジ */}
                         {post.media_type === 'VIDEO' && (
@@ -565,7 +558,13 @@ export function RegisterPostPage() {
                   <div>
                     <p className="text-sm text-gray-500">投稿日</p>
                     <p className="font-semibold text-gray-900">
-                      {formatDate(selectedPost.timestamp)}
+                      {formatDate(new Date(selectedPost.timestamp))}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">計測日</p>
+                    <p className="font-semibold text-gray-900">
+                      {formatDate(getMeasurementDate(new Date(selectedPost.timestamp)))}
                     </p>
                   </div>
                   <div>
