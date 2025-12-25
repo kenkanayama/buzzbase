@@ -42,6 +42,17 @@ export function PostsPage() {
     });
   };
 
+  // 数値フォーマット（再生数など）
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    }
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toString();
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -95,7 +106,7 @@ export function PostsPage() {
               <div key={post.mediaId} className="card !p-4">
                 <div className="flex items-start gap-4">
                   {/* サムネイル */}
-                  <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                  <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
                     {post.thumbnailUrl ? (
                       <img
                         src={post.thumbnailUrl}
@@ -104,12 +115,22 @@ export function PostsPage() {
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
-                        <Instagram className="h-6 w-6 text-gray-300" />
+                        <Instagram className="h-8 w-8 text-gray-300" />
                       </div>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate font-medium text-gray-900">{post.campaignName}</h3>
+                    {/* 再生数表示（計測完了時）または空のスペース（計測待ち時） */}
+                    <div className="h-5">
+                      {post.status === 'measured' && post.views !== undefined ? (
+                        <p className="text-sm font-semibold" style={{ color: '#f87171' }}>
+                          {formatNumber(post.views)} ビュー
+                        </p>
+                      ) : (
+                        <div className="h-5" /> // 高さを確保するための空のdiv
+                      )}
+                    </div>
                     <p className="text-sm text-gray-500">{formatDate(post.postedAt)}</p>
                   </div>
                   {/* ステータスバッジ */}
