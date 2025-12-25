@@ -493,7 +493,9 @@ export function HomePage() {
                 利用規約
               </a>
               <a
-                href="#"
+                href="https://muscatgroup.co.jp/policy/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="transition-colors"
                 onMouseOver={(e) => (e.currentTarget.style.color = COLORS.primary)}
                 onMouseOut={(e) => (e.currentTarget.style.color = COLORS.neutral500)}
@@ -501,7 +503,9 @@ export function HomePage() {
                 プライバシーポリシー
               </a>
               <a
-                href="#"
+                href="https://docs.google.com/forms/d/e/1FAIpQLSfguUNAvmG2Px_ez47Pph0sFXkqbEcMV8RdRM98lhOAotCOOg/viewform?usp=sharing&ouid=106448838806099721900"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="transition-colors"
                 onMouseOver={(e) => (e.currentTarget.style.color = COLORS.primary)}
                 onMouseOut={(e) => (e.currentTarget.style.color = COLORS.neutral500)}

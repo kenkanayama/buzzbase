@@ -53,7 +53,7 @@ export function RegisterPostPage() {
 
   // サポートGoogleフォームURL
   const SUPPORT_FORM_URL =
-    'https://docs.google.com/forms/d/e/1FAIpQLSfguUNAvmG2Px_ez47Pph0sFXkqbEcMV8RdRM98lhOAotCOOg/viewform';
+    'https://docs.google.com/forms/d/e/1FAIpQLSfguUNAvmG2Px_ez47Pph0sFXkqbEcMV8RdRM98lhOAotCOOg/viewform?usp=sharing&ouid=106448838806099721900';
 
   // 初期データ取得
   useEffect(() => {
@@ -686,9 +686,7 @@ export function RegisterPostPage() {
           <div className="relative z-10 mx-4 max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
             {/* ヘッダー */}
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                投稿が表示されない場合
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900">投稿が表示されない場合</h3>
               <button
                 onClick={() => setIsTroubleshootingOpen(false)}
                 className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
@@ -699,37 +697,22 @@ export function RegisterPostPage() {
 
             {/* トラブルシューティング内容 */}
             <div className="space-y-4">
-              <div
-                className="rounded-lg p-4"
-                style={{ backgroundColor: '#fff8ed' }}
-              >
-                <h4 className="mb-2 font-medium text-gray-900">
-                  1. アカウント設定を確認
-                </h4>
+              <div className="rounded-lg p-4" style={{ backgroundColor: '#fff8ed' }}>
+                <h4 className="mb-2 font-medium text-gray-900">1. アカウント設定を確認</h4>
                 <p className="text-sm text-gray-600">
                   Instagramアカウントが「ビジネスアカウント」または「クリエイターアカウント」に設定されているか確認してください。個人アカウントでは投稿を取得できません。
                 </p>
               </div>
 
-              <div
-                className="rounded-lg p-4"
-                style={{ backgroundColor: '#fff8ed' }}
-              >
-                <h4 className="mb-2 font-medium text-gray-900">
-                  2. Facebookページとの連携
-                </h4>
+              <div className="rounded-lg p-4" style={{ backgroundColor: '#fff8ed' }}>
+                <h4 className="mb-2 font-medium text-gray-900">2. Facebookページとの連携</h4>
                 <p className="text-sm text-gray-600">
                   Instagramビジネスアカウントは、Facebookページと連携されている必要があります。Instagram設定から連携状況をご確認ください。
                 </p>
               </div>
 
-              <div
-                className="rounded-lg p-4"
-                style={{ backgroundColor: '#fff8ed' }}
-              >
-                <h4 className="mb-2 font-medium text-gray-900">
-                  3. 再連携をお試しください
-                </h4>
+              <div className="rounded-lg p-4" style={{ backgroundColor: '#fff8ed' }}>
+                <h4 className="mb-2 font-medium text-gray-900">3. 再連携をお試しください</h4>
                 <p className="text-sm text-gray-600">
                   連携時に必要な権限が付与されていない可能性があります。ダッシュボードの「設定」からSNSアカウントを再連携してください。
                 </p>

@@ -8,7 +8,6 @@ import { getAllPRPostsFlat } from '@/lib/firestore/prPosts';
 import { InstagramAccountWithId, PRPostItem } from '@/types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
-
 // Instagram認証URL生成用の定数
 const INSTAGRAM_APP_ID = '1395033632016244';
 const INSTAGRAM_REDIRECT_URI =
@@ -188,9 +187,7 @@ export function DashboardPage() {
                 >
                   <Instagram className="h-7 w-7" style={{ color: '#f29801' }} />
                 </div>
-                <h3 className="mb-2 font-medium text-gray-900">
-                  SNSアカウントを連携しましょう
-                </h3>
+                <h3 className="mb-2 font-medium text-gray-900">SNSアカウントを連携しましょう</h3>
                 <p className="mb-5 text-sm text-gray-500">
                   PR投稿を登録するには、まずSNSアカウントの連携が必要です
                 </p>
