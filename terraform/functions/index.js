@@ -741,6 +741,137 @@ async function getAccessTokenForAccount(accountId) {
 }
 
 /**
+ * Instagramアクセストークンをリフレッシュ
+ * @param {string} accessToken - 現在のアクセストークン
+ * @returns {Promise<{access_token: string, token_type: string, expires_in: number}>}
+ */
+async function refreshInstagramToken(accessToken) {
+  const url = `https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${accessToken}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('トークンリフレッシュエラー:', errorText);
+    throw new Error('トークンリフレッシュに失敗しました');
+  }
+
+  return response.json();
+}
+
+/**
+ * トークン更新が必要かどうかを判定
+ * @param {Date|Firestore.Timestamp} tokenExpiresAt - トークンの有効期限
+ * @returns {boolean}
+ */
+function shouldRefreshToken(tokenExpiresAt) {
+  if (!tokenExpiresAt) {
+    return true; // 有効期限が不明な場合は更新
+  }
+
+  const now = new Date();
+  const expiresAt = tokenExpiresAt instanceof Date ? tokenExpiresAt : tokenExpiresAt.toDate();
+  
+  // 45日以内に期限切れになるトークンを更新対象とする
+  const daysUntilExpiry = (expiresAt - now) / (1000 * 60 * 60 * 24);
+  
+  return daysUntilExpiry <= 45;
+}
+
+/**
+ * Instagramアクセストークンの自動更新バッチ処理
+ * Pub/Subトリガー
+ */
+exports.refreshInstagramTokens = async (event, context) => {
+  console.log('refreshInstagramTokens 開始');
+
+  try {
+    const appSecret = await getAppSecret();
+    const accountsRef = firestore.collection('instagramAccounts');
+    const accountsSnapshot = await accountsRef.get();
+
+    if (accountsSnapshot.empty) {
+      console.log('更新対象のInstagramアカウントがありません');
+      return;
+    }
+
+    let successCount = 0;
+    let failureCount = 0;
+    const errors = [];
+
+    for (const doc of accountsSnapshot.docs) {
+      const accountId = doc.id;
+      const accountData = doc.data();
+      const accessToken = accountData.accessToken;
+      const tokenExpiresAt = accountData.tokenExpiresAt;
+
+      if (!accessToken) {
+        console.warn(`アカウント ${accountId} にアクセストークンがありません。スキップします。`);
+        failureCount++;
+        continue;
+      }
+
+      // トークン更新が必要かどうかを判定
+      if (tokenExpiresAt && !shouldRefreshToken(tokenExpiresAt)) {
+        console.log(`アカウント ${accountId} のトークンはまだ有効です（期限: ${tokenExpiresAt.toDate()}）。スキップします。`);
+        continue;
+      }
+
+      try {
+        console.log(`アカウント ${accountId} のトークンを更新中...`);
+
+        // トークンをリフレッシュ
+        const refreshResult = await refreshInstagramToken(accessToken);
+
+        // リフレッシュ後のトークンが長期トークンでない場合は長期トークンに交換
+        let finalToken = refreshResult.access_token;
+        let finalExpiresIn = refreshResult.expires_in;
+
+        // リフレッシュAPIは通常長期トークンを返すが、念のため確認
+        // expires_inが3600秒（1時間）以下の場合は短期トークンとみなす
+        if (refreshResult.expires_in <= 3600) {
+          console.log(`アカウント ${accountId} のトークンが短期トークンのため、長期トークンに交換します`);
+          const longLivedResult = await exchangeForLongLivedToken(finalToken, appSecret);
+          finalToken = longLivedResult.access_token;
+          finalExpiresIn = longLivedResult.expires_in;
+        }
+
+        // 有効期限を計算（現在時刻 + expires_in秒）
+        const newTokenExpiresAt = new Date(Date.now() + finalExpiresIn * 1000);
+
+        // Firestoreに保存
+        await saveInstagramToken(accountId, {
+          username: accountData.username || '',
+          accessToken: finalToken,
+          tokenExpiresAt: newTokenExpiresAt,
+        });
+
+        console.log(`アカウント ${accountId} のトークン更新が完了しました（新しい期限: ${newTokenExpiresAt}）`);
+        successCount++;
+
+      } catch (error) {
+        console.error(`アカウント ${accountId} のトークン更新に失敗しました:`, error);
+        errors.push({
+          accountId,
+          error: error.message,
+        });
+        failureCount++;
+      }
+    }
+
+    console.log(`トークン更新バッチ処理が完了しました。成功: ${successCount}件, 失敗: ${failureCount}件`);
+    
+    if (errors.length > 0) {
+      console.error('エラー詳細:', JSON.stringify(errors, null, 2));
+    }
+
+  } catch (error) {
+    console.error('refreshInstagramTokens エラー:', error);
+    throw error; // エラーを再スローしてCloud Functionsにリトライさせる
+  }
+};
+
+/**
  * Instagram Media Insights APIからデータを取得
  * @param {string} mediaId - Instagram Media ID
  * @param {string} accessToken - アクセストークン
