@@ -269,6 +269,9 @@ git diff --staged
 **⚠️ 重要**: `frontend/` ディレクトリ内のファイルに変更がある場合は、**必ず以下のチェックを実行してからコミットすること**。
 
 ```bash
+# ESLintチェック（Docker環境内で実行）
+docker compose exec frontend npm run lint
+
 # 型チェック
 docker compose exec frontend npm run type-check
 
@@ -283,6 +286,7 @@ docker compose exec frontend npm run build
 **よくあるエラー例：**
 - `TS6133: 'xxx' is declared but its value is never read.` → 未使用のインポートを削除
 - `TS2345: Argument of type 'xxx' is not assignable...` → 型の不整合を修正
+- Prettierのフォーマットエラー → `docker compose exec frontend npm run lint -- --fix` で自動修正
 
 ### 3. ステージング
 ```bash
@@ -308,6 +312,16 @@ git add -A
 - `perf`: パフォーマンス向上関連
 - `test`: テスト関連
 - `chore`: ビルド、補助ツール、ライブラリ関連
+
+**⚠️ 重要: pre-commitフックについて**
+- pre-commitフック（husky + lint-staged）はホストマシンでeslintを実行しようとして失敗するため、**必ず`--no-verify`フラグを使用してコミットする**
+- ただし、コミット前には必ずDocker環境内でESLint、型チェック、ビルドチェックを実行済みであること
+- これにより、コード品質は保証されつつ、pre-commitフックの失敗を回避できる
+
+```bash
+# コミット実行（pre-commitフックをスキップ）
+git commit --no-verify -m "<コミットメッセージ>"
+```
 
 ### 5. プッシュ
 現在のローカルブランチと同名のリモートブランチにプッシュする：
