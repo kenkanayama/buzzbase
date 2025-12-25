@@ -66,6 +66,9 @@ export interface UserProfile {
   // === Instagram連携情報 ===
   instagramAccounts: InstagramAccountsMap; // 連携済みInstagramアカウント（Map形式）
 
+  // === TikTok連携情報 ===
+  tiktokAccounts?: TikTokAccountsMap; // 連携済みTikTokアカウント（Map形式）
+
   // === メタデータ ===
   createdAt: Date; // 作成日時
   updatedAt: Date; // 更新日時
@@ -131,6 +134,63 @@ export interface InstagramMediaResponse {
     };
   };
   id: string; // ユーザーID
+}
+
+// =============================================================================
+// TikTok API Related Types
+// =============================================================================
+
+/**
+ * TikTok連携アカウント情報（Map形式のValue）
+ * @see https://developers.tiktok.com/doc/server-api-user-info-basic
+ */
+export interface TikTokAccountInfo {
+  username: string; // ユーザー名（例: "example_user"）
+  displayName: string; // 表示名
+  profilePictureUrl: string; // プロフィール画像URL
+  openId: string; // TikTok Open ID
+}
+
+/**
+ * TikTok連携アカウント（Map形式）
+ * キー: TikTok Open ID
+ * 値: TikTokAccountInfo
+ */
+export type TikTokAccountsMap = Record<string, TikTokAccountInfo>;
+
+/**
+ * TikTok連携アカウント情報（UI表示用にaccountIdを含む）
+ */
+export interface TikTokAccountWithId extends TikTokAccountInfo {
+  accountId: string; // TikTok Open ID
+}
+
+/**
+ * TikTok APIから取得した動画情報
+ * @see https://developers.tiktok.com/doc/server-api-video-list
+ */
+export interface TikTokVideo {
+  id: string; // 動画ID
+  title: string; // タイトル
+  cover_image_url: string; // サムネイルURL
+  share_url: string; // 共有URL
+  create_time: number; // 作成日時（Unix timestamp）
+  video_description?: string; // 説明文
+  duration: number; // 動画長（秒）
+  view_count?: number; // 再生数（取得可能な場合）
+  like_count?: number; // いいね数（取得可能な場合）
+  comment_count?: number; // コメント数（取得可能な場合）
+}
+
+/**
+ * TikTok APIの動画一覧レスポンス
+ */
+export interface TikTokVideoResponse {
+  videos: {
+    data: TikTokVideo[];
+    cursor?: string; // ページネーション用カーソル
+    has_more: boolean; // 次のページがあるか
+  };
 }
 
 // =============================================================================

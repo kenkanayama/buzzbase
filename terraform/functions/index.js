@@ -17,6 +17,7 @@ const admin = require('firebase-admin');
 const META_APP_ID = '1395033632016244';
 const PROJECT_ID = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
 const SECRET_NAME = `projects/${PROJECT_ID}/secrets/meta-instagram-app-secret/versions/latest`;
+const TIKTOK_SECRET_NAME = `projects/${PROJECT_ID}/secrets/tiktok-client-secret/versions/latest`;
 
 // フロントエンドURL（環境変数から取得、デフォルトは本番URL）
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://buzzbase-1028492470102.asia-northeast1.run.app';
@@ -32,6 +33,12 @@ const storage = new Storage();
 
 // Instagram OAuth コールバックURL（固定値 - Metaアプリコンソールに登録したものと一致させる）
 const INSTAGRAM_CALLBACK_URL = 'https://asia-northeast1-sincere-kit.cloudfunctions.net/instagramCallback';
+
+// TikTok OAuth コールバックURL（固定値 - TikTok for Developersコンソールに登録したものと一致させる）
+const TIKTOK_CALLBACK_URL = 'https://asia-northeast1-sincere-kit.cloudfunctions.net/tiktokCallback';
+
+// TikTok Client Key（サンドボックス環境）
+const TIKTOK_CLIENT_KEY = 'sbawmsbtoxbwwp81ea';
 
 // Firestoreクライアント（プロジェクトID・データベースIDを明示的に指定）
 // データベース名: sincere-kit-buzzbase（名前付きデータベース）
@@ -65,6 +72,19 @@ async function getAppSecret() {
   } catch (error) {
     console.error('Secret Manager エラー:', error);
     throw new Error('アプリシークレットの取得に失敗しました');
+  }
+}
+
+/**
+ * Secret ManagerからTikTok Client Secretを取得
+ */
+async function getTikTokClientSecret() {
+  try {
+    const [version] = await secretClient.accessSecretVersion({ name: TIKTOK_SECRET_NAME });
+    return version.payload.data.toString();
+  } catch (error) {
+    console.error('TikTok Secret Manager エラー:', error);
+    throw new Error('TikTok Client Secretの取得に失敗しました');
   }
 }
 
@@ -148,11 +168,12 @@ async function saveInstagramToken(accountId, tokenData) {
 
 /**
  * プロフィール画像をCloud Storageに保存
- * @param {string} accountId - InstagramアカウントID
- * @param {string} imageUrl - Instagramから取得した画像URL
+ * @param {string} accountId - アカウントID
+ * @param {string} imageUrl - プロフィール画像URL
+ * @param {string} platform - プラットフォーム（'instagram' | 'tiktok'、デフォルト: 'instagram'）
  * @returns {Promise<string|null>} - Cloud StorageのURL、画像がない場合はnull
  */
-async function saveProfileImageToStorage(accountId, imageUrl) {
+async function saveProfileImageToStorage(accountId, imageUrl, platform = 'instagram') {
   if (!imageUrl) {
     console.log('プロフィール画像URLがありません');
     return null;
@@ -174,7 +195,7 @@ async function saveProfileImageToStorage(accountId, imageUrl) {
     const extension = contentType.includes('png') ? 'png' : 'jpg';
 
     // Cloud Storageにアップロード
-    const fileName = `instagram/${accountId}.${extension}`;
+    const fileName = `${platform}/${accountId}.${extension}`;
     const bucket = storage.bucket(PROFILE_IMAGES_BUCKET);
     const file = bucket.file(fileName);
 
@@ -1103,5 +1124,427 @@ exports.fetchPostInsights = async (event, context) => {
   } catch (error) {
     console.error('fetchPostInsights エラー:', error);
     throw error; // エラーを再スローしてCloud Functionsにリトライさせる
+  }
+};
+
+// =============================================================================
+// TikTok OAuth & API Functions
+// =============================================================================
+
+/**
+ * 認可コードをアクセストークンに交換
+ */
+async function exchangeTikTokCodeForToken(code, redirectUri, clientSecret) {
+  const params = new URLSearchParams({
+    client_key: TIKTOK_CLIENT_KEY,
+    client_secret: clientSecret,
+    code: code,
+    grant_type: 'authorization_code',
+    redirect_uri: redirectUri,
+  });
+
+  const response = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: params,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('TikTokトークン交換エラー:', errorText);
+    throw new Error('トークン交換に失敗しました');
+  }
+
+  return response.json();
+}
+
+/**
+ * リフレッシュトークンでアクセストークンを更新
+ */
+async function refreshTikTokToken(refreshToken) {
+  const clientSecret = await getTikTokClientSecret();
+  
+  const params = new URLSearchParams({
+    client_key: TIKTOK_CLIENT_KEY,
+    client_secret: clientSecret,
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken,
+  });
+
+  const response = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: params,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('TikTokトークンリフレッシュエラー:', errorText);
+    throw new Error('トークンリフレッシュに失敗しました');
+  }
+
+  return response.json();
+}
+
+/**
+ * TikTokユーザー情報を取得
+ */
+async function getTikTokUserInfo(accessToken, openId) {
+  const url = `https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,bio_description,profile_deep_link,is_verified,follower_count,following_count,likes_count,video_count`;
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('TikTokユーザー情報取得エラー:', errorText);
+    throw new Error('ユーザー情報の取得に失敗しました');
+  }
+
+  const data = await response.json();
+  return data.data.user;
+}
+
+/**
+ * TikTok投稿一覧を取得
+ */
+async function getTikTokVideos(openId, accessToken) {
+  const url = `https://open.tiktokapis.com/v2/video/list/?fields=id,title,cover_image_url,share_url,create_time,video_description,duration`;
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('TikTok投稿取得エラー:', errorText);
+    throw new Error('投稿の取得に失敗しました');
+  }
+
+  return response.json();
+}
+
+/**
+ * usersコレクションにTikTokアカウント情報を保存（Map形式）
+ */
+async function saveTikTokAccountToUser(userId, accountData) {
+  const userRef = firestore.collection('users').doc(userId);
+  const userDoc = await userRef.get();
+
+  if (!userDoc.exists) {
+    throw new Error('ユーザーが見つかりません');
+  }
+
+  // Map形式でアカウント情報を更新（キー: openId）
+  const accountUpdate = {
+    [`tiktokAccounts.${accountData.openId}`]: {
+      username: accountData.username,
+      displayName: accountData.displayName,
+      profilePictureUrl: accountData.profilePictureUrl,
+      openId: accountData.openId,
+    },
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+
+  await userRef.update(accountUpdate);
+  console.log(`usersコレクションに保存: userId=${userId}, openId=${accountData.openId}`);
+}
+
+// =============================================================================
+// Cloud Function: TikTok OAuth コールバック
+// =============================================================================
+
+/**
+ * TikTok認証コールバック
+ * HTTPトリガー（GET）
+ */
+exports.tiktokCallback = async (req, res) => {
+  // CORSヘッダー設定
+  res.set('Access-Control-Allow-Origin', '*');
+
+  // プリフライトリクエスト対応
+  if (req.method === 'OPTIONS') {
+    res.set('Access-Control-Allow-Methods', 'GET');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.status(204).send('');
+    return;
+  }
+
+  const { code, state, error, error_description } = req.query;
+
+  console.log('TikTok callback received:', {
+    hasCode: !!code,
+    state,
+    error,
+    error_description,
+  });
+
+  // エラーチェック
+  if (error) {
+    console.error('TikTok認証エラー:', error, error_description);
+    return res.redirect(`${FRONTEND_URL}/dashboard?error=tiktok_denied`);
+  }
+
+  // パラメータチェック
+  if (!code) {
+    console.error('認可コードがありません');
+    return res.redirect(`${FRONTEND_URL}/dashboard?error=missing_code`);
+  }
+
+  if (!state) {
+    console.error('stateパラメータがありません');
+    return res.redirect(`${FRONTEND_URL}/dashboard?error=missing_state`);
+  }
+
+  try {
+    const userId = state;
+    const redirectUri = TIKTOK_CALLBACK_URL;
+
+    // 1. Client Secretを取得
+    const clientSecret = await getTikTokClientSecret();
+
+    // 2. 認可コードをアクセストークンに交換
+    console.log('認可コードをトークンに交換中...');
+    const tokenData = await exchangeTikTokCodeForToken(code, redirectUri, clientSecret);
+    console.log('トークン交換成功');
+
+    const { access_token, refresh_token, expires_in, refresh_expires_in, scope, open_id } = tokenData;
+
+    // 3. TikTokユーザー情報を取得
+    console.log('ユーザー情報取得中...');
+    const userInfo = await getTikTokUserInfo(access_token, open_id);
+    console.log('ユーザー情報取得成功:', userInfo.display_name);
+
+    // 4. プロフィール画像をCloud Storageに保存
+    console.log('プロフィール画像をCloud Storageに保存中...');
+    const storedImageUrl = await saveProfileImageToStorage(open_id, userInfo.avatar_url, 'tiktok');
+
+    // 5. Firestoreに保存
+    console.log('Firestoreに保存中...');
+
+    const tokenExpiresAt = new Date(Date.now() + expires_in * 1000);
+    const refreshExpiresAt = new Date(Date.now() + refresh_expires_in * 1000);
+
+    // 5a. tiktokAccountsコレクションにトークン情報を保存
+    await firestore.collection('tiktokAccounts').doc(open_id).set({
+      openId: open_id,
+      userId: userId,
+      accessToken: access_token,
+      refreshToken: refresh_token,
+      tokenExpiresAt: tokenExpiresAt,
+      refreshExpiresAt: refreshExpiresAt,
+      scope: scope,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    // 5b. usersコレクションにアカウント情報を保存
+    await saveTikTokAccountToUser(userId, {
+      openId: open_id,
+      username: userInfo.display_name,
+      displayName: userInfo.display_name,
+      profilePictureUrl: storedImageUrl || userInfo.avatar_url,
+    });
+
+    console.log('保存完了');
+    return res.redirect(`${FRONTEND_URL}/dashboard?success=tiktok_connected`);
+
+  } catch (err) {
+    console.error('TikTok連携エラー:', err);
+    return res.redirect(`${FRONTEND_URL}/dashboard?error=tiktok_connection_failed`);
+  }
+};
+
+// =============================================================================
+// Cloud Function: TikTok投稿取得
+// =============================================================================
+
+/**
+ * TikTok投稿一覧を取得
+ * HTTPトリガー（GET）
+ */
+exports.getTikTokVideos = async (req, res) => {
+  // CORS設定
+  res.set('Access-Control-Allow-Origin', '*');
+  if (req.method === 'OPTIONS') {
+    res.set('Access-Control-Allow-Methods', 'GET');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.status(204).send('');
+    return;
+  }
+
+  try {
+    // Firebase認証チェック
+    const idToken = req.headers.authorization?.replace('Bearer ', '');
+    if (!idToken) {
+      return res.status(401).json({ error: '認証が必要です' });
+    }
+
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const userId = decodedToken.uid;
+
+    const { openId } = req.query;
+    if (!openId) {
+      return res.status(400).json({ error: 'openIdが必要です' });
+    }
+
+    // トークン情報を取得
+    const accountDoc = await firestore.collection('tiktokAccounts').doc(openId).get();
+    if (!accountDoc.exists) {
+      return res.status(404).json({ error: 'TikTokアカウントが見つかりません' });
+    }
+
+    const accountData = accountDoc.data();
+    if (accountData.userId !== userId) {
+      return res.status(403).json({ error: 'アクセス権限がありません' });
+    }
+
+    // トークンが期限切れの場合はリフレッシュ
+    let accessToken = accountData.accessToken;
+    if (new Date(accountData.tokenExpiresAt.toDate()) < new Date()) {
+      console.log('トークンをリフレッシュ中...');
+      const refreshedToken = await refreshTikTokToken(accountData.refreshToken);
+      accessToken = refreshedToken.access_token;
+      
+      // 更新されたトークンを保存
+      await firestore.collection('tiktokAccounts').doc(openId).update({
+        accessToken: refreshedToken.access_token,
+        refreshToken: refreshedToken.refresh_token || accountData.refreshToken,
+        tokenExpiresAt: new Date(Date.now() + refreshedToken.expires_in * 1000),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+
+    // 投稿を取得
+    const videosData = await getTikTokVideos(openId, accessToken);
+    res.json(videosData);
+
+  } catch (error) {
+    console.error('エラー:', error);
+    res.status(500).json({ error: error.message || 'サーバーエラー' });
+  }
+};
+
+// =============================================================================
+// Cloud Function: TikTokサムネイル保存
+// =============================================================================
+
+/**
+ * TikTok投稿のサムネイル画像をCloud Storageに保存
+ * HTTPトリガー（POST）
+ */
+exports.saveTikTokThumbnailToStorage = async (req, res) => {
+  // CORSヘッダー設定
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // プリフライトリクエスト対応
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+
+  // メソッドチェック
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  // 認証チェック（Firebase IDトークン）
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: '認証が必要です' });
+    return;
+  }
+
+  const idToken = authHeader.split('Bearer ')[1];
+  
+  if (!idToken) {
+    res.status(401).json({ error: '無効な認証トークンです' });
+    return;
+  }
+
+  // Firebase Admin SDKでトークンを検証
+  try {
+    await admin.auth().verifyIdToken(idToken);
+  } catch (error) {
+    console.error('トークン検証エラー:', error);
+    res.status(401).json({ error: '認証トークンの検証に失敗しました' });
+    return;
+  }
+
+  const { thumbnailUrl, openId, videoId } = req.body;
+
+  // パラメータチェック
+  if (!thumbnailUrl) {
+    res.status(400).json({ error: 'thumbnailUrlが必要です' });
+    return;
+  }
+
+  if (!openId) {
+    res.status(400).json({ error: 'openIdが必要です' });
+    return;
+  }
+
+  if (!videoId) {
+    res.status(400).json({ error: 'videoIdが必要です' });
+    return;
+  }
+
+  try {
+    // 画像をダウンロード
+    console.log(`TikTokサムネイルをダウンロード中: ${thumbnailUrl}`);
+    const response = await fetch(thumbnailUrl);
+    
+    if (!response.ok) {
+      console.error('サムネイルダウンロードエラー:', response.status);
+      res.status(400).json({ error: '画像のダウンロードに失敗しました' });
+      return;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Content-Typeを取得（デフォルトはjpeg）
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const extension = contentType.includes('png') ? 'png' : 'jpg';
+
+    // Cloud Storageにアップロード
+    // ファイル名: tiktok/{openId}/{videoId}.{extension}
+    const fileName = `tiktok/${openId}/${videoId}.${extension}`;
+    const bucket = storage.bucket(POST_THUMBNAILS_BUCKET);
+    const file = bucket.file(fileName);
+
+    await file.save(buffer, {
+      metadata: {
+        contentType: contentType,
+        cacheControl: 'public, max-age=86400', // 24時間キャッシュ
+      },
+    });
+
+    // 公開URLを生成
+    const publicUrl = `https://storage.googleapis.com/${POST_THUMBNAILS_BUCKET}/${fileName}`;
+    console.log(`TikTokサムネイルをCloud Storageに保存: ${publicUrl}`);
+
+    res.status(200).json({ url: publicUrl });
+
+  } catch (err) {
+    console.error('TikTokサムネイル保存エラー:', err);
+    res.status(500).json({ 
+      error: 'サムネイルの保存に失敗しました',
+      message: err.message 
+    });
   }
 };

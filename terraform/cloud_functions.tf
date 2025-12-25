@@ -1,12 +1,12 @@
 # =============================================================================
-# Cloud Functions - Instagram OAuth Callback
+# Cloud Functions - Instagram & TikTok OAuth Callback
 # =============================================================================
 #
 # このファイルには Cloud Functions に関連するすべてのリソースが含まれます:
 #   - サービスアカウント
 #   - IAMバインディング
 #   - ソースコード格納用ストレージバケット
-#   - Cloud Function本体
+#   - Cloud Function本体（Instagram & TikTok）
 #   - 公開アクセス設定
 #
 # =============================================================================
@@ -239,6 +239,127 @@ resource "google_cloudfunctions_function_iam_member" "save_thumbnail_invoker" {
   project        = var.project_id
   region         = var.region
   cloud_function = google_cloudfunctions_function.save_thumbnail_to_storage.name
+  role           = "roles/cloudfunctions.invoker"
+  member         = "allUsers"
+}
+
+# -----------------------------------------------------------------------------
+# Cloud Function: TikTok OAuth Callback
+# -----------------------------------------------------------------------------
+
+resource "google_cloudfunctions_function" "tiktok_callback" {
+  name        = "tiktokCallback"
+  description = "TikTok OAuth コールバック処理"
+  runtime     = "nodejs20"
+  region      = var.region
+
+  available_memory_mb   = 256
+  source_archive_bucket = google_storage_bucket.functions_bucket.name
+  source_archive_object = google_storage_bucket_object.functions_zip.name
+  trigger_http          = true
+  entry_point           = "tiktokCallback"
+
+  service_account_email = google_service_account.cloud_functions.email
+
+  environment_variables = {
+    GCP_PROJECT           = var.project_id
+    FRONTEND_URL          = var.frontend_url
+    PROFILE_IMAGES_BUCKET = google_storage_bucket.profile_images.name
+  }
+
+  depends_on = [
+    google_project_service.required_apis,
+    google_service_account.cloud_functions,
+  ]
+}
+
+# TikTok OAuth Callback: 未認証アクセスを許可（公開API）
+resource "google_cloudfunctions_function_iam_member" "tiktok_callback_invoker" {
+  project        = var.project_id
+  region         = var.region
+  cloud_function = google_cloudfunctions_function.tiktok_callback.name
+  role           = "roles/cloudfunctions.invoker"
+  member         = "allUsers"
+}
+
+# -----------------------------------------------------------------------------
+# Cloud Function: TikTok投稿取得
+# -----------------------------------------------------------------------------
+
+resource "google_cloudfunctions_function" "get_tiktok_videos" {
+  name        = "getTikTokVideos"
+  description = "TikTok投稿一覧を取得（認証必須）"
+  runtime     = "nodejs20"
+  region      = var.region
+
+  available_memory_mb   = 256
+  source_archive_bucket = google_storage_bucket.functions_bucket.name
+  source_archive_object = google_storage_bucket_object.functions_zip.name
+  trigger_http          = true
+  entry_point           = "getTikTokVideos"
+
+  service_account_email = google_service_account.cloud_functions.email
+
+  environment_variables = {
+    GCP_PROJECT           = var.project_id
+    FRONTEND_URL          = var.frontend_url
+    PROFILE_IMAGES_BUCKET = google_storage_bucket.profile_images.name
+  }
+
+  depends_on = [
+    google_project_service.required_apis,
+    google_service_account.cloud_functions,
+  ]
+}
+
+# TikTok投稿取得: 認証済みユーザーのみアクセス可能
+# 注意: エンドポイント内でFirebase IDトークンを検証するため、allUsersに設定
+# 実際の認証はエンドポイント内で行う
+resource "google_cloudfunctions_function_iam_member" "get_tiktok_videos_invoker" {
+  project        = var.project_id
+  region         = var.region
+  cloud_function = google_cloudfunctions_function.get_tiktok_videos.name
+  role           = "roles/cloudfunctions.invoker"
+  member         = "allUsers"
+}
+
+# -----------------------------------------------------------------------------
+# Cloud Function: TikTokサムネイル画像保存
+# -----------------------------------------------------------------------------
+
+resource "google_cloudfunctions_function" "save_tiktok_thumbnail_to_storage" {
+  name        = "saveTikTokThumbnailToStorage"
+  description = "TikTok投稿サムネイル画像をCloud Storageに保存"
+  runtime     = "nodejs20"
+  region      = var.region
+
+  available_memory_mb   = 256
+  source_archive_bucket = google_storage_bucket.functions_bucket.name
+  source_archive_object = google_storage_bucket_object.functions_zip.name
+  trigger_http          = true
+  entry_point           = "saveTikTokThumbnailToStorage"
+
+  service_account_email = google_service_account.cloud_functions.email
+
+  environment_variables = {
+    GCP_PROJECT            = var.project_id
+    FRONTEND_URL           = var.frontend_url
+    POST_THUMBNAILS_BUCKET = google_storage_bucket.post_thumbnails.name
+  }
+
+  depends_on = [
+    google_project_service.required_apis,
+    google_service_account.cloud_functions,
+  ]
+}
+
+# TikTokサムネイル保存: 認証済みユーザーのみアクセス可能
+# 注意: エンドポイント内でFirebase IDトークンを検証するため、allUsersに設定
+# 実際の認証はエンドポイント内で行う
+resource "google_cloudfunctions_function_iam_member" "save_tiktok_thumbnail_invoker" {
+  project        = var.project_id
+  region         = var.region
+  cloud_function = google_cloudfunctions_function.save_tiktok_thumbnail_to_storage.name
   role           = "roles/cloudfunctions.invoker"
   member         = "allUsers"
 }

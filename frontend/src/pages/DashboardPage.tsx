@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { Link, useNavigate } from 'react-router-dom';
 import { getUserProfile } from '@/lib/firestore/users';
 import { getAllPRPostsFlat } from '@/lib/firestore/prPosts';
-import { InstagramAccountWithId, PRPostItem } from '@/types';
+import { InstagramAccountWithId, TikTokAccountWithId, PRPostItem } from '@/types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { getMeasurementDate, formatDate, formatNumber } from '@/lib/utils';
 
@@ -24,10 +24,16 @@ const INSTAGRAM_REDIRECT_URI =
   'https://asia-northeast1-sincere-kit.cloudfunctions.net/instagramCallback';
 const INSTAGRAM_SCOPES = 'instagram_business_basic,instagram_business_manage_insights';
 
+// TikTok認証URL生成用の定数
+const TIKTOK_CLIENT_KEY = 'sbawmsbtoxbwwp81ea';
+const TIKTOK_REDIRECT_URI = 'https://asia-northeast1-sincere-kit.cloudfunctions.net/tiktokCallback';
+const TIKTOK_SCOPES = 'user.info.basic,video.list';
+
 export function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccountWithId[]>([]);
+  const [tiktokAccounts, setTiktokAccounts] = useState<TikTokAccountWithId[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   // 選択中のInstagramアカウントID
@@ -66,6 +72,17 @@ export function DashboardPage() {
           }
         }
 
+        // TikTokアカウント情報を取得
+        if (profile && profile.tiktokAccounts) {
+          const tiktokAccountsArray = Object.entries(profile.tiktokAccounts).map(
+            ([openId, accountInfo]) => ({
+              accountId: openId,
+              ...accountInfo,
+            })
+          );
+          setTiktokAccounts(tiktokAccountsArray);
+        }
+
         // PR投稿を別途取得（エラーが発生しても上記の処理には影響しない）
         const posts = await getAllPRPostsFlat(user.uid);
         setPrPosts(posts);
@@ -100,6 +117,20 @@ export function DashboardPage() {
     window.location.href = authUrl.toString();
   };
 
+  // TikTok認証URLを生成
+  const handleTikTokConnect = () => {
+    if (!user) return;
+
+    const authUrl = new URL('https://www.tiktok.com/v2/auth/authorize/');
+    authUrl.searchParams.set('client_key', TIKTOK_CLIENT_KEY);
+    authUrl.searchParams.set('scope', TIKTOK_SCOPES);
+    authUrl.searchParams.set('response_type', 'code');
+    authUrl.searchParams.set('redirect_uri', TIKTOK_REDIRECT_URI);
+    authUrl.searchParams.set('state', user.uid); // ユーザーIDをstateに設定
+
+    window.location.href = authUrl.toString();
+  };
+
   return (
     <div className="animate-fade-in space-y-8">
       {/* 連携済みSNS */}
@@ -121,8 +152,9 @@ export function DashboardPage() {
           </div>
         ) : (
           <div className="card !p-4">
-            {instagramAccounts.length > 0 ? (
+            {instagramAccounts.length > 0 || tiktokAccounts.length > 0 ? (
               <div className="space-y-3">
+                {/* Instagramアカウント */}
                 {instagramAccounts.map((account) => {
                   const isSelected = selectedAccountId === account.accountId;
                   const isSingleAccount = instagramAccounts.length === 1;
@@ -178,6 +210,41 @@ export function DashboardPage() {
                         <Instagram className="h-3.5 w-3.5 text-white" />
                       </div>
                     </button>
+                  );
+                })}
+                {/* TikTokアカウント */}
+                {tiktokAccounts.map((account) => {
+                  return (
+                    <div
+                      key={account.accountId}
+                      className="flex w-full items-center gap-3 rounded-lg bg-gray-50 p-3"
+                    >
+                      {/* プロフィール画像 */}
+                      <div className="relative flex-shrink-0">
+                        {account.profilePictureUrl ? (
+                          <img
+                            src={account.profilePictureUrl}
+                            alt={account.displayName || account.username}
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
+                            <User className="h-5 w-5 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      {/* アカウント情報 */}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-gray-900">
+                          {account.displayName || account.username}
+                        </p>
+                        <p className="truncate text-sm text-gray-500">@{account.username}</p>
+                      </div>
+                      {/* TikTokアイコン */}
+                      <div className="flex h-6 w-6 items-center justify-center rounded-md bg-black">
+                        <Music2 className="h-3.5 w-3.5 text-white" />
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -357,20 +424,34 @@ export function DashboardPage() {
                 >
                   <Instagram className="h-5 w-5 text-white" />
                 </div>
+                <div className="flex-1 text-left">
+                  <p className="font-medium text-gray-900">Instagram</p>
+                  <p className="text-sm text-gray-500">Instagramアカウントを連携</p>
+                </div>
+              </button>
+
+              {/* TikTok連携ボタン */}
+              <button
+                className="flex w-full items-center gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+                onClick={handleTikTokConnect}
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black">
+                  <Instagram className="h-5 w-5 text-white" />
+                </div>
                 <span className="font-medium text-gray-900">Instagramを連携する</span>
               </button>
 
-              {/* TikTok連携ボタン（近日対応予定） */}
+              {/* TikTok連携ボタン */}
               <button
-                className="flex w-full cursor-not-allowed items-center gap-4 rounded-xl border border-gray-200 p-4 opacity-60"
-                disabled
+                className="flex w-full items-center gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+                onClick={handleTikTokConnect}
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black">
                   <Music2 className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-left">
-                  <span className="font-medium text-gray-900">TikTokを連携する</span>
-                  <p className="text-sm text-gray-500">近日対応予定</p>
+                  <p className="font-medium text-gray-900">TikTok</p>
+                  <p className="text-sm text-gray-500">TikTokアカウントを連携</p>
                 </div>
               </button>
             </div>
