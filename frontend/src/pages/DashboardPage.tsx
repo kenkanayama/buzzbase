@@ -90,12 +90,23 @@ export function DashboardPage() {
   const handleInstagramConnect = () => {
     if (!user) return;
 
+    // 現在のフロントエンドURLを取得
+    const currentOrigin = window.location.origin;
+    
+    // stateパラメータにユーザーIDとフロントエンドURLを含める（JSON形式でBase64エンコード）
+    const stateData = {
+      userId: user.uid,
+      frontendUrl: currentOrigin,
+    };
+    const stateJson = JSON.stringify(stateData);
+    const state = btoa(unescape(encodeURIComponent(stateJson))); // Base64エンコード
+
     const authUrl = new URL('https://www.instagram.com/oauth/authorize');
     authUrl.searchParams.set('client_id', INSTAGRAM_APP_ID);
     authUrl.searchParams.set('redirect_uri', INSTAGRAM_REDIRECT_URI);
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('scope', INSTAGRAM_SCOPES);
-    authUrl.searchParams.set('state', user.uid); // ユーザーIDをstateに設定
+    authUrl.searchParams.set('state', state);
 
     window.location.href = authUrl.toString();
   };

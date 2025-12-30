@@ -19,7 +19,51 @@ const PROJECT_ID = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
 const SECRET_NAME = `projects/${PROJECT_ID}/secrets/meta-instagram-app-secret/versions/latest`;
 
 // フロントエンドURL（環境変数から取得、デフォルトは本番URL）
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://buzzbase-1028492470102.asia-northeast1.run.app';
+const DEFAULT_FRONTEND_URL = process.env.FRONTEND_URL || 'https://buzzbase-1028492470102.asia-northeast1.run.app';
+
+// 許可されたフロントエンドURLのリスト（本番環境と審査用環境）
+const ALLOWED_FRONTEND_URLS = [
+  'https://buzzbase-1028492470102.asia-northeast1.run.app',
+  'https://buzzbase-review-1028492470102.asia-northeast1.run.app',
+];
+
+/**
+ * リクエストから適切なフロントエンドURLを取得
+ * @param {object} req - Expressリクエストオブジェクト
+ * @returns {string} フロントエンドURL
+ */
+function getFrontendUrl(req) {
+  // 1. Originヘッダーから取得を試みる
+  const origin = req.headers.origin || req.headers.referer;
+  if (origin) {
+    try {
+      const originUrl = new URL(origin);
+      const originBase = `${originUrl.protocol}//${originUrl.host}`;
+      if (ALLOWED_FRONTEND_URLS.includes(originBase)) {
+        return originBase;
+      }
+    } catch (e) {
+      // URL解析エラーは無視
+    }
+  }
+
+  // 2. クエリパラメータから取得を試みる（OAuthコールバック用）
+  const frontendUrl = req.query.frontend_url || req.query.redirect_uri;
+  if (frontendUrl) {
+    try {
+      const url = new URL(frontendUrl);
+      const base = `${url.protocol}//${url.host}`;
+      if (ALLOWED_FRONTEND_URLS.includes(base)) {
+        return base;
+      }
+    } catch (e) {
+      // URL解析エラーは無視
+    }
+  }
+
+  // 3. デフォルトURLを返す
+  return DEFAULT_FRONTEND_URL;
+}
 
 // プロフィール画像保存用バケット名
 const PROFILE_IMAGES_BUCKET = process.env.PROFILE_IMAGES_BUCKET || `${PROJECT_ID}-profile-images`;
@@ -280,8 +324,16 @@ async function getInstagramMedia(accountId, accessToken) {
  * HTTPトリガー（GET）
  */
 exports.instagramCallback = async (req, res) => {
-  // CORSヘッダー設定
-  res.set('Access-Control-Allow-Origin', '*');
+  // フロントエンドURLを取得（リクエストから判断）
+  const frontendUrl = getFrontendUrl(req);
+
+  // CORSヘッダー設定（許可されたOriginのみ）
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_FRONTEND_URLS.some(url => origin.startsWith(url))) {
+    res.set('Access-Control-Allow-Origin', origin);
+  } else {
+    res.set('Access-Control-Allow-Origin', '*');
+  }
 
   // プリフライトリクエスト対応
   if (req.method === 'OPTIONS') {
@@ -298,28 +350,46 @@ exports.instagramCallback = async (req, res) => {
     state,
     error,
     error_reason,
+    frontendUrl,
   });
 
   // エラーチェック（ユーザーがキャンセルした場合など）
   if (error) {
     console.error('Instagram認証エラー:', error, error_reason);
-    return res.redirect(`${FRONTEND_URL}/dashboard?error=instagram_denied`);
+    return res.redirect(`${frontendUrl}/dashboard?error=instagram_denied`);
   }
 
   // パラメータチェック
   if (!code) {
     console.error('認可コードがありません');
-    return res.redirect(`${FRONTEND_URL}/dashboard?error=missing_code`);
+    return res.redirect(`${frontendUrl}/dashboard?error=missing_code`);
   }
 
   if (!state) {
     console.error('stateパラメータがありません');
-    return res.redirect(`${FRONTEND_URL}/dashboard?error=missing_state`);
+    return res.redirect(`${frontendUrl}/dashboard?error=missing_state`);
   }
 
   try {
-    // stateからユーザーIDを取得
-    const userId = state;
+    // stateからユーザーIDとフロントエンドURLを取得
+    let userId;
+    let stateFrontendUrl = null;
+    
+    try {
+      // stateがBase64エンコードされたJSONかどうかを確認
+      const decodedState = Buffer.from(state, 'base64').toString('utf-8');
+      const stateData = JSON.parse(decodedState);
+      userId = stateData.userId;
+      stateFrontendUrl = stateData.frontendUrl;
+      
+      // stateから取得したフロントエンドURLが許可されている場合は使用
+      if (stateFrontendUrl && ALLOWED_FRONTEND_URLS.includes(stateFrontendUrl)) {
+        frontendUrl = stateFrontendUrl;
+      }
+    } catch (e) {
+      // Base64デコードまたはJSON解析に失敗した場合は、stateをそのままユーザーIDとして使用（後方互換性）
+      userId = state;
+    }
 
     // リダイレクトURIは固定値を使用（Metaアプリコンソールに登録したものと完全一致させる）
     const redirectUri = INSTAGRAM_CALLBACK_URL;
@@ -381,11 +451,11 @@ exports.instagramCallback = async (req, res) => {
     console.log('Firestore保存成功');
 
     // 7. フロントエンドにリダイレクト（成功）
-    res.redirect(`${FRONTEND_URL}/dashboard?instagram_connected=true`);
+    res.redirect(`${frontendUrl}/dashboard?instagram_connected=true`);
 
   } catch (err) {
     console.error('Instagram連携処理エラー:', err);
-    res.redirect(`${FRONTEND_URL}/dashboard?error=instagram_error&message=${encodeURIComponent(err.message)}`);
+    res.redirect(`${frontendUrl}/dashboard?error=instagram_error&message=${encodeURIComponent(err.message)}`);
   }
 };
 
