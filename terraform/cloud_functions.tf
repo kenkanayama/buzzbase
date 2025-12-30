@@ -203,6 +203,45 @@ resource "google_cloudfunctions_function_iam_member" "get_instagram_media_invoke
 }
 
 # -----------------------------------------------------------------------------
+# Cloud Function: PR投稿インサイトデータ即時取得（Meta審査用）
+# -----------------------------------------------------------------------------
+
+resource "google_cloudfunctions_function" "fetch_post_insights_immediate" {
+  name        = "fetchPostInsightsImmediate"
+  description = "Fetch Instagram insights data immediately after PR post registration (for Meta review)"
+  runtime     = "nodejs20"
+  region      = var.region
+
+  available_memory_mb   = 256
+  source_archive_bucket = google_storage_bucket.functions_bucket.name
+  source_archive_object = google_storage_bucket_object.functions_zip.name
+  trigger_http          = true
+  entry_point           = "fetchPostInsightsImmediate"
+
+  service_account_email = google_service_account.cloud_functions.email
+
+  environment_variables = {
+    GCP_PROJECT           = var.project_id
+    FRONTEND_URL          = var.frontend_url
+    PROFILE_IMAGES_BUCKET = google_storage_bucket.profile_images.name
+  }
+
+  depends_on = [
+    google_project_service.required_apis,
+    google_service_account.cloud_functions,
+  ]
+}
+
+# PR投稿インサイトデータ即時取得: 認証済みユーザーのみアクセス可能
+resource "google_cloudfunctions_function_iam_member" "fetch_post_insights_immediate_invoker" {
+  project        = var.project_id
+  region         = var.region
+  cloud_function = google_cloudfunctions_function.fetch_post_insights_immediate.name
+  role           = "roles/cloudfunctions.invoker"
+  member         = "allUsers"
+}
+
+# -----------------------------------------------------------------------------
 # Cloud Function: サムネイル画像保存
 # -----------------------------------------------------------------------------
 

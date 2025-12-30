@@ -19,6 +19,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { getUserProfile } from '@/lib/firestore/users';
 import { getActiveCampaigns } from '@/lib/firestore/campaigns';
 import { registerPRPost, isMediaIdAlreadyRegistered } from '@/lib/firestore/prPosts';
+import { fetchPostInsightsImmediate } from '@/lib/api/instagram';
 import { getInstagramMedia, saveThumbnailToStorage } from '@/lib/api/instagram';
 import { Campaign, InstagramMedia, InstagramAccountWithId, PRPostRegisterInput } from '@/types';
 import { getMeasurementDate, formatDate } from '@/lib/utils';
@@ -164,7 +165,24 @@ export function RegisterPostPage() {
         mediaProductType: selectedPost.media_product_type,
       };
 
+      // PR投稿を登録
       await registerPRPost(user.uid, selectedAccountId, input);
+
+      // 登録直後にインサイトデータを取得（Meta審査用）
+      try {
+        await fetchPostInsightsImmediate(
+          user.uid,
+          selectedAccountId,
+          selectedPost.id,
+          selectedPost.media_product_type
+        );
+        console.log('Insights data fetched successfully');
+      } catch (insightsError) {
+        // インサイトデータ取得に失敗しても、投稿登録自体は成功とする
+        // （投稿が新しすぎてインサイトデータがまだ利用できない可能性がある）
+        console.warn('Failed to fetch insights data immediately:', insightsError);
+      }
+
       setCurrentStep(4); // 完了画面へ
     } catch (err) {
       console.error('Failed to register:', err);

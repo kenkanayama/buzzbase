@@ -432,21 +432,21 @@ exports.getInstagramMedia = async (req, res) => {
 
   // パラメータチェック
   if (!accountId) {
-    res.status(400).json({ error: 'accountIdパラメータが必要です' });
+    res.status(400).json({ error: 'accountId parameter is required' });
     return;
   }
 
   // 認証チェック（Firebase IDトークン）
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ error: '認証が必要です' });
+    res.status(401).json({ error: 'Authentication required' });
     return;
   }
 
   const idToken = authHeader.split('Bearer ')[1];
   
   if (!idToken) {
-    res.status(401).json({ error: '無効な認証トークンです' });
+    res.status(401).json({ error: 'Invalid authentication token' });
     return;
   }
 
@@ -455,8 +455,8 @@ exports.getInstagramMedia = async (req, res) => {
   try {
     decodedToken = await admin.auth().verifyIdToken(idToken);
   } catch (error) {
-    console.error('トークン検証エラー:', error);
-    res.status(401).json({ error: '認証トークンの検証に失敗しました' });
+    console.error('Token verification error:', error);
+    res.status(401).json({ error: 'Token verification failed' });
     return;
   }
 
@@ -468,13 +468,13 @@ exports.getInstagramMedia = async (req, res) => {
     const userDoc = await userRef.get();
     
     if (!userDoc.exists) {
-      res.status(404).json({ error: 'ユーザーが見つかりません' });
+      res.status(404).json({ error: 'User not found' });
       return;
     }
     
     const userData = userDoc.data();
     if (!userData.instagramAccounts || !userData.instagramAccounts[accountId]) {
-      res.status(403).json({ error: 'このInstagramアカウントへのアクセス権限がありません' });
+      res.status(403).json({ error: 'No access to this Instagram account' });
       return;
     }
 
@@ -482,13 +482,13 @@ exports.getInstagramMedia = async (req, res) => {
     const tokenData = await getInstagramToken(accountId);
     
     if (!tokenData) {
-      res.status(404).json({ error: 'Instagramアカウントのトークンが見つかりません。再連携が必要です。' });
+      res.status(404).json({ error: 'Instagram account token not found. Please reconnect your account.' });
       return;
     }
 
     // 3. トークンの有効期限をチェック
     if (tokenData.tokenExpiresAt < new Date()) {
-      res.status(400).json({ error: 'Instagramのアクセストークンが期限切れです。再連携してください。' });
+      res.status(400).json({ error: 'Instagram access token has expired. Please reconnect your account.' });
       return;
     }
 
@@ -499,9 +499,9 @@ exports.getInstagramMedia = async (req, res) => {
     res.status(200).json(mediaData);
 
   } catch (err) {
-    console.error('Instagram投稿取得エラー:', err);
+    console.error('Instagram media fetch error:', err);
     res.status(500).json({ 
-      error: '投稿の取得に失敗しました',
+      error: 'Failed to fetch posts',
       message: err.message 
     });
   }
@@ -552,14 +552,14 @@ exports.saveThumbnailToStorage = async (req, res) => {
   // 認証チェック（Firebase IDトークン）
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ error: '認証が必要です' });
+    res.status(401).json({ error: 'Authentication required' });
     return;
   }
 
   const idToken = authHeader.split('Bearer ')[1];
   
   if (!idToken) {
-    res.status(401).json({ error: '無効な認証トークンです' });
+    res.status(401).json({ error: 'Invalid authentication token' });
     return;
   }
 
@@ -567,8 +567,8 @@ exports.saveThumbnailToStorage = async (req, res) => {
   try {
     await admin.auth().verifyIdToken(idToken);
   } catch (error) {
-    console.error('トークン検証エラー:', error);
-    res.status(401).json({ error: '認証トークンの検証に失敗しました' });
+    console.error('Token verification error:', error);
+    res.status(401).json({ error: 'Token verification failed' });
     return;
   }
 
@@ -576,28 +576,28 @@ exports.saveThumbnailToStorage = async (req, res) => {
 
   // パラメータチェック
   if (!thumbnailUrl) {
-    res.status(400).json({ error: 'thumbnailUrlが必要です' });
+    res.status(400).json({ error: 'thumbnailUrl is required' });
     return;
   }
 
   if (!accountId) {
-    res.status(400).json({ error: 'accountIdが必要です' });
+    res.status(400).json({ error: 'accountId is required' });
     return;
   }
 
   if (!mediaId) {
-    res.status(400).json({ error: 'mediaIdが必要です' });
+    res.status(400).json({ error: 'mediaId is required' });
     return;
   }
 
   try {
     // 画像をダウンロード
-    console.log(`サムネイルをダウンロード中: ${thumbnailUrl}`);
+    console.log(`Downloading thumbnail: ${thumbnailUrl}`);
     const response = await fetch(thumbnailUrl);
     
     if (!response.ok) {
-      console.error('サムネイルダウンロードエラー:', response.status);
-      res.status(400).json({ error: '画像のダウンロードに失敗しました' });
+      console.error('Thumbnail download error:', response.status);
+      res.status(400).json({ error: 'Failed to download image' });
       return;
     }
 
@@ -623,14 +623,14 @@ exports.saveThumbnailToStorage = async (req, res) => {
 
     // 公開URLを生成
     const publicUrl = `https://storage.googleapis.com/${POST_THUMBNAILS_BUCKET}/${fileName}`;
-    console.log(`サムネイルをCloud Storageに保存: ${publicUrl}`);
+    console.log(`Thumbnail saved to Cloud Storage: ${publicUrl}`);
 
     res.status(200).json({ url: publicUrl });
 
   } catch (err) {
-    console.error('サムネイル保存エラー:', err);
+    console.error('Thumbnail save error:', err);
     res.status(500).json({ 
-      error: 'サムネイルの保存に失敗しました',
+      error: 'Failed to save thumbnail',
       message: err.message 
     });
   }
@@ -1103,5 +1103,143 @@ exports.fetchPostInsights = async (event, context) => {
   } catch (error) {
     console.error('fetchPostInsights エラー:', error);
     throw error; // エラーを再スローしてCloud Functionsにリトライさせる
+  }
+};
+
+// =============================================================================
+// Cloud Function: PR投稿インサイトデータ即時取得（Meta審査用）
+// =============================================================================
+
+/**
+ * PR投稿のインサイトデータを即座に取得してFirestoreに保存
+ * HTTPトリガー（POST）
+ * 
+ * 認証: Firebase Authentication IDトークンをAuthorizationヘッダーで受け取る
+ * 
+ * リクエスト:
+ *   POST /fetchPostInsightsImmediate
+ *   Headers:
+ *     Authorization: Bearer {Firebase ID Token}
+ *     Content-Type: application/json
+ *   Body:
+ *     { userId: string, accountId: string, mediaId: string, mediaProductType?: string }
+ * 
+ * レスポンス:
+ *   200 OK: { success: true, insightsData?: object }
+ *   400 Bad Request: { error: "..." }
+ *   401 Unauthorized: { error: "..." }
+ *   500 Internal Server Error: { error: "..." }
+ */
+exports.fetchPostInsightsImmediate = async (req, res) => {
+  // CORSヘッダー設定
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // プリフライトリクエスト対応
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+
+  // メソッドチェック
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  const { userId, accountId, mediaId, mediaProductType } = req.body;
+
+  // パラメータチェック
+  if (!userId || !accountId || !mediaId) {
+    res.status(400).json({ error: 'userId, accountId, mediaId are required' });
+    return;
+  }
+
+  // 認証チェック（Firebase IDトークン）
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Authentication required' });
+    return;
+  }
+
+  const idToken = authHeader.split('Bearer ')[1];
+  
+  if (!idToken) {
+    res.status(401).json({ error: 'Invalid authentication token' });
+    return;
+  }
+
+  // Firebase Admin SDKでトークンを検証
+  let decodedToken;
+  try {
+    decodedToken = await admin.auth().verifyIdToken(idToken);
+  } catch (error) {
+    console.error('Token verification error:', error);
+    res.status(401).json({ error: 'Token verification failed' });
+    return;
+  }
+
+  // ユーザーIDの一致を確認
+  if (decodedToken.uid !== userId) {
+    res.status(403).json({ error: 'User ID mismatch' });
+    return;
+  }
+
+  try {
+    // 1. ユーザーがこのアカウントを連携しているか確認
+    const userRef = firestore.collection('users').doc(userId);
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    
+    const userData = userDoc.data();
+    if (!userData.instagramAccounts || !userData.instagramAccounts[accountId]) {
+      res.status(403).json({ error: 'No access to this Instagram account' });
+      return;
+    }
+
+    // 2. アクセストークンを取得
+    const accessToken = await getAccessTokenForAccount(accountId);
+    
+    if (!accessToken) {
+      res.status(404).json({ error: 'Instagram access token not found. Please reconnect your account.' });
+      return;
+    }
+
+    // 3. Instagram APIからインサイトデータを取得
+    const insightsResponse = await fetchMediaInsights(mediaId, accessToken, mediaProductType);
+    
+    if (!insightsResponse) {
+      // インサイトデータ取得に失敗した場合でも、エラーではなく警告として処理
+      // （投稿が新しすぎてインサイトデータがまだ利用できない可能性がある）
+      console.warn(`Failed to fetch insights for mediaId=${mediaId}. This may be normal for very recent posts.`);
+      res.status(200).json({ 
+        success: true, 
+        message: 'Insights data not available yet (post may be too recent)' 
+      });
+      return;
+    }
+
+    const insightsData = parseInsightsData(insightsResponse);
+
+    // 4. Firestoreを更新
+    await updatePostWithInsights(userId, accountId, mediaId, insightsData);
+
+    // 5. レスポンスを返す
+    res.status(200).json({ 
+      success: true, 
+      insightsData: insightsData 
+    });
+
+  } catch (err) {
+    console.error('fetchPostInsightsImmediate error:', err);
+    res.status(500).json({ 
+      error: 'Failed to fetch insights data',
+      message: err.message 
+    });
   }
 };

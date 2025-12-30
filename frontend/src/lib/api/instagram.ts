@@ -17,7 +17,7 @@ const CLOUD_FUNCTIONS_BASE_URL =
  */
 async function getIdToken(): Promise<string> {
   if (!auth || !auth.currentUser) {
-    throw new Error('認証が必要です。ログインしてください。');
+    throw new Error('Authentication required. Please sign in.');
   }
   const token = await auth.currentUser.getIdToken();
   return token;
@@ -30,7 +30,7 @@ async function getIdToken(): Promise<string> {
  */
 export async function getInstagramMedia(accountId: string): Promise<InstagramMediaResponse> {
   if (!accountId) {
-    throw new Error('accountIdが必要です');
+    throw new Error('accountId is required');
   }
 
   // Firebase IDトークンを取得
@@ -68,13 +68,13 @@ export async function saveThumbnailToStorage(
   mediaId: string
 ): Promise<string> {
   if (!thumbnailUrl) {
-    throw new Error('thumbnailUrlが必要です');
+    throw new Error('thumbnailUrl is required');
   }
   if (!accountId) {
-    throw new Error('accountIdが必要です');
+    throw new Error('accountId is required');
   }
   if (!mediaId) {
-    throw new Error('mediaIdが必要です');
+    throw new Error('mediaId is required');
   }
 
   // Firebase IDトークンを取得
@@ -102,4 +102,50 @@ export async function saveThumbnailToStorage(
 
   const data = await response.json();
   return data.url;
+}
+
+/**
+ * PR投稿のインサイトデータを即座に取得（Meta審査用）
+ * @param userId - Firebase UID
+ * @param accountId - InstagramアカウントID
+ * @param mediaId - Instagram Media ID
+ * @param mediaProductType - メディア製品タイプ（REELS, FEED等）
+ * @returns インサイトデータ取得結果
+ */
+export async function fetchPostInsightsImmediate(
+  userId: string,
+  accountId: string,
+  mediaId: string,
+  mediaProductType?: string
+): Promise<{ success: boolean; insightsData?: any; message?: string }> {
+  if (!userId || !accountId || !mediaId) {
+    throw new Error('userId, accountId, and mediaId are required');
+  }
+
+  // Firebase IDトークンを取得
+  const idToken = await getIdToken();
+
+  // バックエンドAPIを呼び出し
+  const url = `${CLOUD_FUNCTIONS_BASE_URL}/fetchPostInsightsImmediate`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      userId,
+      accountId,
+      mediaId,
+      mediaProductType,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data;
 }
