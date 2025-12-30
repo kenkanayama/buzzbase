@@ -122,7 +122,7 @@ export async function createUserProfile(
       updatedAt: new Date(),
     };
   } catch (error) {
-    console.error('ユーザープロフィールの作成に失敗しました:', error);
+    console.error('Failed to create user profile:', error);
     throw error;
   }
 }
@@ -134,7 +134,7 @@ export async function createUserProfile(
  */
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   if (!db) {
-    console.error('Firestore が初期化されていません');
+    console.error('Firestore is not initialized');
     return null;
   }
 
@@ -148,7 +148,7 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 
     return docToUserProfile(uid, userSnap.data());
   } catch (error) {
-    console.error('ユーザープロフィールの取得に失敗しました:', error);
+    console.error('Failed to fetch user profile:', error);
     throw error;
   }
 }
@@ -202,7 +202,7 @@ export async function updateUserProfile(
 
     await setDoc(userRef, updateData, { merge: true });
   } catch (error) {
-    console.error('ユーザープロフィールの更新に失敗しました:', error);
+    console.error('Failed to update user profile:', error);
     throw error;
   }
 }

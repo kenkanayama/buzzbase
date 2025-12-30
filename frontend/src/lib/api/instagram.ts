@@ -47,7 +47,7 @@ export async function getInstagramMedia(accountId: string): Promise<InstagramMed
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: '不明なエラー' }));
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
     throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
   }
 
@@ -96,7 +96,7 @@ export async function saveThumbnailToStorage(
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: '不明なエラー' }));
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
     throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
   }
 

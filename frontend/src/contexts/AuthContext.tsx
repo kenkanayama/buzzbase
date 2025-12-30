@@ -38,9 +38,9 @@ const ALLOWED_AUTH_DOMAINS: string[] | null = [
  */
 const getDomainRestrictionErrorMessage = (): string => {
   if (!ALLOWED_AUTH_DOMAINS || ALLOWED_AUTH_DOMAINS.length === 0) {
-    return 'ログインできません';
+    return 'Cannot sign in';
   }
-  return `このアプリは現在開発中のため、${ALLOWED_AUTH_DOMAINS.join(', ')} ドメインのアカウントのみ利用できます`;
+  return `This app is currently in development. Only accounts with ${ALLOWED_AUTH_DOMAINS.join(', ')} domains can be used`;
 };
 
 /**
@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // メールでサインイン
   const signInWithEmail = async (email: string, password: string) => {
     if (!auth) {
-      setError('Firebase が設定されていません');
+      setError('Firebase is not configured');
       throw new Error('Firebase not configured');
     }
 
@@ -161,7 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // メールでサインアップ
   const signUpWithEmail = async (email: string, password: string) => {
     if (!auth) {
-      setError('Firebase が設定されていません');
+      setError('Firebase is not configured');
       throw new Error('Firebase not configured');
     }
 
@@ -187,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Googleでサインイン
   const signInWithGoogle = async () => {
     if (!auth) {
-      setError('Firebase が設定されていません');
+      setError('Firebase is not configured');
       throw new Error('Firebase not configured');
     }
 
@@ -237,18 +237,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // 確認メールを再送信
   const resendVerificationEmail = async () => {
-    if (!auth?.currentUser) {
-      throw new Error('ユーザーがログインしていません');
-    }
+      if (!auth?.currentUser) {
+        throw new Error('User is not signed in');
+      }
 
     try {
       await sendEmailVerification(auth.currentUser, getEmailVerificationSettings());
     } catch (err) {
       const code = (err as { code?: string }).code;
       if (code === 'auth/too-many-requests') {
-        throw new Error('確認メールの送信回数が上限に達しました。しばらくお待ちください');
+        throw new Error('Verification email send limit reached. Please wait a moment.');
       }
-      throw new Error('確認メールの送信に失敗しました');
+      throw new Error('Failed to send verification email');
     }
   };
 
@@ -343,26 +343,26 @@ function getAuthErrorMessage(error: unknown): string {
     const code = (error as { code: string }).code;
     switch (code) {
       case 'auth/email-already-in-use':
-        return 'このメールアドレスは既に使用されています';
+        return 'This email address is already in use';
       case 'auth/invalid-email':
-        return 'メールアドレスの形式が正しくありません';
+        return 'Invalid email address format';
       case 'auth/operation-not-allowed':
-        return 'この操作は許可されていません';
+        return 'This operation is not allowed';
       case 'auth/weak-password':
-        return 'パスワードが弱すぎます（8文字以上で設定してください）';
+        return 'Password is too weak (must be at least 8 characters)';
       case 'auth/user-disabled':
-        return 'このアカウントは無効になっています';
+        return 'This account has been disabled';
       case 'auth/user-not-found':
-        return 'ユーザーが見つかりません';
+        return 'User not found';
       case 'auth/wrong-password':
-        return 'パスワードが間違っています';
+        return 'Incorrect password';
       case 'auth/too-many-requests':
-        return 'ログイン試行回数が多すぎます。しばらくお待ちください';
+        return 'Too many login attempts. Please wait a moment';
       case 'auth/popup-closed-by-user':
-        return 'ログインがキャンセルされました';
+        return 'Sign in was cancelled';
       default:
-        return 'エラーが発生しました。もう一度お試しください';
+        return 'An error occurred. Please try again';
     }
   }
-  return 'エラーが発生しました';
+  return 'An error occurred';
 }

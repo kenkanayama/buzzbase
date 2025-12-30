@@ -40,13 +40,13 @@ export function AuthActionPage() {
     const handleAction = async () => {
       if (!auth) {
         setStatus('error');
-        setErrorMessage('Firebase が設定されていません');
+        setErrorMessage('Firebase is not configured');
         return;
       }
 
       if (!mode || !oobCode) {
         setStatus('error');
-        setErrorMessage('無効なリンクです。リンクが正しいか確認してください。');
+        setErrorMessage('Invalid link. Please check if the link is correct.');
         return;
       }
 
@@ -72,7 +72,7 @@ export function AuthActionPage() {
 
           default:
             setStatus('error');
-            setErrorMessage('サポートされていないアクションです');
+            setErrorMessage('Unsupported action');
         }
       } catch (error) {
         setStatus('error');
@@ -81,20 +81,20 @@ export function AuthActionPage() {
         switch (code) {
           case 'auth/expired-action-code':
             setErrorMessage(
-              '確認リンクの有効期限が切れています。新しい確認メールを送信してください。'
+              'The verification link has expired. Please request a new verification email.'
             );
             break;
           case 'auth/invalid-action-code':
-            setErrorMessage('このリンクは既に使用されているか、無効です。');
+            setErrorMessage('This link has already been used or is invalid.');
             break;
           case 'auth/user-disabled':
-            setErrorMessage('このアカウントは無効化されています。');
+            setErrorMessage('This account has been disabled.');
             break;
           case 'auth/user-not-found':
-            setErrorMessage('アカウントが見つかりません。');
+            setErrorMessage('Account not found.');
             break;
           default:
-            setErrorMessage('エラーが発生しました。もう一度お試しください。');
+            setErrorMessage('An error occurred. Please try again.');
         }
       }
     };
@@ -122,10 +122,10 @@ export function AuthActionPage() {
                 className="mb-2 font-display text-xl font-bold"
                 style={{ color: COLORS.neutral800 }}
               >
-                確認中...
+                Verifying...
               </h1>
               <p className="text-sm" style={{ color: COLORS.neutral500 }}>
-                しばらくお待ちください
+                Please wait a moment
               </p>
             </>
           )}
@@ -142,10 +142,10 @@ export function AuthActionPage() {
                 className="mb-2 font-display text-xl font-bold"
                 style={{ color: COLORS.neutral800 }}
               >
-                メールアドレスが確認されました
+                Email Verified
               </h1>
               <p className="mb-6 text-sm" style={{ color: COLORS.neutral500 }}>
-                3秒後に自動的にログインページへ移動します...
+                Redirecting to login page in 3 seconds...
               </p>
               <Link
                 to="/login?verified=true"
@@ -154,7 +154,7 @@ export function AuthActionPage() {
                 onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e38500')}
                 onMouseOut={(e) => (e.currentTarget.style.backgroundColor = COLORS.primary)}
               >
-                今すぐログインページへ
+                Go to Login Page Now
               </Link>
             </>
           )}
@@ -171,7 +171,7 @@ export function AuthActionPage() {
                 className="mb-2 font-display text-xl font-bold"
                 style={{ color: COLORS.neutral800 }}
               >
-                確認に失敗しました
+                Verification Failed
               </h1>
               <div
                 className="mb-6 flex items-start gap-3 rounded-xl p-4 text-left"
@@ -196,7 +196,7 @@ export function AuthActionPage() {
                   onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e38500')}
                   onMouseOut={(e) => (e.currentTarget.style.backgroundColor = COLORS.primary)}
                 >
-                  新規登録ページへ
+                  Go to Sign Up Page
                 </Link>
                 <Link
                   to="/login"
@@ -214,7 +214,7 @@ export function AuthActionPage() {
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  ログインページへ
+                  Go to Login Page
                 </Link>
               </div>
             </>

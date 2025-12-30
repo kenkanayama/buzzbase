@@ -10,6 +10,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { RegisterPostPage } from '@/pages/RegisterPostPage';
 import { PostsPage } from '@/pages/PostsPage';
+import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/auth/action" element={<AuthActionPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
 
           {/* Protected Routes */}
           <Route

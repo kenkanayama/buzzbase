@@ -53,7 +53,7 @@ export function VerifyEmailPage() {
       if (error instanceof Error) {
         setResendError(error.message);
       } else {
-        setResendError('確認メールの送信に失敗しました');
+        setResendError('Failed to send verification email');
       }
     } finally {
       setResending(false);
@@ -126,12 +126,12 @@ export function VerifyEmailPage() {
             className="mb-2 text-center font-display text-2xl font-bold"
             style={{ color: COLORS.neutral800 }}
           >
-            メールアドレスを確認してください
+            Please Verify Your Email
           </h1>
           <p className="mb-6 text-center" style={{ color: COLORS.neutral500 }}>
-            以下のメールアドレスに確認メールを送信しました。
+            We've sent a verification email to the following address.
             <br />
-            メール内のリンクをクリックして、登録を完了してください。
+            Please click the link in the email to complete your registration.
           </p>
 
           {/* 送信先メールアドレス */}
@@ -158,7 +158,7 @@ export function VerifyEmailPage() {
             >
               <CheckCircle className="h-5 w-5 flex-shrink-0" style={{ color: COLORS.success }} />
               <p className="text-sm" style={{ color: COLORS.success }}>
-                確認メールを再送信しました
+                Verification email resent
               </p>
             </div>
           )}
@@ -182,7 +182,7 @@ export function VerifyEmailPage() {
           <div className="space-y-3">
             <Button onClick={handleCheckVerification} loading={checking} className="w-full">
               <RefreshCw className="mr-2 h-4 w-4" />
-              確認状態を更新
+              Refresh Verification Status
             </Button>
 
             <button
@@ -203,7 +203,7 @@ export function VerifyEmailPage() {
                 e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
-              {resending ? '送信中...' : '確認メールを再送信'}
+              {resending ? 'Sending...' : 'Resend Verification Email'}
             </button>
 
             <button
@@ -219,15 +219,15 @@ export function VerifyEmailPage() {
               }}
             >
               <LogOut className="h-4 w-4" />
-              別のアカウントで登録
+              Sign Up with Different Account
             </button>
           </div>
 
-          {/* ヘルプテキスト */}
+          {/* Help Text */}
           <div className="mt-6 rounded-xl p-4" style={{ backgroundColor: COLORS.neutral50 }}>
             <p className="text-xs" style={{ color: COLORS.neutral500 }}>
-              メールが届かない場合は、迷惑メールフォルダを確認するか、
-              上のボタンから確認メールを再送信してください。
+              If you don't receive the email, please check your spam folder or
+              resend the verification email using the button above.
             </p>
           </div>
         </div>

@@ -74,7 +74,7 @@ function docToCampaign(id: string, data: Record<string, unknown>): Campaign {
  */
 export async function getActiveCampaigns(): Promise<Campaign[]> {
   if (!db) {
-    console.error('Firestore が初期化されていません');
+    console.error('Firestore is not initialized');
     return [];
   }
 
@@ -95,7 +95,7 @@ export async function getActiveCampaigns(): Promise<Campaign[]> {
 
     return campaigns;
   } catch (error) {
-    console.error('キャンペーン一覧の取得に失敗しました:', error);
+    console.error('Failed to fetch campaign list:', error);
     return [];
   }
 }
@@ -106,7 +106,7 @@ export async function getActiveCampaigns(): Promise<Campaign[]> {
  */
 export async function getAllCampaigns(): Promise<Campaign[]> {
   if (!db) {
-    console.error('Firestore が初期化されていません');
+    console.error('Firestore is not initialized');
     return [];
   }
 
@@ -124,7 +124,7 @@ export async function getAllCampaigns(): Promise<Campaign[]> {
 
     return campaigns;
   } catch (error) {
-    console.error('キャンペーン一覧の取得に失敗しました:', error);
+    console.error('Failed to fetch campaign list:', error);
     return [];
   }
 }
@@ -153,7 +153,7 @@ export async function addMediaIdToCampaign(
       updatedAt: serverTimestamp(),
     });
   } catch (error) {
-    console.error('キャンペーンへのメディアID追加に失敗しました:', error);
+    console.error('Failed to add media ID to campaign:', error);
     throw error;
   }
 }

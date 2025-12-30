@@ -104,13 +104,13 @@ export function LoginPage() {
             className="mb-2 text-center font-display text-2xl font-bold"
             style={{ color: COLORS.neutral800 }}
           >
-            おかえりなさい
+            Welcome Back
           </h1>
           <p className="mb-8 text-center" style={{ color: COLORS.neutral500 }}>
-            アカウントにログインしてください
+            Please sign in to your account
           </p>
 
-          {/* メール確認完了メッセージ */}
+          {/* Email Verification Success Message */}
           {isEmailVerified && (
             <div
               className="mb-6 flex items-start gap-3 rounded-xl p-4"
@@ -125,10 +125,10 @@ export function LoginPage() {
               />
               <div>
                 <p className="font-medium" style={{ color: COLORS.success }}>
-                  メールアドレスが確認されました
+                  Email address verified
                 </p>
                 <p className="mt-1 text-sm" style={{ color: COLORS.success }}>
-                  以下からログインしてください
+                  Please sign in below
                 </p>
               </div>
             </div>
@@ -188,24 +188,24 @@ export function LoginPage() {
               />
             </svg>
             <span className="font-medium" style={{ color: COLORS.neutral600 }}>
-              Googleでログイン
+              Sign in with Google
             </span>
           </button>
 
-          {/* 区切り線 */}
+          {/* Divider */}
           <div className="my-6 flex items-center gap-4">
             <div className="h-px flex-1" style={{ backgroundColor: COLORS.neutral200 }} />
             <span className="text-sm" style={{ color: COLORS.neutral500 }}>
-              または
+              or
             </span>
             <div className="h-px flex-1" style={{ backgroundColor: COLORS.neutral200 }} />
           </div>
 
-          {/* メールログインフォーム */}
+          {/* Email Sign In Form */}
           <form onSubmit={handleEmailSignIn} className="space-y-4">
             <Input
               type="email"
-              label="メールアドレス"
+              label="Email Address"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -214,7 +214,7 @@ export function LoginPage() {
             />
             <Input
               type="password"
-              label="パスワード"
+              label="Password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -223,19 +223,19 @@ export function LoginPage() {
             />
 
             <Button type="submit" loading={loading} className="w-full">
-              ログイン
+              Sign In
             </Button>
           </form>
 
-          {/* サインアップリンク */}
+          {/* Sign Up Link */}
           <p className="mt-6 text-center text-sm" style={{ color: COLORS.neutral500 }}>
-            アカウントをお持ちでない方は{' '}
+            Don't have an account?{' '}
             <Link
               to="/signup"
               className="font-medium hover:underline"
               style={{ color: COLORS.primary }}
             >
-              新規登録
+              Sign Up
             </Link>
           </p>
         </div>

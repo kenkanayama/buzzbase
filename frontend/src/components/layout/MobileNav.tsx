@@ -3,8 +3,8 @@ import { Home, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/dashboard', icon: Home, label: 'ホーム' },
-  { to: '/profile', icon: User, label: 'マイページ' },
+  { to: '/dashboard', icon: Home, label: 'Home' },
+  { to: '/profile', icon: User, label: 'Profile' },
 ];
 
 export function MobileNav() {

@@ -94,16 +94,16 @@ export function HomePage() {
                 e.currentTarget.style.color = COLORS.neutral600;
               }}
             >
-              ログイン
+              Sign In
             </button>
           </Link>
         </div>
       </header>
 
-      {/* ヒーローセクション */}
+      {/* Hero Section */}
       <section className="px-4 py-16 md:py-24">
         <div className="mx-auto max-w-4xl text-center">
-          {/* バッジ */}
+          {/* Badge */}
           <div
             className="mb-8 inline-flex animate-fade-in items-center gap-2 rounded-full border px-4 py-2"
             style={{
@@ -113,29 +113,29 @@ export function HomePage() {
           >
             <Zap className="h-4 w-4" style={{ color: COLORS.primary }} />
             <span className="text-sm font-medium" style={{ color: COLORS.primaryHover }}>
-              インフルエンサー専用ツール
+              Influencer Tool
             </span>
           </div>
 
-          {/* メインコピー */}
+          {/* Main Copy */}
           <h1 className="mb-6 animate-slide-up font-display text-4xl font-bold leading-tight sm:text-5xl md:text-6xl">
-            <span style={{ color: COLORS.neutral900 }}>PR投稿の</span>
-            <span style={{ color: COLORS.secondary }}>再生数</span>
+            <span style={{ color: COLORS.neutral900 }}>Automatically Track</span>
             <br />
-            <span style={{ color: COLORS.neutral900 }}>を自動で記録</span>
+            <span style={{ color: COLORS.secondary }}>PR Post Views</span>
           </h1>
 
-          {/* サブコピー */}
+          {/* Sub Copy */}
           <p
             className="mx-auto mb-10 max-w-xl animate-slide-up text-lg"
             style={{ color: COLORS.neutral600, animationDelay: '0.1s' }}
           >
-            商品PRの投稿URLを登録するだけ。
+            Just register the URL of your product PR post.
             <br className="hidden sm:block" />
+            Views will be automatically fetched after{' '}
             <span className="font-semibold" style={{ color: COLORS.primary }}>
-              7日後
+              7 days
             </span>
-            の再生数を自動取得して可視化します。
+            {' '}and visualized.
           </p>
 
           {/* CTA */}
@@ -153,7 +153,7 @@ export function HomePage() {
                 onMouseOver={(e) => (e.currentTarget.style.backgroundColor = COLORS.primaryHover)}
                 onMouseOut={(e) => (e.currentTarget.style.backgroundColor = COLORS.primary)}
               >
-                無料で始める
+                Get Started Free
                 <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
               </button>
             </Link>
@@ -164,18 +164,18 @@ export function HomePage() {
                 onMouseOver={(e) => (e.currentTarget.style.color = COLORS.primary)}
                 onMouseOut={(e) => (e.currentTarget.style.color = COLORS.neutral600)}
               >
-                使い方を見る
+                See How It Works
               </button>
             </a>
           </div>
 
-          {/* 対応SNS */}
+          {/* Supported SNS */}
           <div
             className="mt-12 flex animate-fade-in items-center justify-center gap-4"
             style={{ animationDelay: '0.4s' }}
           >
             <span className="text-sm" style={{ color: COLORS.neutral400 }}>
-              対応SNS:
+              Supported SNS:
             </span>
             <div className="flex items-center gap-3">
               {/* Instagram */}
@@ -245,7 +245,7 @@ export function HomePage() {
                   borderColor: COLORS.primaryBorder,
                 }}
               >
-                計測完了
+                Measured
               </span>
             </div>
 
@@ -309,10 +309,10 @@ export function HomePage() {
               className="mb-4 font-display text-3xl font-bold md:text-4xl"
               style={{ color: COLORS.neutral900 }}
             >
-              かんたん<span style={{ color: COLORS.secondary }}>3</span>ステップ
+              Simple <span style={{ color: COLORS.secondary }}>3</span> Steps
             </h2>
             <p className="mx-auto max-w-md" style={{ color: COLORS.neutral600 }}>
-              アカウント登録から再生数の確認まで、シンプルな操作で完結します
+              From account registration to viewing views, everything is done with simple steps
             </p>
           </div>
 
@@ -378,10 +378,10 @@ export function HomePage() {
               className="mb-4 font-display text-3xl font-bold md:text-4xl"
               style={{ color: COLORS.neutral900 }}
             >
-              BuzzBaseの特徴
+              BuzzBase Features
             </h2>
             <p className="mx-auto max-w-md" style={{ color: COLORS.neutral600 }}>
-              インフルエンサーの活動をサポートする機能を揃えています
+              Features designed to support influencer activities
             </p>
           </div>
 
@@ -482,26 +482,16 @@ export function HomePage() {
               </span>
             </div>
 
-            {/* リンク */}
+            {/* Links */}
             <div className="flex items-center gap-6 text-sm" style={{ color: COLORS.neutral500 }}>
-              <a
-                href="#"
+              <Link
+                to="/privacy-policy"
                 className="transition-colors"
                 onMouseOver={(e) => (e.currentTarget.style.color = COLORS.primary)}
                 onMouseOut={(e) => (e.currentTarget.style.color = COLORS.neutral500)}
               >
-                利用規約
-              </a>
-              <a
-                href="https://muscatgroup.co.jp/policy/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-colors"
-                onMouseOver={(e) => (e.currentTarget.style.color = COLORS.primary)}
-                onMouseOut={(e) => (e.currentTarget.style.color = COLORS.neutral500)}
-              >
-                プライバシーポリシー
-              </a>
+                Privacy Policy
+              </Link>
               <a
                 href="https://docs.google.com/forms/d/e/1FAIpQLSfguUNAvmG2Px_ez47Pph0sFXkqbEcMV8RdRM98lhOAotCOOg/viewform?usp=sharing&ouid=106448838806099721900"
                 target="_blank"
@@ -530,18 +520,18 @@ export function HomePage() {
 // =====================================================
 const steps = [
   {
-    title: 'URLを登録',
-    description: 'InstagramやTikTokの商品PR投稿のURLを登録するだけ。',
+    title: 'Register URL',
+    description: 'Simply register the URL of your product PR post on Instagram or TikTok.',
     icon: Link2,
   },
   {
-    title: '7日間待つ',
-    description: '投稿から7日後に自動で再生数を取得します。何もする必要はありません。',
+    title: 'Wait 7 Days',
+    description: 'Views will be automatically fetched 7 days after posting. No action required.',
     icon: Calendar,
   },
   {
-    title: '結果を確認',
-    description: 'ダッシュボードで再生数を確認。過去の投稿と比較もできます。',
+    title: 'Check Results',
+    description: 'View views on the dashboard. Compare with past posts.',
     icon: BarChart3,
   },
 ];
@@ -551,43 +541,43 @@ const steps = [
 // =====================================================
 const features = [
   {
-    title: '自動トラッキング',
-    description: 'URLを登録すれば、7日後の再生数を自動で取得。手作業は不要です。',
+    title: 'Auto Tracking',
+    description: 'Just register the URL and views will be automatically fetched after 7 days. No manual work required.',
     icon: TrendingUp,
     bgColor: '#ffefd4', // primary-100
     iconColor: '#f29801', // primary
   },
   {
-    title: 'マルチSNS対応',
-    description: 'InstagramとTikTokに対応。今後も対応SNSを拡大予定。',
+    title: 'Multi-SNS Support',
+    description: 'Supports Instagram and TikTok. More platforms coming soon.',
     icon: Zap,
     bgColor: '#ffe1df', // secondary-100
     iconColor: '#e61f13', // secondary
   },
   {
-    title: 'セキュア認証',
-    description: 'GoogleアカウントまたはメールでSSO。安心のセキュリティ。',
+    title: 'Secure Authentication',
+    description: 'SSO with Google account or email. Secure and reliable.',
     icon: Shield,
     bgColor: '#ffefd4',
     iconColor: '#f29801',
   },
   {
-    title: 'スマホ最適化',
-    description: 'スマホでもPCでも使いやすいレスポンシブデザイン。',
+    title: 'Mobile Optimized',
+    description: 'Responsive design that works great on both mobile and desktop.',
     icon: Smartphone,
     bgColor: '#ffe1df',
     iconColor: '#e61f13',
   },
   {
-    title: '投稿履歴管理',
-    description: '過去のPR投稿をすべて一覧で確認。成長を可視化。',
+    title: 'Post History Management',
+    description: 'View all past PR posts in one place. Visualize your growth.',
     icon: History,
     bgColor: '#ffefd4',
     iconColor: '#f29801',
   },
   {
-    title: '完全無料',
-    description: 'すべての機能を無料でご利用いただけます。',
+    title: 'Completely Free',
+    description: 'All features are available for free.',
     icon: Check,
     bgColor: '#ffe1df',
     iconColor: '#e61f13',

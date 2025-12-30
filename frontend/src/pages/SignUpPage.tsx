@@ -34,16 +34,16 @@ export function SignUpPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // パスワードバリデーション
+  // Password validation
   const validatePassword = (pwd: string): string | null => {
     if (pwd.length < 8 || pwd.length > 20) {
-      return 'パスワードは8〜20文字で入力してください';
+      return 'Password must be 8-20 characters';
     }
     if (!/[a-zA-Z]/.test(pwd)) {
-      return 'パスワードには英字を含めてください';
+      return 'Password must contain at least one letter';
     }
     if (!/[0-9]/.test(pwd)) {
-      return 'パスワードには数字を含めてください';
+      return 'Password must contain at least one number';
     }
     return null;
   };
@@ -62,9 +62,9 @@ export function SignUpPage() {
       return;
     }
 
-    // パスワード確認
+    // Password confirmation
     if (password !== confirmPassword) {
-      setValidationError('パスワードが一致しません');
+      setValidationError('Passwords do not match');
       setLoading(false);
       return;
     }
@@ -129,10 +129,10 @@ export function SignUpPage() {
             className="mb-2 text-center font-display text-2xl font-bold"
             style={{ color: COLORS.neutral800 }}
           >
-            アカウント作成
+            Create Account
           </h1>
           <p className="mb-8 text-center" style={{ color: COLORS.neutral500 }}>
-            無料で始めましょう
+            Get started for free
           </p>
 
           {/* エラー表示 */}
@@ -189,24 +189,24 @@ export function SignUpPage() {
               />
             </svg>
             <span className="font-medium" style={{ color: COLORS.neutral600 }}>
-              Googleで登録
+              Sign up with Google
             </span>
           </button>
 
-          {/* 区切り線 */}
+          {/* Divider */}
           <div className="my-6 flex items-center gap-4">
             <div className="h-px flex-1" style={{ backgroundColor: COLORS.neutral200 }} />
             <span className="text-sm" style={{ color: COLORS.neutral500 }}>
-              または
+              or
             </span>
             <div className="h-px flex-1" style={{ backgroundColor: COLORS.neutral200 }} />
           </div>
 
-          {/* メールサインアップフォーム */}
+          {/* Email Sign Up Form */}
           <form onSubmit={handleEmailSignUp} className="space-y-4">
             <Input
               type="email"
-              label="メールアドレス"
+              label="Email Address"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -216,7 +216,7 @@ export function SignUpPage() {
             <div>
               <Input
                 type="password"
-                label="パスワード"
+                label="Password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -225,15 +225,15 @@ export function SignUpPage() {
               />
               <div className="mt-2 space-y-1">
                 <PasswordRule satisfied={password.length >= 8 && password.length <= 20}>
-                  8〜20文字
+                  8-20 characters
                 </PasswordRule>
-                <PasswordRule satisfied={/[a-zA-Z]/.test(password)}>英字を含む</PasswordRule>
-                <PasswordRule satisfied={/[0-9]/.test(password)}>数字を含む</PasswordRule>
+                <PasswordRule satisfied={/[a-zA-Z]/.test(password)}>Contains letters</PasswordRule>
+                <PasswordRule satisfied={/[0-9]/.test(password)}>Contains numbers</PasswordRule>
               </div>
             </div>
             <Input
               type="password"
-              label="パスワード（確認）"
+              label="Confirm Password"
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -242,19 +242,19 @@ export function SignUpPage() {
             />
 
             <Button type="submit" loading={loading} className="w-full">
-              アカウント作成
+              Create Account
             </Button>
           </form>
 
-          {/* ログインリンク */}
+          {/* Sign In Link */}
           <p className="mt-6 text-center text-sm" style={{ color: COLORS.neutral500 }}>
-            既にアカウントをお持ちの方は{' '}
+            Already have an account?{' '}
             <Link
               to="/login"
               className="font-medium hover:underline"
               style={{ color: COLORS.primary }}
             >
-              ログイン
+              Sign In
             </Link>
           </p>
         </div>

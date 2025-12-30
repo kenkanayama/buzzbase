@@ -98,7 +98,7 @@ export function ProfilePage() {
           }));
         }
       } catch (error) {
-        console.error('プロフィール取得エラー:', error);
+        console.error('Profile fetch error:', error);
       } finally {
         setLoading(false);
       }
@@ -144,25 +144,25 @@ export function ProfilePage() {
 
     if (section === 'contact') {
       if (formData.phone && !validators.isValidPhone(formData.phone)) {
-        errors.phone = '電話番号の形式が正しくありません';
+        errors.phone = 'Invalid phone number format';
       }
     }
 
     if (section === 'address') {
       if (formData.postalCode && !validators.isValidPostalCode(formData.postalCode)) {
-        errors.postalCode = '郵便番号の形式が正しくありません（例: 123-4567）';
+        errors.postalCode = 'Invalid postal code format (e.g., 123-4567)';
       }
-      // 住所を入力する場合は必須項目チェック
+      // Required field check when entering address
       if (formData.postalCode || formData.prefecture || formData.city || formData.street) {
-        if (!formData.postalCode) errors.postalCode = '郵便番号を入力してください';
-        if (!formData.prefecture) errors.prefecture = '都道府県を入力してください';
-        if (!formData.city) errors.city = '市区町村を入力してください';
-        if (!formData.street) errors.street = '番地を入力してください';
+        if (!formData.postalCode) errors.postalCode = 'Please enter postal code';
+        if (!formData.prefecture) errors.prefecture = 'Please enter prefecture';
+        if (!formData.city) errors.city = 'Please enter city';
+        if (!formData.street) errors.street = 'Please enter street address';
       }
     }
 
     if (section === 'bank') {
-      // 振込先を入力する場合は必須項目チェック
+      // Required field check when entering bank account
       if (
         formData.bankName ||
         formData.bankCode ||
@@ -171,27 +171,27 @@ export function ProfilePage() {
         formData.accountNumber ||
         formData.accountHolder
       ) {
-        if (!formData.bankName) errors.bankName = '銀行名を入力してください';
+        if (!formData.bankName) errors.bankName = 'Please enter bank name';
         if (!formData.bankCode) {
-          errors.bankCode = '銀行コードを入力してください';
+          errors.bankCode = 'Please enter bank code';
         } else if (!validators.isValidBankCode(formData.bankCode)) {
-          errors.bankCode = '銀行コードは4桁の数字で入力してください';
+          errors.bankCode = 'Bank code must be 4 digits';
         }
-        if (!formData.branchName) errors.branchName = '支店名を入力してください';
+        if (!formData.branchName) errors.branchName = 'Please enter branch name';
         if (!formData.branchCode) {
-          errors.branchCode = '支店コードを入力してください';
+          errors.branchCode = 'Please enter branch code';
         } else if (!validators.isValidBranchCode(formData.branchCode)) {
-          errors.branchCode = '支店コードは3桁の数字で入力してください';
+          errors.branchCode = 'Branch code must be 3 digits';
         }
         if (!formData.accountNumber) {
-          errors.accountNumber = '口座番号を入力してください';
+          errors.accountNumber = 'Please enter account number';
         } else if (!validators.isValidAccountNumber(formData.accountNumber)) {
-          errors.accountNumber = '口座番号は7桁の数字で入力してください';
+          errors.accountNumber = 'Account number must be 7 digits';
         }
         if (!formData.accountHolder) {
-          errors.accountHolder = '口座名義を入力してください';
+          errors.accountHolder = 'Please enter account holder name';
         } else if (!validators.isValidAccountHolder(formData.accountHolder)) {
-          errors.accountHolder = '口座名義は全角カタカナで入力してください';
+          errors.accountHolder = 'Account holder name must be in full-width katakana';
         }
       }
     }
@@ -262,8 +262,8 @@ export function ProfilePage() {
 
       setEditSection(null);
     } catch (error) {
-      console.error('保存エラー:', error);
-      setFormErrors({ submit: '保存に失敗しました。もう一度お試しください。' });
+      console.error('Save error:', error);
+      setFormErrors({ submit: 'Failed to save. Please try again.' });
     } finally {
       setSaving(false);
     }
@@ -275,7 +275,7 @@ export function ProfilePage() {
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-primary-500" />
-          <p className="mt-4 text-gray-500">読み込み中...</p>
+          <p className="mt-4 text-gray-500">Loading...</p>
         </div>
       </div>
     );
@@ -283,15 +283,15 @@ export function ProfilePage() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      {/* ページヘッダー */}
+      {/* Page Header */}
       <section>
-        <h1 className="font-display text-2xl font-bold text-gray-900">マイページ</h1>
-        <p className="mt-1 text-gray-500">アカウント情報の確認・編集ができます</p>
+        <h1 className="font-display text-2xl font-bold text-gray-900">My Profile</h1>
+        <p className="mt-1 text-gray-500">View and edit your account information</p>
       </section>
 
-      {/* プロフィールセクション */}
+      {/* Profile Section */}
       <ProfileSection
-        title="プロフィール"
+        title="Profile"
         icon={<User className="h-5 w-5" style={{ color: '#f29801' }} />}
         isEditing={editSection === 'profile'}
         onEdit={() => startEdit('profile')}
@@ -303,17 +303,17 @@ export function ProfilePage() {
         {editSection === 'profile' ? (
           <div className="space-y-4">
             <Input
-              label="表示名"
+              label="Display Name"
               value={formData.displayName}
               onChange={(e) => setFormData((prev) => ({ ...prev, displayName: e.target.value }))}
-              placeholder="山田 太郎"
+              placeholder="John Doe"
             />
           </div>
         ) : (
           <div className="space-y-3">
-            <InfoRow label="表示名" value={profile?.displayName || '未設定'} />
+            <InfoRow label="Display Name" value={profile?.displayName || 'Not Set'} />
             <InfoRow
-              label="メールアドレス"
+              label="Email Address"
               value={profile?.email || ''}
               icon={<Mail className="h-4 w-4 text-gray-400" />}
             />
@@ -321,9 +321,9 @@ export function ProfilePage() {
         )}
       </ProfileSection>
 
-      {/* 連絡先セクション */}
+      {/* Contact Section */}
       <ProfileSection
-        title="連絡先"
+        title="Contact"
         icon={<Phone className="h-5 w-5" style={{ color: '#f29801' }} />}
         isEditing={editSection === 'contact'}
         onEdit={() => startEdit('contact')}
@@ -335,7 +335,7 @@ export function ProfilePage() {
         {editSection === 'contact' ? (
           <div className="space-y-4">
             <Input
-              label="電話番号"
+              label="Phone Number"
               value={formData.phone}
               onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
               placeholder="090-1234-5678"
@@ -344,14 +344,14 @@ export function ProfilePage() {
           </div>
         ) : (
           <div className="space-y-3">
-            <InfoRow label="電話番号" value={profile?.phone || '未設定'} />
+            <InfoRow label="Phone Number" value={profile?.phone || 'Not Set'} />
           </div>
         )}
       </ProfileSection>
 
-      {/* 住所セクション */}
+      {/* Address Section */}
       <ProfileSection
-        title="住所"
+        title="Address"
         icon={<MapPin className="h-5 w-5" style={{ color: '#f29801' }} />}
         isEditing={editSection === 'address'}
         onEdit={() => startEdit('address')}
@@ -363,60 +363,60 @@ export function ProfilePage() {
         {editSection === 'address' ? (
           <div className="space-y-4">
             <Input
-              label="郵便番号"
+              label="Postal Code"
               value={formData.postalCode}
               onChange={(e) => setFormData((prev) => ({ ...prev, postalCode: e.target.value }))}
               placeholder="123-4567"
               error={formErrors.postalCode}
             />
             <Input
-              label="都道府県"
+              label="Prefecture"
               value={formData.prefecture}
               onChange={(e) => setFormData((prev) => ({ ...prev, prefecture: e.target.value }))}
-              placeholder="東京都"
+              placeholder="Tokyo"
               error={formErrors.prefecture}
             />
             <Input
-              label="市区町村"
+              label="City"
               value={formData.city}
               onChange={(e) => setFormData((prev) => ({ ...prev, city: e.target.value }))}
-              placeholder="渋谷区"
+              placeholder="Shibuya"
               error={formErrors.city}
             />
             <Input
-              label="番地"
+              label="Street Address"
               value={formData.street}
               onChange={(e) => setFormData((prev) => ({ ...prev, street: e.target.value }))}
-              placeholder="〇〇1-2-3"
+              placeholder="1-2-3"
               error={formErrors.street}
             />
             <Input
-              label="建物名・部屋番号"
+              label="Building Name / Room Number"
               value={formData.building}
               onChange={(e) => setFormData((prev) => ({ ...prev, building: e.target.value }))}
-              placeholder="〇〇マンション 101号室"
+              placeholder="Building 101"
             />
           </div>
         ) : (
           <div className="space-y-3">
             {profile?.address ? (
               <>
-                <InfoRow label="郵便番号" value={profile.address.postalCode} />
+                <InfoRow label="Postal Code" value={profile.address.postalCode} />
                 <InfoRow
-                  label="住所"
+                  label="Address"
                   value={`${profile.address.prefecture}${profile.address.city}${profile.address.street}${profile.address.building ? ` ${profile.address.building}` : ''}`}
                 />
               </>
             ) : (
-              <InfoRow label="住所" value="未設定" />
+              <InfoRow label="Address" value="Not Set" isEmpty={true} />
             )}
           </div>
         )}
       </ProfileSection>
 
-      {/* 振込先セクション */}
+      {/* Bank Account Section */}
       <ProfileSection
-        title="振込先"
+        title="Bank Account"
         icon={<Building2 className="h-5 w-5" style={{ color: '#f29801' }} />}
         isEditing={editSection === 'bank'}
         onEdit={() => startEdit('bank')}
@@ -429,14 +429,14 @@ export function ProfilePage() {
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
-                label="銀行名"
+                label="Bank Name"
                 value={formData.bankName}
                 onChange={(e) => setFormData((prev) => ({ ...prev, bankName: e.target.value }))}
-                placeholder="みずほ銀行"
+                placeholder="Mizuho Bank"
                 error={formErrors.bankName}
               />
               <Input
-                label="銀行コード"
+                label="Bank Code"
                 value={formData.bankCode}
                 onChange={(e) => setFormData((prev) => ({ ...prev, bankCode: e.target.value }))}
                 placeholder="0001"
@@ -445,14 +445,14 @@ export function ProfilePage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
-                label="支店名"
+                label="Branch Name"
                 value={formData.branchName}
                 onChange={(e) => setFormData((prev) => ({ ...prev, branchName: e.target.value }))}
-                placeholder="渋谷支店"
+                placeholder="Shibuya Branch"
                 error={formErrors.branchName}
               />
               <Input
-                label="支店コード"
+                label="Branch Code"
                 value={formData.branchCode}
                 onChange={(e) => setFormData((prev) => ({ ...prev, branchCode: e.target.value }))}
                 placeholder="001"
@@ -460,7 +460,7 @@ export function ProfilePage() {
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">口座種別</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Account Type</label>
               <div className="flex gap-4">
                 <label className="flex cursor-pointer items-center gap-2">
                   <input
@@ -471,7 +471,7 @@ export function ProfilePage() {
                     onChange={() => setFormData((prev) => ({ ...prev, accountType: 'ordinary' }))}
                     className="h-4 w-4 text-primary-500"
                   />
-                  <span className="text-sm text-gray-700">普通</span>
+                  <span className="text-sm text-gray-700">Ordinary</span>
                 </label>
                 <label className="flex cursor-pointer items-center gap-2">
                   <input
@@ -482,19 +482,19 @@ export function ProfilePage() {
                     onChange={() => setFormData((prev) => ({ ...prev, accountType: 'checking' }))}
                     className="h-4 w-4 text-primary-500"
                   />
-                  <span className="text-sm text-gray-700">当座</span>
+                  <span className="text-sm text-gray-700">Checking</span>
                 </label>
               </div>
             </div>
             <Input
-              label="口座番号"
+              label="Account Number"
               value={formData.accountNumber}
               onChange={(e) => setFormData((prev) => ({ ...prev, accountNumber: e.target.value }))}
               placeholder="1234567"
               error={formErrors.accountNumber}
             />
             <Input
-              label="口座名義（カタカナ）"
+              label="Account Holder (Katakana)"
               value={formData.accountHolder}
               onChange={(e) => setFormData((prev) => ({ ...prev, accountHolder: e.target.value }))}
               placeholder="ヤマダ　タロウ"
@@ -506,21 +506,21 @@ export function ProfilePage() {
             {profile?.bankAccount ? (
               <>
                 <InfoRow
-                  label="銀行"
-                  value={`${profile.bankAccount.bankName}（${profile.bankAccount.bankCode}）`}
+                  label="Bank"
+                  value={`${profile.bankAccount.bankName} (${profile.bankAccount.bankCode})`}
                 />
                 <InfoRow
-                  label="支店"
-                  value={`${profile.bankAccount.branchName}（${profile.bankAccount.branchCode}）`}
+                  label="Branch"
+                  value={`${profile.bankAccount.branchName} (${profile.bankAccount.branchCode})`}
                 />
                 <InfoRow
-                  label="口座"
-                  value={`${profile.bankAccount.accountType === 'ordinary' ? '普通' : '当座'} ${profile.bankAccount.accountNumber}`}
+                  label="Account"
+                  value={`${profile.bankAccount.accountType === 'ordinary' ? 'Ordinary' : 'Checking'} ${profile.bankAccount.accountNumber}`}
                 />
-                <InfoRow label="口座名義" value={profile.bankAccount.accountHolder} />
+                <InfoRow label="Account Holder" value={profile.bankAccount.accountHolder} />
               </>
             ) : (
-              <InfoRow label="振込先" value="未設定" />
+              <InfoRow label="Bank Account" value="Not Set" isEmpty={true} />
             )}
           </div>
         )}
@@ -574,7 +574,7 @@ function ProfileSection({
             className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
           >
             <Pencil className="h-4 w-4" />
-            <span>編集</span>
+            <span>Edit</span>
           </button>
         )}
       </div>
@@ -587,11 +587,11 @@ function ProfileSection({
             <div className="mt-6 flex justify-end gap-3">
               <Button type="button" variant="secondary" onClick={onCancel} disabled={saving}>
                 <X className="mr-1.5 h-4 w-4" />
-                キャンセル
+                Cancel
               </Button>
               <Button type="submit" loading={saving}>
                 <Check className="mr-1.5 h-4 w-4" />
-                保存
+                Save
               </Button>
             </div>
           </form>
@@ -607,17 +607,20 @@ interface InfoRowProps {
   label: string;
   value: string;
   icon?: React.ReactNode;
+  isEmpty?: boolean;
 }
 
-function InfoRow({ label, value, icon }: InfoRowProps) {
-  const isNotSet = value === '未設定';
+function InfoRow({ label, value, icon, isEmpty }: InfoRowProps) {
+  // Use isEmpty prop to handle translation extension string changes
+  // Or consider empty if value is empty string or null
+  const isNotSet = isEmpty !== undefined ? isEmpty : !value || value.trim() === '';
   return (
     <div className="flex items-center justify-between py-2">
       <span className="text-sm text-gray-500">{label}</span>
       <div className="flex items-center gap-2">
         {icon}
         <span className={cn('text-sm font-medium', isNotSet ? 'text-gray-400' : 'text-gray-900')}>
-          {value}
+          {value || 'Not Set'}
         </span>
         {!isNotSet && <ChevronRight className="h-4 w-4 text-gray-300" />}
       </div>

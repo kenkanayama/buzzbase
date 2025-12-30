@@ -41,7 +41,7 @@ export function PostsPage() {
         const posts = await getAllPRPostsFlat(user.uid);
         setPrPosts(posts);
       } catch (error) {
-        console.error('データの取得に失敗しました:', error);
+        console.error('Failed to fetch data:', error);
       } finally {
         setLoading(false);
       }
@@ -69,11 +69,11 @@ export function PostsPage() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-lg font-semibold text-gray-900">PR投稿一覧</h1>
+          <h1 className="text-lg font-semibold text-gray-900">PR Posts</h1>
         </div>
       </header>
 
-      {/* コンテンツ */}
+      {/* Content */}
       <main className="mx-auto max-w-lg px-4 py-6">
         {prPosts.length === 0 ? (
           <div className="card py-10 text-center">
@@ -83,9 +83,9 @@ export function PostsPage() {
             >
               <Calendar className="h-7 w-7" style={{ color: '#f29801' }} />
             </div>
-            <h3 className="mb-2 font-medium text-gray-900">まだPR投稿がありません</h3>
+            <h3 className="mb-2 font-medium text-gray-900">No PR Posts Yet</h3>
             <p className="mb-5 text-sm text-gray-500">
-              ダッシュボードから最初の投稿を登録しましょう
+              Register your first post from the dashboard
             </p>
             <Link
               to="/dashboard"
@@ -94,7 +94,7 @@ export function PostsPage() {
               onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e38500')}
               onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f29801')}
             >
-              ダッシュボードへ戻る
+              Back to Dashboard
             </Link>
           </div>
         ) : (
@@ -126,32 +126,32 @@ export function PostsPage() {
                     <div className="h-5">
                       {post.status === 'measured' && post.views !== undefined ? (
                         <p className="text-sm font-semibold" style={{ color: '#f87171' }}>
-                          {formatNumber(post.views)} ビュー
+                          {formatNumber(post.views)} views
                         </p>
                       ) : (
-                        <div className="h-5" /> // 高さを確保するための空のdiv
+                        <div className="h-5" /> // Empty div to maintain height
                       )}
                     </div>
-                    <p className="text-xs text-gray-500">投稿日: {formatDate(post.postedAt)}</p>
+                    <p className="text-xs text-gray-500">Posted: {formatDate(post.postedAt)}</p>
                     <p className="text-xs text-gray-400">
-                      計測日: {formatDate(getMeasurementDate(post.postedAt))}
+                      Measurement Date: {formatDate(getMeasurementDate(post.postedAt))}
                     </p>
                   </div>
-                  {/* ステータスバッジ */}
+                  {/* Status badge */}
                   <div className="flex-shrink-0">
                     {post.status === 'measured' ? (
                       <span
                         className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
                         style={{ backgroundColor: '#dcfce7', color: '#16a34a' }}
                       >
-                        計測完了
+                        Measured
                       </span>
                     ) : (
                       <span
                         className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
                         style={{ backgroundColor: '#fff8ed', color: '#f29801' }}
                       >
-                        計測待ち
+                        Pending
                       </span>
                     )}
                   </div>
@@ -162,19 +162,19 @@ export function PostsPage() {
         )}
       </main>
 
-      {/* PR投稿詳細ポップアップ */}
+      {/* PR Post Detail Popup */}
       {selectedPost && (
         <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center">
-          {/* オーバーレイ */}
+          {/* Overlay */}
           <div
             className="fixed bottom-0 left-0 right-0 top-0 bg-black/50"
             onClick={() => setSelectedPost(null)}
           />
-          {/* モーダルコンテンツ */}
+          {/* Modal Content */}
           <div className="relative z-10 mx-4 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-xl">
-            {/* ヘッダー */}
+            {/* Header */}
             <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white p-4">
-              <h3 className="text-lg font-semibold text-gray-900">投稿詳細</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Post Details</h3>
               <button
                 onClick={() => setSelectedPost(null)}
                 className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
@@ -183,9 +183,9 @@ export function PostsPage() {
               </button>
             </div>
 
-            {/* コンテンツ */}
+            {/* Content */}
             <div className="p-6">
-              {/* サムネイル */}
+              {/* Thumbnail */}
               <div className="mb-6 aspect-square overflow-hidden rounded-2xl bg-gray-100">
                 {selectedPost.thumbnailUrl ? (
                   <img
@@ -200,104 +200,104 @@ export function PostsPage() {
                 )}
               </div>
 
-              {/* 詳細情報 */}
+              {/* Details */}
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500">商品</p>
+                  <p className="text-sm text-gray-500">Product</p>
                   <p className="mt-1 font-semibold text-gray-900">{selectedPost.campaignName}</p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-500">投稿日</p>
+                  <p className="text-sm text-gray-500">Posted Date</p>
                   <p className="mt-1 font-semibold text-gray-900">
                     {formatDate(selectedPost.postedAt)}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-500">計測日</p>
+                  <p className="text-sm text-gray-500">Measurement Date</p>
                   <p className="mt-1 font-semibold text-gray-900">
                     {formatDate(getMeasurementDate(selectedPost.postedAt))}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-500">アカウント</p>
+                  <p className="text-sm text-gray-500">Account</p>
                   <p className="mt-1 font-semibold text-gray-900">
                     @
                     {instagramAccounts.find((a) => a.accountId === selectedPost.accountId)
-                      ?.username || '不明'}
+                      ?.username || 'Unknown'}
                   </p>
                 </div>
 
-                {/* 計測データ */}
+                {/* Measurement Data */}
                 <div className="border-t border-gray-200 pt-4">
-                  <p className="mb-3 text-sm font-medium text-gray-900">計測データ</p>
+                  <p className="mb-3 text-sm font-medium text-gray-900">Measurement Data</p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">再生数</span>
+                      <span className="text-sm text-gray-600">Views</span>
                       <span className="font-semibold text-gray-900">
                         {selectedPost.status === 'measured' &&
                         typeof selectedPost.views === 'number'
-                          ? `${formatNumber(selectedPost.views)} ビュー`
-                          : 'ー'}
+                          ? `${formatNumber(selectedPost.views)} views`
+                          : '-'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">リーチ数</span>
+                      <span className="text-sm text-gray-600">Reach</span>
                       <span className="font-semibold text-gray-900">
                         {selectedPost.status === 'measured' &&
                         typeof selectedPost.reach === 'number'
                           ? formatNumber(selectedPost.reach)
-                          : 'ー'}
+                          : '-'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">保存数</span>
+                      <span className="text-sm text-gray-600">Saves</span>
                       <span className="font-semibold text-gray-900">
                         {selectedPost.status === 'measured' &&
                         typeof selectedPost.saved === 'number'
                           ? formatNumber(selectedPost.saved)
-                          : 'ー'}
+                          : '-'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">いいね数</span>
+                      <span className="text-sm text-gray-600">Likes</span>
                       <span className="font-semibold text-gray-900">
                         {selectedPost.status === 'measured' &&
                         typeof selectedPost.likes === 'number'
                           ? formatNumber(selectedPost.likes)
-                          : 'ー'}
+                          : '-'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">コメント数</span>
+                      <span className="text-sm text-gray-600">Comments</span>
                       <span className="font-semibold text-gray-900">
                         {selectedPost.status === 'measured' &&
                         typeof selectedPost.comments === 'number'
                           ? formatNumber(selectedPost.comments)
-                          : 'ー'}
+                          : '-'}
                       </span>
                     </div>
                     {selectedPost.mediaType === 'VIDEO' && (
                       <>
                         {typeof selectedPost.igReelsAvgWatchTime === 'number' && (
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">平均視聴時間</span>
+                            <span className="text-sm text-gray-600">Avg. Watch Time</span>
                             <span className="font-semibold text-gray-900">
                               {selectedPost.status === 'measured'
-                                ? `${(selectedPost.igReelsAvgWatchTime / 1000).toFixed(1)}秒`
-                                : 'ー'}
+                                ? `${(selectedPost.igReelsAvgWatchTime / 1000).toFixed(1)}s`
+                                : '-'}
                             </span>
                           </div>
                         )}
                         {typeof selectedPost.igReelsVideoViewTotalTime === 'number' && (
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">総視聴時間</span>
+                            <span className="text-sm text-gray-600">Total Watch Time</span>
                             <span className="font-semibold text-gray-900">
                               {selectedPost.status === 'measured'
-                                ? `${formatNumber(selectedPost.igReelsVideoViewTotalTime / 1000)}秒`
-                                : 'ー'}
+                                ? `${formatNumber(selectedPost.igReelsVideoViewTotalTime / 1000)}s`
+                                : '-'}
                             </span>
                           </div>
                         )}
@@ -306,7 +306,7 @@ export function PostsPage() {
                   </div>
                 </div>
 
-                {/* Instagramで見るボタン */}
+                {/* View on Instagram Button */}
                 {selectedPost.permalink && (
                   <div className="border-t border-gray-200 pt-4">
                     <a
@@ -317,7 +317,7 @@ export function PostsPage() {
                       style={{ borderColor: '#e5e5e5', color: '#525252' }}
                     >
                       <ExternalLink className="h-4 w-4" />
-                      Instagramで見る
+                      View on Instagram
                     </a>
                   </div>
                 )}

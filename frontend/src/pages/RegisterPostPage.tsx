@@ -85,8 +85,8 @@ export function RegisterPostPage() {
         const activeCampaigns = await getActiveCampaigns();
         setCampaigns(activeCampaigns);
       } catch (err) {
-        console.error('初期データの取得に失敗しました:', err);
-        setError('データの取得に失敗しました');
+        console.error('Failed to fetch initial data:', err);
+        setError('Failed to fetch data');
       } finally {
         setLoading(false);
       }
@@ -109,9 +109,9 @@ export function RegisterPostPage() {
       } else {
         setInstagramPosts([]);
       }
-    } catch (err) {
-      console.error('投稿の取得に失敗しました:', err);
-      setError(err instanceof Error ? err.message : '投稿の取得に失敗しました');
+      } catch (err) {
+        console.error('Failed to fetch posts:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch posts');
     } finally {
       setFetchingPosts(false);
     }
@@ -123,10 +123,10 @@ export function RegisterPostPage() {
 
     setDuplicateError(null);
 
-    // 重複チェック
+    // Duplicate check
     const isDuplicate = await isMediaIdAlreadyRegistered(user.uid, post.id);
     if (isDuplicate) {
-      setDuplicateError('この投稿は既に登録されています');
+      setDuplicateError('This post has already been registered');
       return;
     }
 
@@ -167,8 +167,8 @@ export function RegisterPostPage() {
       await registerPRPost(user.uid, selectedAccountId, input);
       setCurrentStep(4); // 完了画面へ
     } catch (err) {
-      console.error('登録に失敗しました:', err);
-      setError(err instanceof Error ? err.message : '登録に失敗しました');
+      console.error('Failed to register:', err);
+      setError(err instanceof Error ? err.message : 'Failed to register');
     } finally {
       setRegistering(false);
     }
@@ -235,7 +235,7 @@ export function RegisterPostPage() {
           >
             <ArrowLeft className="h-5 w-5 text-gray-600" />
           </button>
-          <h1 className="text-lg font-semibold text-gray-900">PR投稿を登録</h1>
+          <h1 className="text-lg font-semibold text-gray-900">Register PR Post</h1>
         </div>
       </header>
 
@@ -282,7 +282,7 @@ export function RegisterPostPage() {
                         step === currentStep ? 'font-medium text-gray-900' : 'text-gray-400'
                       }`}
                     >
-                      {step === 1 ? '商品選択' : step === 2 ? '投稿選択' : '確認'}
+                      {step === 1 ? 'Select Product' : step === 2 ? 'Select Post' : 'Confirm'}
                     </span>
                   </button>
                 ))}
@@ -295,10 +295,10 @@ export function RegisterPostPage() {
       {/* コンテンツ */}
       <main className="px-4 pb-32">
         <div className="mx-auto max-w-lg">
-          {/* Step 1: 商品選択 */}
+          {/* Step 1: Select Product */}
           {currentStep === 1 && (
             <div className="animate-fade-in space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">どの商品のPR投稿ですか？</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Which product is this PR post for?</h2>
 
               {campaigns.length === 0 ? (
                 <div
@@ -311,7 +311,7 @@ export function RegisterPostPage() {
                   >
                     <Package className="h-6 w-6 text-gray-400" />
                   </div>
-                  <p className="text-gray-500">現在登録可能な商品がありません</p>
+                  <p className="text-gray-500">No products available for registration</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -368,21 +368,21 @@ export function RegisterPostPage() {
             </div>
           )}
 
-          {/* Step 2: 投稿選択 */}
+          {/* Step 2: Select Post */}
           {currentStep === 2 && (
             <div className="animate-fade-in space-y-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">どの投稿を登録しますか？</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Which post would you like to register?</h2>
                 <p className="mt-1 text-sm text-gray-500">{selectedCampaign?.name}</p>
               </div>
 
-              {/* Instagram投稿取得ボタン */}
+              {/* Instagram Post Fetch Button */}
               {instagramPosts.length === 0 && !fetchingPosts && (
                 <div className="rounded-2xl border p-6" style={{ borderColor: '#e5e5e5' }}>
-                  <p className="mb-4 text-sm text-gray-500">Instagramから直近の投稿を取得します</p>
+                  <p className="mb-4 text-sm text-gray-500">Fetch recent posts from Instagram</p>
                   <Button onClick={handleFetchPosts} disabled={fetchingPosts} className="w-full">
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    投稿を取得
+                    Fetch Posts
                   </Button>
                 </div>
               )}
@@ -489,24 +489,23 @@ export function RegisterPostPage() {
                     <button
                       onClick={() => setIsTroubleshootingOpen(true)}
                       className="flex-shrink-0 rounded-full p-1 transition-colors hover:bg-gray-200"
-                      aria-label="トラブルシューティング"
+                      aria-label="Troubleshooting"
                     >
                       <HelpCircle className="h-5 w-5 text-gray-500" />
                     </button>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm text-gray-600">
-                        投稿が表示されない場合は
+                        If posts are not showing, please check{' '}
                         <button
                           onClick={() => setIsTroubleshootingOpen(true)}
                           className="mx-1 font-medium underline"
                           style={{ color: '#f29801' }}
                         >
-                          こちら
+                          here
                         </button>
-                        をご確認ください
                       </p>
                       <p className="mt-1 text-xs text-gray-500">
-                        解決しない場合は
+                        If the issue persists, please{' '}
                         <a
                           href={SUPPORT_FORM_URL}
                           target="_blank"
@@ -514,7 +513,7 @@ export function RegisterPostPage() {
                           className="ml-1 inline-flex items-center gap-0.5 font-medium underline"
                           style={{ color: '#f29801' }}
                         >
-                          お問い合わせ
+                          contact support
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       </p>
@@ -525,10 +524,10 @@ export function RegisterPostPage() {
             </div>
           )}
 
-          {/* Step 3: 確認 */}
+          {/* Step 3: Confirm */}
           {currentStep === 3 && selectedCampaign && selectedPost && (
             <div className="animate-fade-in space-y-6">
-              <h2 className="text-lg font-semibold text-gray-900">以下の内容で登録しますか？</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Register with the following information?</h2>
 
               <div
                 className="overflow-hidden rounded-2xl border"
@@ -539,7 +538,7 @@ export function RegisterPostPage() {
                   {getPostImageUrl(selectedPost) ? (
                     <img
                       src={getPostImageUrl(selectedPost) || ''}
-                      alt="選択した投稿"
+                      alt="Selected post"
                       className="h-full w-full object-cover"
                     />
                   ) : (
@@ -549,26 +548,26 @@ export function RegisterPostPage() {
                   )}
                 </div>
 
-                {/* 詳細情報 */}
+                {/* Details */}
                 <div className="space-y-4 p-4">
                   <div>
-                    <p className="text-sm text-gray-500">商品</p>
+                    <p className="text-sm text-gray-500">Product</p>
                     <p className="font-semibold text-gray-900">{selectedCampaign.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">投稿日</p>
+                    <p className="text-sm text-gray-500">Posted Date</p>
                     <p className="font-semibold text-gray-900">
                       {formatDate(new Date(selectedPost.timestamp))}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">計測日</p>
+                    <p className="text-sm text-gray-500">Measurement Date</p>
                     <p className="font-semibold text-gray-900">
                       {formatDate(getMeasurementDate(new Date(selectedPost.timestamp)))}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">アカウント</p>
+                    <p className="text-sm text-gray-500">Account</p>
                     <p className="font-semibold text-gray-900">
                       @{instagramAccounts.find((a) => a.accountId === selectedAccountId)?.username}
                     </p>
@@ -576,13 +575,13 @@ export function RegisterPostPage() {
                 </div>
               </div>
 
-              {/* 注意事項 */}
+              {/* Notice */}
               <div
                 className="flex items-start gap-3 rounded-lg p-4"
                 style={{ backgroundColor: '#fff8ed' }}
               >
                 <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: '#f29801' }} />
-                <p className="text-sm text-gray-600">再生数は7日後に自動取得されます</p>
+                <p className="text-sm text-gray-600">Views will be automatically fetched after 7 days</p>
               </div>
 
               {/* エラー表示 */}
@@ -600,7 +599,7 @@ export function RegisterPostPage() {
             </div>
           )}
 
-          {/* Step 4: 完了 */}
+          {/* Step 4: Complete */}
           {currentStep === 4 && (
             <div className="animate-fade-in py-12 text-center">
               <div
@@ -609,8 +608,8 @@ export function RegisterPostPage() {
               >
                 <CheckCircle2 className="h-10 w-10 text-green-500" />
               </div>
-              <h2 className="mb-2 text-2xl font-bold text-gray-900">登録が完了しました！</h2>
-              <p className="mb-8 text-gray-500">7日後に再生数が自動で取得されます</p>
+              <h2 className="mb-2 text-2xl font-bold text-gray-900">Registration Complete!</h2>
+              <p className="mb-8 text-gray-500">Views will be automatically fetched after 7 days</p>
 
               <div className="space-y-3">
                 <Button
@@ -621,14 +620,14 @@ export function RegisterPostPage() {
                   }}
                   className="w-full"
                 >
-                  別の投稿も登録する
+                  Register Another Post
                 </Button>
                 <button
                   onClick={() => navigate('/dashboard')}
                   className="w-full rounded-lg border py-3 font-medium text-gray-600 transition-colors hover:bg-gray-50"
                   style={{ borderColor: '#e5e5e5' }}
                 >
-                  ダッシュボードに戻る
+                  Back to Dashboard
                 </button>
               </div>
             </div>
@@ -645,17 +644,17 @@ export function RegisterPostPage() {
               className="flex-1 rounded-lg border py-3 font-medium text-gray-600 transition-colors hover:bg-gray-50"
               style={{ borderColor: '#e5e5e5' }}
             >
-              {currentStep === 1 ? 'キャンセル' : '戻る'}
+              {currentStep === 1 ? 'Cancel' : 'Back'}
             </button>
             {currentStep === 3 ? (
               <Button onClick={handleRegister} disabled={registering} className="flex-1">
                 {registering ? (
                   <>
                     <LoadingSpinner size="sm" className="mr-2" />
-                    登録中...
+                    Registering...
                   </>
                 ) : (
-                  '登録する'
+                  'Register'
                 )}
               </Button>
             ) : (
@@ -666,7 +665,7 @@ export function RegisterPostPage() {
                 }
                 className="flex-1"
               >
-                次へ
+                Next
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             )}
@@ -674,19 +673,19 @@ export function RegisterPostPage() {
         </footer>
       )}
 
-      {/* トラブルシューティングモーダル */}
+      {/* Troubleshooting Modal */}
       {isTroubleshootingOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* オーバーレイ */}
+          {/* Overlay */}
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setIsTroubleshootingOpen(false)}
           />
-          {/* モーダルコンテンツ */}
+          {/* Modal Content */}
           <div className="relative z-10 mx-4 max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
-            {/* ヘッダー */}
+            {/* Header */}
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">投稿が表示されない場合</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Posts Not Showing</h3>
               <button
                 onClick={() => setIsTroubleshootingOpen(false)}
                 className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
@@ -695,32 +694,32 @@ export function RegisterPostPage() {
               </button>
             </div>
 
-            {/* トラブルシューティング内容 */}
+            {/* Troubleshooting Content */}
             <div className="space-y-4">
               <div className="rounded-lg p-4" style={{ backgroundColor: '#fff8ed' }}>
-                <h4 className="mb-2 font-medium text-gray-900">1. アカウント設定を確認</h4>
+                <h4 className="mb-2 font-medium text-gray-900">1. Check Account Settings</h4>
                 <p className="text-sm text-gray-600">
-                  Instagramアカウントが「ビジネスアカウント」または「クリエイターアカウント」に設定されているか確認してください。個人アカウントでは投稿を取得できません。
+                  Make sure your Instagram account is set to "Business Account" or "Creator Account". Personal accounts cannot fetch posts.
                 </p>
               </div>
 
               <div className="rounded-lg p-4" style={{ backgroundColor: '#fff8ed' }}>
-                <h4 className="mb-2 font-medium text-gray-900">2. Facebookページとの連携</h4>
+                <h4 className="mb-2 font-medium text-gray-900">2. Facebook Page Connection</h4>
                 <p className="text-sm text-gray-600">
-                  Instagramビジネスアカウントは、Facebookページと連携されている必要があります。Instagram設定から連携状況をご確認ください。
+                  Instagram Business accounts must be connected to a Facebook page. Please check the connection status in your Instagram settings.
                 </p>
               </div>
 
               <div className="rounded-lg p-4" style={{ backgroundColor: '#fff8ed' }}>
-                <h4 className="mb-2 font-medium text-gray-900">3. 再連携をお試しください</h4>
+                <h4 className="mb-2 font-medium text-gray-900">3. Try Reconnecting</h4>
                 <p className="text-sm text-gray-600">
-                  連携時に必要な権限が付与されていない可能性があります。ダッシュボードの「設定」からSNSアカウントを再連携してください。
+                  The required permissions may not have been granted during connection. Please reconnect your SNS account from the "Settings" in the dashboard.
                 </p>
               </div>
 
               <div className="border-t pt-4" style={{ borderColor: '#e5e5e5' }}>
                 <p className="text-sm text-gray-600">
-                  上記をお試しいただいても解決しない場合は、お手数ですがサポートまでお問い合わせください。
+                  If the issue persists after trying the above, please contact support.
                 </p>
                 <a
                   href={SUPPORT_FORM_URL}
@@ -730,7 +729,7 @@ export function RegisterPostPage() {
                   style={{ borderColor: '#e5e5e5', color: '#525252' }}
                 >
                   <ExternalLink className="h-4 w-4" />
-                  お問い合わせフォームを開く
+                  Open Support Form
                 </a>
               </div>
             </div>

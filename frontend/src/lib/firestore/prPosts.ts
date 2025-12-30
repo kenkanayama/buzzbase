@@ -88,7 +88,7 @@ function parsePostData(data: unknown): PRPostDataMap {
  */
 export async function getPRPosts(userId: string): Promise<PRPostDocument | null> {
   if (!db) {
-    console.error('Firestore が初期化されていません');
+    console.error('Firestore is not initialized');
     return null;
   }
 
@@ -106,7 +106,7 @@ export async function getPRPosts(userId: string): Promise<PRPostDocument | null>
       postData: parsePostData(data.postData),
     };
   } catch (error) {
-    console.error('PR投稿データの取得に失敗しました:', error);
+    console.error('Failed to fetch PR post data:', error);
     throw error;
   }
 }
@@ -242,7 +242,7 @@ export async function registerPRPost(
     // 現在はInstagramのみ対応、将来的にTikTok等も追加予定
     await addMediaIdToCampaign(input.campaignId, 'instagram', input.mediaId);
   } catch (error) {
-    console.error('PR投稿の登録に失敗しました:', error);
+    console.error('Failed to register PR post:', error);
     throw error;
   }
 }
@@ -274,7 +274,7 @@ export async function getAllPRPostsFlat(userId: string): Promise<PRPostItem[]> {
     return result;
   } catch (error) {
     // エラーが発生してもダッシュボードの表示を妨げないよう空配列を返す
-    console.error('PR投稿一覧の取得に失敗しました:', error);
+    console.error('Failed to fetch PR post list:', error);
     return [];
   }
 }

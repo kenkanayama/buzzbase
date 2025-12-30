@@ -21,12 +21,12 @@ export function getMeasurementDate(postedAt: Date): Date {
 }
 
 /**
- * 日付を日本語形式でフォーマットする
- * @param date - 日付オブジェクト
- * @returns フォーマットされた日付文字列（例: "2024年1月1日"）
+ * Format date in English locale
+ * @param date - Date object
+ * @returns Formatted date string (e.g., "Jan 1, 2024")
  */
 export function formatDate(date: Date): string {
-  return date.toLocaleDateString('ja-JP', {
+  return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
