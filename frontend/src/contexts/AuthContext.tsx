@@ -149,6 +149,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Firebase not configured');
     }
 
+    // デバッグ用: 現在の環境情報をログに出力
+    console.log('Login attempt:', {
+      hostname: window.location.hostname,
+      isReviewEnvironment: isReviewEnvironment(),
+      emailDomain: email.split('@')[1],
+    });
+
     // 【暫定対応】ドメイン制限チェック
     if (!isEmailDomainAllowed(email)) {
       const errorMessage = getDomainRestrictionErrorMessage();
@@ -158,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       setError(null);
+      console.log('Attempting Firebase sign in...');
       const result = await signInWithEmailAndPassword(auth, email, password);
 
       // 最新のユーザー情報を取得（メール確認状態がキャッシュで古い場合があるため）
@@ -358,8 +366,13 @@ async function registerUserToFirestore(user: User): Promise<void> {
 }
 
 function getAuthErrorMessage(error: unknown): string {
+  // エラーの詳細をコンソールに出力（デバッグ用）
+  console.error('Authentication error:', error);
+
   if (error && typeof error === 'object' && 'code' in error) {
     const code = (error as { code: string }).code;
+    console.error('Firebase error code:', code);
+    
     switch (code) {
       case 'auth/email-already-in-use':
         return 'This email address is already in use';
@@ -379,9 +392,18 @@ function getAuthErrorMessage(error: unknown): string {
         return 'Too many login attempts. Please wait a moment';
       case 'auth/popup-closed-by-user':
         return 'Sign in was cancelled';
+      case 'auth/unauthorized-domain':
+        return 'This domain is not authorized for Firebase Authentication. Please check Firebase Console settings.';
+      case 'auth/network-request-failed':
+        return 'Network error. Please check your internet connection and try again.';
       default:
-        return 'An error occurred. Please try again';
+        // 不明なエラーコードの場合、エラーオブジェクト全体をログに出力
+        console.error('Unknown Firebase error code:', code, error);
+        return `An error occurred (${code}). Please check the browser console for details.`;
     }
   }
-  return 'An error occurred';
+  
+  // エラーオブジェクト全体をログに出力
+  console.error('Non-Firebase error:', error);
+  return 'An error occurred. Please check the browser console for details.';
 }

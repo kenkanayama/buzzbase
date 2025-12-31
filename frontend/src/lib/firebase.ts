@@ -28,6 +28,13 @@ if (isFirebaseConfigured) {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
     auth = getAuth(app);
 
+    // デバッグ用: Firebase設定をログに出力（本番環境でも確認可能）
+    console.log('Firebase initialized:', {
+      projectId: firebaseConfig.projectId,
+      authDomain: firebaseConfig.authDomain,
+      currentHostname: typeof window !== 'undefined' ? window.location.hostname : 'N/A',
+    });
+
     // 特定のFirestoreデータベースに接続
     db = initializeFirestore(app, {}, FIRESTORE_DATABASE_ID);
 
