@@ -34,6 +34,20 @@ const ALLOWED_AUTH_DOMAINS: string[] | null = [
 ];
 
 /**
+ * 審査用環境のURL（Meta審査用）
+ * 審査用環境ではドメイン制限を無効にする
+ */
+const REVIEW_ENVIRONMENT_URL = 'buzzbase-review-1028492470102.asia-northeast1.run.app';
+
+/**
+ * 現在の環境が審査用環境かどうかを判定
+ */
+const isReviewEnvironment = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return window.location.hostname === REVIEW_ENVIRONMENT_URL;
+};
+
+/**
  * ドメイン制限のエラーメッセージを生成
  */
 const getDomainRestrictionErrorMessage = (): string => {
@@ -48,6 +62,11 @@ const getDomainRestrictionErrorMessage = (): string => {
  * @returns true: 許可されている, false: 許可されていない
  */
 const isEmailDomainAllowed = (email: string): boolean => {
+  // 審査用環境ではドメイン制限を無効にする（Meta審査員が様々なメールアドレスを使用するため）
+  if (isReviewEnvironment()) {
+    return true;
+  }
+
   // ドメイン制限がない場合は全て許可
   if (!ALLOWED_AUTH_DOMAINS || ALLOWED_AUTH_DOMAINS.length === 0) {
     return true;
