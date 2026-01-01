@@ -106,3 +106,46 @@ resource "google_cloudbuild_trigger" "main_branch" {
   depends_on = [google_project_service.required_apis]
 }
 
+# -----------------------------------------------------------------------------
+# Cloud Build Trigger (審査用環境 - meta-review-englishブランチ)
+# -----------------------------------------------------------------------------
+
+resource "google_cloudbuild_trigger" "review_branch" {
+  name        = "buzzbase-deploy-review"
+  description = "Meta審査用環境: meta-review-english ブランチへの push で自動デプロイ"
+  location    = var.region
+
+  # 第1世代のGitHub接続
+  github {
+    owner = var.github_owner
+    name  = var.github_repo
+
+    push {
+      branch = "^meta-review-english$"
+    }
+  }
+
+  # terraformディレクトリのみの変更ではビルドをスキップ
+  ignored_files = [
+    "terraform/**",
+    "docs/**",
+    "*.md",
+    ".gitignore",
+    ".cursorignore",
+    ".cursor/**",
+  ]
+
+  filename = "cloudbuild.yaml"
+
+  substitutions = {
+    _FIREBASE_API_KEY             = var.firebase_api_key
+    _FIREBASE_MESSAGING_SENDER_ID = var.firebase_messaging_sender_id
+    _FIREBASE_APP_ID              = var.firebase_app_id
+    _SERVICE_NAME                 = "buzzbase-review"  # 審査用環境のサービス名
+  }
+
+  service_account = "projects/${var.project_id}/serviceAccounts/${google_service_account.cloud_build.email}"
+
+  depends_on = [google_project_service.required_apis]
+}
+

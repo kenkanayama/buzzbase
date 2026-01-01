@@ -12,7 +12,7 @@
 
 substitutions:
   _REGION: asia-northeast1
-  _SERVICE_NAME: buzzbase
+  _SERVICE_NAME: buzzbase  # デフォルトは本番環境、substitutionで上書き可能
   _REPOSITORY: buzzbase
 
 steps:
