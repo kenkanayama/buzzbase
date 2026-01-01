@@ -325,7 +325,7 @@ async function getInstagramMedia(accountId, accessToken) {
  */
 exports.instagramCallback = async (req, res) => {
   // フロントエンドURLを取得（リクエストから判断）
-  const frontendUrl = getFrontendUrl(req);
+  let frontendUrl = getFrontendUrl(req);
 
   // CORSヘッダー設定（許可されたOriginのみ）
   const origin = req.headers.origin;
@@ -351,6 +351,9 @@ exports.instagramCallback = async (req, res) => {
     error,
     error_reason,
     frontendUrl,
+    origin: req.headers.origin,
+    referer: req.headers.referer,
+    query: req.query,
   });
 
   // エラーチェック（ユーザーがキャンセルした場合など）
@@ -382,14 +385,30 @@ exports.instagramCallback = async (req, res) => {
       userId = stateData.userId;
       stateFrontendUrl = stateData.frontendUrl;
       
+      console.log('State parsed:', {
+        userId,
+        stateFrontendUrl,
+        allowedUrls: ALLOWED_FRONTEND_URLS,
+      });
+      
       // stateから取得したフロントエンドURLが許可されている場合は使用
       if (stateFrontendUrl && ALLOWED_FRONTEND_URLS.includes(stateFrontendUrl)) {
         frontendUrl = stateFrontendUrl;
+        console.log('Using frontend URL from state:', frontendUrl);
+      } else {
+        console.log('State frontend URL not in allowed list, using default:', frontendUrl);
       }
     } catch (e) {
       // Base64デコードまたはJSON解析に失敗した場合は、stateをそのままユーザーIDとして使用（後方互換性）
+      console.warn('Failed to parse state as JSON, using as userId:', e.message);
       userId = state;
     }
+    
+    console.log('Processing Instagram callback:', {
+      userId,
+      frontendUrl,
+      redirectUri: INSTAGRAM_CALLBACK_URL,
+    });
 
     // リダイレクトURIは固定値を使用（Metaアプリコンソールに登録したものと完全一致させる）
     const redirectUri = INSTAGRAM_CALLBACK_URL;
@@ -451,11 +470,21 @@ exports.instagramCallback = async (req, res) => {
     console.log('Firestore保存成功');
 
     // 7. フロントエンドにリダイレクト（成功）
-    res.redirect(`${frontendUrl}/dashboard?instagram_connected=true`);
+    const redirectUrl = `${frontendUrl}/dashboard?instagram_connected=true`;
+    console.log('Redirecting to:', redirectUrl);
+    res.redirect(redirectUrl);
 
   } catch (err) {
-    console.error('Instagram連携処理エラー:', err);
-    res.redirect(`${frontendUrl}/dashboard?error=instagram_error&message=${encodeURIComponent(err.message)}`);
+    console.error('Instagram連携処理エラー:', {
+      error: err,
+      message: err.message,
+      stack: err.stack,
+      userId,
+      frontendUrl,
+    });
+    const errorRedirectUrl = `${frontendUrl}/dashboard?error=instagram_error&message=${encodeURIComponent(err.message || 'Unknown error')}`;
+    console.log('Redirecting to error page:', errorRedirectUrl);
+    res.redirect(errorRedirectUrl);
   }
 };
 
