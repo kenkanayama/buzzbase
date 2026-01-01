@@ -373,6 +373,7 @@ interface InstagramToken {
 | **OAuth コールバックURL** | `https://asia-northeast1-sincere-kit.cloudfunctions.net/instagramCallback` |
 | **Cloud Function名** | `instagramCallback` |
 | **リージョン** | `asia-northeast1` |
+| **審査ステータス** | ✅ **承認済み**（2026年1月1日通過） - 本番環境で利用可能 |
 
 #### OAuth スコープ
 
@@ -628,4 +629,5 @@ firestore/
 | 2025-12-22 | 初版作成 - 全リソースのRESTful設計 |
 | 2025-12-24 | リソース一覧を実態に合わせて更新（InstagramAccounts, Campaigns, PRPosts を追加、廃止リソースを明記） |
 | 2025-12-24 | Firestoreコレクション設計を実態（prPostsのMap構造）に合わせて更新 |
+| 2026-01-01 | Meta社のInstagram API審査通過を反映 |
 

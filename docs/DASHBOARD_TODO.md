@@ -14,7 +14,7 @@
 | 投稿登録機能 | ❌ 未実装 | ページ・機能なし |
 | 投稿一覧機能 | ❌ 未実装 | ページ・機能なし |
 | Firestore CRUD | ⚠️ 部分的 | ユーザー情報の読み書き実装・動作確認済み |
-| SNS API連携 | ❌ 未実装 | Instagram/TikTok |
+| SNS API連携 | ✅ 実装済み | Instagram（Meta社審査通過済み） / TikTok（未実装） |
 | 再生数取得バッチ | ❌ 未実装 | Cloud Functions |
 
 ---
@@ -176,10 +176,11 @@ const snsAccounts = [
   - TikTok連携ボタン
   - 連携解除機能
 
-- [ ] **Instagram API連携**
-  - Instagram Graph API (New Pro API) の設定
-  - OAuth認証フロー
-  - アクセストークン保存
+- [x] **Instagram API連携** ✅ 完了
+  - Instagram Graph API (New Pro API) の設定 ✅
+  - OAuth認証フロー ✅
+  - アクセストークン保存 ✅
+  - **Meta社の審査通過**（2026年1月1日）✅
 
 - [ ] **TikTok API連携**
   - TikTok for Developers API 設定
@@ -251,5 +252,6 @@ functions/                    # NEW: Cloud Functions
 | 2025-12-22 | 初版作成 - 調査結果をもとにTODOリスト化 |
 | 2025-12-22 | マイページ（ProfilePage.tsx）実装完了 - ユーザー情報CRUD機能追加 |
 | 2025-12-22 | Firestore連携の動作確認完了 - ユーザー情報の保存・更新が正常動作 |
+| 2026-01-01 | Instagram API連携完了 - Meta社の審査通過を反映 |
 
 
