@@ -103,3 +103,46 @@ export async function saveThumbnailToStorage(
   const data = await response.json();
   return data.url;
 }
+
+/**
+ * PR投稿登録時にインサイトデータを即座に取得
+ * @param accountId - InstagramアカウントID
+ * @param mediaId - Instagram Media ID
+ * @returns 成功メッセージ
+ */
+export async function fetchPostInsightsImmediate(
+  accountId: string,
+  mediaId: string
+): Promise<void> {
+  if (!accountId) {
+    throw new Error('accountIdが必要です');
+  }
+  if (!mediaId) {
+    throw new Error('mediaIdが必要です');
+  }
+
+  // Firebase IDトークンを取得
+  const idToken = await getIdToken();
+
+  // バックエンドAPIを呼び出し
+  const url = `${CLOUD_FUNCTIONS_BASE_URL}/fetchPostInsightsImmediate`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      accountId,
+      mediaId,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: '不明なエラー' }));
+    throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  console.log('インサイトデータ取得完了:', data.message);
+}

@@ -237,8 +237,7 @@ export function PostsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">再生数</span>
                       <span className="font-semibold text-gray-900">
-                        {selectedPost.status === 'measured' &&
-                        typeof selectedPost.views === 'number'
+                        {typeof selectedPost.views === 'number'
                           ? `${formatNumber(selectedPost.views)} ビュー`
                           : 'ー'}
                       </span>
@@ -246,8 +245,7 @@ export function PostsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">リーチ数</span>
                       <span className="font-semibold text-gray-900">
-                        {selectedPost.status === 'measured' &&
-                        typeof selectedPost.reach === 'number'
+                        {typeof selectedPost.reach === 'number'
                           ? formatNumber(selectedPost.reach)
                           : 'ー'}
                       </span>
@@ -255,8 +253,7 @@ export function PostsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">保存数</span>
                       <span className="font-semibold text-gray-900">
-                        {selectedPost.status === 'measured' &&
-                        typeof selectedPost.saved === 'number'
+                        {typeof selectedPost.saved === 'number'
                           ? formatNumber(selectedPost.saved)
                           : 'ー'}
                       </span>
@@ -264,8 +261,7 @@ export function PostsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">いいね数</span>
                       <span className="font-semibold text-gray-900">
-                        {selectedPost.status === 'measured' &&
-                        typeof selectedPost.likes === 'number'
+                        {typeof selectedPost.likes === 'number'
                           ? formatNumber(selectedPost.likes)
                           : 'ー'}
                       </span>
@@ -273,8 +269,7 @@ export function PostsPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">コメント数</span>
                       <span className="font-semibold text-gray-900">
-                        {selectedPost.status === 'measured' &&
-                        typeof selectedPost.comments === 'number'
+                        {typeof selectedPost.comments === 'number'
                           ? formatNumber(selectedPost.comments)
                           : 'ー'}
                       </span>
@@ -285,9 +280,7 @@ export function PostsPage() {
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">平均視聴時間</span>
                             <span className="font-semibold text-gray-900">
-                              {selectedPost.status === 'measured'
-                                ? `${(selectedPost.igReelsAvgWatchTime / 1000).toFixed(1)}秒`
-                                : 'ー'}
+                              {`${(selectedPost.igReelsAvgWatchTime / 1000).toFixed(1)}秒`}
                             </span>
                           </div>
                         )}
@@ -295,9 +288,7 @@ export function PostsPage() {
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">総視聴時間</span>
                             <span className="font-semibold text-gray-900">
-                              {selectedPost.status === 'measured'
-                                ? `${formatNumber(selectedPost.igReelsVideoViewTotalTime / 1000)}秒`
-                                : 'ー'}
+                              {`${formatNumber(selectedPost.igReelsVideoViewTotalTime / 1000)}秒`}
                             </span>
                           </div>
                         )}

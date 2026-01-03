@@ -12,6 +12,7 @@ import {
   MediaPostMap,
 } from '@/types';
 import { addMediaIdToCampaign } from './campaigns';
+import { fetchPostInsightsImmediate } from '@/lib/api/instagram';
 
 /**
  * Firestore Timestamp を Date に変換
@@ -241,6 +242,15 @@ export async function registerPRPost(
     // キャンペーンにメディアIDを追加（重複なし）
     // 現在はInstagramのみ対応、将来的にTikTok等も追加予定
     await addMediaIdToCampaign(input.campaignId, 'instagram', input.mediaId);
+
+    // 投稿登録後にインサイトデータを即座に取得
+    try {
+      await fetchPostInsightsImmediate(accountId, input.mediaId);
+      console.log('インサイトデータの取得が完了しました');
+    } catch (err) {
+      // エラーが発生しても投稿登録は成功しているため、エラーをログに記録するだけ
+      console.error('インサイトデータ取得に失敗しました（投稿登録は成功）:', err);
+    }
   } catch (error) {
     console.error('PR投稿の登録に失敗しました:', error);
     throw error;

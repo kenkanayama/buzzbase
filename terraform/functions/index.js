@@ -675,6 +675,34 @@ function getSevenDaysAgoJSTDateString() {
 }
 
 /**
+ * 投稿から経過日数を計算（JST基準）
+ * @param {Date|Firestore.Timestamp} postedAt - 投稿日時
+ * @returns {number} 経過日数（0日目〜7日目）
+ */
+function getDaysSincePost(postedAt) {
+  if (!postedAt) {
+    return null;
+  }
+
+  const postedDate = postedAt.toDate ? postedAt.toDate() : new Date(postedAt);
+  const now = new Date();
+
+  // JST基準で日付を取得
+  const postedJST = getJSTDateString(postedDate);
+  const nowJST = getJSTDateString(now);
+
+  // 日付文字列をDateオブジェクトに変換（JST 00:00:00）
+  const postedJSTDate = new Date(postedJST + 'T00:00:00+09:00');
+  const nowJSTDate = new Date(nowJST + 'T00:00:00+09:00');
+
+  // 経過日数を計算（ミリ秒の差を日数に変換）
+  const diffTime = nowJSTDate - postedJSTDate;
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays;
+}
+
+/**
  * Firestoreから対象投稿を検索
  * - statusが'pending'
  * - postedAtがJST基準で7日前の日付
@@ -968,16 +996,27 @@ function parseInsightsData(insightsResponse) {
 
 /**
  * Firestoreの投稿データを更新
+ * @param {string} userId - ユーザーID
+ * @param {string} accountId - InstagramアカウントID
+ * @param {string} mediaId - メディアID
+ * @param {object} insightsData - インサイトデータ
+ * @param {Date|Firestore.Timestamp} postedAt - 投稿日時（ステータス判定用）
  */
-async function updatePostWithInsights(userId, accountId, mediaId, insightsData) {
+async function updatePostWithInsights(userId, accountId, mediaId, insightsData, postedAt) {
   const docRef = firestore.collection('prPosts').doc(userId);
   
   // 現在時刻を取得（UTC。表示時にブラウザがローカルタイムに変換する）
   const now = new Date();
 
+  // 投稿から経過日数を計算
+  const daysSincePost = getDaysSincePost(postedAt);
+  
+  // 7日経過している場合は'measured'、それ以外は'pending'のまま
+  const newStatus = (daysSincePost !== null && daysSincePost >= 7) ? 'measured' : 'pending';
+
   // 更新データを構築
   const updateData = {
-    [`postData.${accountId}.${mediaId}.status`]: 'measured',
+    [`postData.${accountId}.${mediaId}.status`]: newStatus,
     [`postData.${accountId}.${mediaId}.dataFetchedAt`]: now,
     updatedAt: FieldValue.serverTimestamp(),
   };
@@ -1008,8 +1047,138 @@ async function updatePostWithInsights(userId, accountId, mediaId, insightsData) 
   }
 
   await docRef.update(updateData);
-  console.log(`投稿データを更新: userId=${userId}, accountId=${accountId}, mediaId=${mediaId}`);
+  console.log(`投稿データを更新: userId=${userId}, accountId=${accountId}, mediaId=${mediaId}, status=${newStatus}, daysSincePost=${daysSincePost}`);
 }
+
+/**
+ * PR投稿登録時にインサイトデータを即座に取得
+ * HTTPトリガー（POST）
+ * 
+ * 認証: Firebase Authentication IDトークンをAuthorizationヘッダーで受け取る
+ * 
+ * リクエスト:
+ *   POST /fetchPostInsightsImmediate
+ *   Headers:
+ *     Authorization: Bearer {Firebase ID Token}
+ *     Content-Type: application/json
+ *   Body:
+ *     { accountId: string, mediaId: string }
+ * 
+ * レスポンス:
+ *   200 OK: { success: true, message: "..." }
+ *   400 Bad Request: { error: "..." }
+ *   401 Unauthorized: { error: "..." }
+ */
+exports.fetchPostInsightsImmediate = async (req, res) => {
+  // CORSヘッダー設定
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // プリフライトリクエスト対応
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+
+  // メソッドチェック
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  // 認証チェック（Firebase IDトークン）
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: '認証が必要です' });
+    return;
+  }
+
+  const idToken = authHeader.split('Bearer ')[1];
+  
+  if (!idToken) {
+    res.status(401).json({ error: '無効な認証トークンです' });
+    return;
+  }
+
+  // Firebase Admin SDKでトークンを検証
+  let decodedToken;
+  try {
+    decodedToken = await admin.auth().verifyIdToken(idToken);
+  } catch (error) {
+    console.error('トークン検証エラー:', error);
+    res.status(401).json({ error: '認証トークンの検証に失敗しました' });
+    return;
+  }
+
+  const userId = decodedToken.uid;
+
+  const { accountId, mediaId } = req.body;
+
+  // パラメータチェック
+  if (!accountId) {
+    res.status(400).json({ error: 'accountIdが必要です' });
+    return;
+  }
+
+  if (!mediaId) {
+    res.status(400).json({ error: 'mediaIdが必要です' });
+    return;
+  }
+
+  try {
+    // Firestoreから投稿データを取得
+    const docRef = firestore.collection('prPosts').doc(userId);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+      res.status(404).json({ error: '投稿が見つかりません' });
+      return;
+    }
+
+    const data = docSnap.data();
+    const postData = data.postData;
+
+    if (!postData || !postData[accountId] || !postData[accountId][mediaId]) {
+      res.status(404).json({ error: '投稿が見つかりません' });
+      return;
+    }
+
+    const post = postData[accountId][mediaId];
+
+    // アクセストークンを取得
+    const accessToken = await getAccessTokenForAccount(accountId);
+
+    if (!accessToken) {
+      res.status(400).json({ error: 'Instagramアカウントのトークンが見つかりません。再連携が必要です。' });
+      return;
+    }
+
+    // mediaProductTypeを取得
+    const mediaProductType = post?.mediaProductType || undefined;
+    
+    // Instagram APIからインサイトデータを取得
+    const insightsResponse = await fetchMediaInsights(mediaId, accessToken, mediaProductType);
+    const insightsData = parseInsightsData(insightsResponse);
+
+    // Firestoreを更新（postedAtを渡してステータス判定）
+    await updatePostWithInsights(userId, accountId, mediaId, insightsData, post.postedAt);
+
+    console.log(`投稿登録時のインサイトデータ取得完了: userId=${userId}, accountId=${accountId}, mediaId=${mediaId}`);
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'インサイトデータの取得が完了しました' 
+    });
+
+  } catch (err) {
+    console.error('fetchPostInsightsImmediate エラー:', err);
+    res.status(500).json({ 
+      error: 'インサイトデータの取得に失敗しました',
+      message: err.message 
+    });
+  }
+};
 
 /**
  * 残りの処理対象をPub/Subにパブリッシュ
@@ -1089,8 +1258,8 @@ exports.fetchPostInsights = async (event, context) => {
       const insightsResponse = await fetchMediaInsights(mediaId, accessToken, mediaProductType);
       const insightsData = parseInsightsData(insightsResponse);
 
-      // Firestoreを更新
-      await updatePostWithInsights(userId, accountId, mediaId, insightsData);
+      // Firestoreを更新（postedAtを渡してステータス判定）
+      await updatePostWithInsights(userId, accountId, mediaId, insightsData, post.postedAt);
     }
 
     // 残りがあればPub/Subにパブリッシュ

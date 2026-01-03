@@ -243,3 +243,43 @@ resource "google_cloudfunctions_function_iam_member" "save_thumbnail_invoker" {
   member         = "allUsers"
 }
 
+# -----------------------------------------------------------------------------
+# Cloud Function: PR投稿登録時のインサイトデータ即座取得
+# -----------------------------------------------------------------------------
+
+resource "google_cloudfunctions_function" "fetch_post_insights_immediate" {
+  name        = "fetchPostInsightsImmediate"
+  description = "PR投稿登録時にインサイトデータを即座に取得"
+  runtime     = "nodejs20"
+  region      = var.region
+
+  available_memory_mb   = 256
+  source_archive_bucket = google_storage_bucket.functions_bucket.name
+  source_archive_object = google_storage_bucket_object.functions_zip.name
+  trigger_http          = true
+  entry_point           = "fetchPostInsightsImmediate"
+
+  service_account_email = google_service_account.cloud_functions.email
+
+  environment_variables = {
+    GCP_PROJECT           = var.project_id
+    FIRESTORE_DATABASE_ID = "sincere-kit-buzzbase"
+  }
+
+  depends_on = [
+    google_project_service.required_apis,
+    google_service_account.cloud_functions,
+  ]
+}
+
+# インサイトデータ即座取得: 認証済みユーザーのみアクセス可能
+# 注意: エンドポイント内でFirebase IDトークンを検証するため、allUsersに設定
+# 実際の認証はエンドポイント内で行う
+resource "google_cloudfunctions_function_iam_member" "fetch_post_insights_immediate_invoker" {
+  project        = var.project_id
+  region         = var.region
+  cloud_function = google_cloudfunctions_function.fetch_post_insights_immediate.name
+  role           = "roles/cloudfunctions.invoker"
+  member         = "allUsers"
+}
+
