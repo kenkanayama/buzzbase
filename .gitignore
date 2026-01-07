@@ -26,6 +26,7 @@ terraform/*.tfvars
 # Note: .terraform.lock.hcl はプロバイダーバージョンを固定するためコミット対象
 terraform/crash.log
 terraform/functions.zip
+terraform/tfplan
 
 # Firebase
 firebase/.firebase/
