@@ -582,7 +582,9 @@ export function RegisterPostPage() {
                 style={{ backgroundColor: '#fff8ed' }}
               >
                 <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: '#f29801' }} />
-                <p className="text-sm text-gray-600">再生数は7日後に自動取得されます</p>
+                <p className="text-sm text-gray-600">
+                  インサイトデータは毎日更新されます（7日間計測）
+                </p>
               </div>
 
               {/* エラー表示 */}
@@ -610,7 +612,9 @@ export function RegisterPostPage() {
                 <CheckCircle2 className="h-10 w-10 text-green-500" />
               </div>
               <h2 className="mb-2 text-2xl font-bold text-gray-900">登録が完了しました！</h2>
-              <p className="mb-8 text-gray-500">7日後に再生数が自動で取得されます</p>
+              <p className="mb-8 text-gray-500">
+                インサイトデータは毎日更新されます（7日間計測）
+              </p>
 
               <div className="space-y-3">
                 <Button

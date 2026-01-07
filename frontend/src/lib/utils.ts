@@ -10,9 +10,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * 投稿日から計測日（7日後）を計算する
+ * 投稿日から計測完了日（7日目）を計算する
  * @param postedAt - 投稿日時
- * @returns 計測日時（投稿日から7日後）
+ * @returns 計測完了日（投稿日から7日目）
+ * @description インサイトデータは投稿登録時〜7日目まで毎日取得されます
  */
 export function getMeasurementDate(postedAt: Date): Date {
   const measurementDate = new Date(postedAt);

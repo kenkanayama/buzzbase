@@ -133,9 +133,9 @@ export function HomePage() {
             商品PRの投稿URLを登録するだけ。
             <br className="hidden sm:block" />
             <span className="font-semibold" style={{ color: COLORS.primary }}>
-              7日後
+              7日間
             </span>
-            の再生数を自動取得して可視化します。
+            のインサイトデータを毎日自動取得して可視化します。
           </p>
 
           {/* CTA */}
@@ -273,7 +273,7 @@ export function HomePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="mb-1 text-xs" style={{ color: COLORS.neutral500 }}>
-                  7日後の再生数
+                  計測完了時の再生数
                 </p>
                 <p className="text-2xl font-bold" style={{ color: COLORS.secondary }}>
                   15.2K
@@ -535,8 +535,8 @@ const steps = [
     icon: Link2,
   },
   {
-    title: '7日間待つ',
-    description: '投稿から7日後に自動で再生数を取得します。何もする必要はありません。',
+    title: '毎日自動更新',
+    description: '登録後すぐにデータを取得。7日間毎日自動で更新されます。',
     icon: Calendar,
   },
   {
@@ -552,7 +552,7 @@ const steps = [
 const features = [
   {
     title: '自動トラッキング',
-    description: 'URLを登録すれば、7日後の再生数を自動で取得。手作業は不要です。',
+    description: 'URLを登録すれば、7日間毎日インサイトデータを自動取得。手作業は不要です。',
     icon: TrendingUp,
     bgColor: '#ffefd4', // primary-100
     iconColor: '#f29801', // primary
