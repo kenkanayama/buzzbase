@@ -130,7 +130,7 @@
 ### 4. 投稿一覧機能（/posts）
 
 ドキュメント要件:
-> **履歴表示:** 登録済み投稿のリスト表示。7日経過後に自動取得された再生数を表示。
+> **履歴表示:** 登録済み投稿のリスト表示。投稿登録時〜7日目まで毎日取得されたインサイトデータを表示。
 
 - [ ] **PostsPage.tsx の作成**
   - 投稿リスト表示
@@ -194,17 +194,18 @@ const snsAccounts = [
 ### 7. Cloud Functions（再生数取得バッチ）
 
 ドキュメント要件:
-> Cloud Schedulerにより毎日0時に実行。
-> 投稿から7日経過したレコードをAPIで叩き、`view_count`をFirestoreに書き込む。
+> Cloud Schedulerにより毎日23:00 JSTに実行。
+> 投稿から1〜7日経過した投稿のインサイトデータをAPIで取得し、Firestoreに書き込む。
+> 7日目のバッチ処理後にステータスを'measured'に変更。
 
 - [ ] **Cloud Functions プロジェクト初期化**
   - `functions/` ディレクトリ作成
   - TypeScript設定
 
-- [ ] **再生数取得関数**
-  - 7日経過した投稿を検索
-  - Instagram/TikTok APIで再生数取得
-  - Firestoreに書き込み
+- [ ] **インサイトデータ取得関数**
+  - 1〜7日経過した投稿を検索（毎日実行で最大8回取得）
+  - Instagram/TikTok APIでインサイトデータ取得
+  - Firestoreに書き込み（最新データで上書き）
 
 - [ ] **Cloud Scheduler設定**
   - 毎日0時に実行するジョブ
@@ -253,5 +254,6 @@ functions/                    # NEW: Cloud Functions
 | 2025-12-22 | マイページ（ProfilePage.tsx）実装完了 - ユーザー情報CRUD機能追加 |
 | 2025-12-22 | Firestore連携の動作確認完了 - ユーザー情報の保存・更新が正常動作 |
 | 2026-01-01 | Instagram API連携完了 - Meta社の審査通過を反映 |
+| 2026-01-07 | インサイトデータ取得タイミングを変更（7日目のみ → 0〜7日目まで毎日取得） |
 
 

@@ -17,6 +17,11 @@
 #     - 対象投稿を1件処理
 #     - 残りがあれば同じPub/Subにパブリッシュ（再帰的に処理）
 #
+# データ取得タイミング:
+#   - 投稿登録時（0日目）: fetchPostInsightsImmediate で即座に取得
+#   - 1〜7日目: このバッチで毎日取得（7日目で status='measured' に変更）
+#   - 1投稿につき最大8回のインサイトデータ取得
+#
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -57,7 +62,7 @@ resource "google_pubsub_subscription" "fetch_post_insights" {
 
 resource "google_cloud_scheduler_job" "fetch_post_insights" {
   name        = "fetch-post-insights-scheduler"
-  description = "毎日23:00 JSTにPR投稿のインサイトデータ取得をトリガー"
+  description = "毎日23:00 JSTにPR投稿（1〜7日経過）のインサイトデータ取得をトリガー"
   schedule    = "0 23 * * *"
   time_zone   = "Asia/Tokyo"
   region      = var.region
@@ -83,7 +88,7 @@ resource "google_cloud_scheduler_job" "fetch_post_insights" {
 
 resource "google_cloudfunctions_function" "fetch_post_insights" {
   name        = "fetchPostInsights"
-  description = "PR投稿のインサイトデータをInstagram APIから取得してFirestoreに保存"
+  description = "PR投稿（1〜7日経過）のインサイトデータをInstagram APIから取得してFirestoreに保存（7日目で計測完了）"
   runtime     = "nodejs20"
   region      = var.region
 

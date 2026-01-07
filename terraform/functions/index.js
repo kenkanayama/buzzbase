@@ -705,7 +705,7 @@ function getDaysSincePost(postedAt) {
 /**
  * Firestoreから対象投稿を検索
  * - statusが'pending'
- * - postedAtから7日以上経過している投稿（7日目の最終データ取得）
+ * - postedAtから1日以上7日以下経過している投稿（毎日データ取得、7日目で最終）
  */
 async function findTargetPosts() {
   const targetPosts = [];
@@ -729,17 +729,18 @@ async function findTargetPosts() {
       }
 
       for (const [mediaId, post] of Object.entries(mediaPosts)) {
-        // statusが'pending'かつpostedAtから7日以上経過している投稿を抽出
+        // statusが'pending'かつpostedAtから1日以上7日以下経過している投稿を抽出
         if (post.status === 'pending' && post.postedAt) {
           const daysSincePost = getDaysSincePost(post.postedAt);
           
-          // 7日以上経過している投稿を対象（7日目の最終データ取得）
-          if (daysSincePost !== null && daysSincePost >= 7) {
+          // 1日以上7日以下経過している投稿を対象（毎日データ取得、7日目で最終）
+          if (daysSincePost !== null && daysSincePost >= 1 && daysSincePost <= 7) {
             targetPosts.push({
               userId,
               accountId,
               mediaId,
               post,
+              daysSincePost, // デバッグ用に経過日数も追加
             });
           }
         }
@@ -747,7 +748,7 @@ async function findTargetPosts() {
     }
   }
 
-  console.log(`対象投稿数: ${targetPosts.length}件（7日以上経過した投稿）`);
+  console.log(`対象投稿数: ${targetPosts.length}件（1〜7日経過した投稿）`);
   return targetPosts;
 }
 
@@ -1294,7 +1295,9 @@ exports.fetchPostInsights = async (event, context) => {
     const currentPost = postsToProcess.shift();
     const { userId, accountId, mediaId, post } = currentPost;
 
-    console.log(`処理中: userId=${userId}, accountId=${accountId}, mediaId=${mediaId}`);
+    // 経過日数を計算（ログ出力用）
+    const daysSincePost = getDaysSincePost(post.postedAt);
+    console.log(`処理中: userId=${userId}, accountId=${accountId}, mediaId=${mediaId}, 経過日数=${daysSincePost}日目`);
 
     // アクセストークンを取得
     const accessToken = await getAccessTokenForAccount(accountId);

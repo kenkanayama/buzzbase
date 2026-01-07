@@ -447,7 +447,9 @@ firestore/
             [mediaId]: {              # キー: Instagram Media ID
               accountId, campaignId, campaignName, mediaId, mediaType,
               permalink, thumbnailUrl, postedAt, registeredAt, status,
-              // インサイトデータ（バッチ処理で取得）
+              // インサイトデータ（投稿登録時 + バッチ処理で毎日取得）
+              // 取得タイミング: 0日目（登録時）〜7日目まで毎日（最大8回）
+              // 7日目のバッチ処理後に status='measured' に変更
               dataFetchedAt, igReelsAvgWatchTime, igReelsVideoViewTotalTime,
               reach, saved, views, likes, comments
             }
@@ -630,4 +632,5 @@ firestore/
 | 2025-12-24 | リソース一覧を実態に合わせて更新（InstagramAccounts, Campaigns, PRPosts を追加、廃止リソースを明記） |
 | 2025-12-24 | Firestoreコレクション設計を実態（prPostsのMap構造）に合わせて更新 |
 | 2026-01-01 | Meta社のInstagram API審査通過を反映 |
+| 2026-01-07 | インサイトデータ取得タイミングを変更（7日目のみ → 0〜7日目まで毎日取得） |
 
