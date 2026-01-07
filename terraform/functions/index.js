@@ -705,12 +705,9 @@ function getDaysSincePost(postedAt) {
 /**
  * Firestoreから対象投稿を検索
  * - statusが'pending'
- * - postedAtがJST基準で7日前の日付
+ * - postedAtから7日以上経過している投稿（7日目の最終データ取得）
  */
 async function findTargetPosts() {
-  const targetDateString = getSevenDaysAgoJSTDateString();
-  console.log(`対象日付 (JST): ${targetDateString}`);
-
   const targetPosts = [];
 
   // prPostsコレクションの全ドキュメントを取得
@@ -732,11 +729,12 @@ async function findTargetPosts() {
       }
 
       for (const [mediaId, post] of Object.entries(mediaPosts)) {
-        // statusが'pending'かつpostedAtが7日前の日付の投稿を抽出
+        // statusが'pending'かつpostedAtから7日以上経過している投稿を抽出
         if (post.status === 'pending' && post.postedAt) {
-          const postedAtDateString = timestampToJSTDateString(post.postedAt);
+          const daysSincePost = getDaysSincePost(post.postedAt);
           
-          if (postedAtDateString === targetDateString) {
+          // 7日以上経過している投稿を対象（7日目の最終データ取得）
+          if (daysSincePost !== null && daysSincePost >= 7) {
             targetPosts.push({
               userId,
               accountId,
@@ -749,7 +747,7 @@ async function findTargetPosts() {
     }
   }
 
-  console.log(`対象投稿数: ${targetPosts.length}`);
+  console.log(`対象投稿数: ${targetPosts.length}件（7日以上経過した投稿）`);
   return targetPosts;
 }
 
@@ -1196,10 +1194,37 @@ async function publishRemainingPosts(remainingPosts) {
     return;
   }
 
+  // FirestoreのTimestampをISO文字列に変換してシリアライズ可能にする
+  const serializablePosts = remainingPosts.map(({ userId, accountId, mediaId, post }) => {
+    const serializablePost = { ...post };
+    // postedAtをISO文字列に変換
+    if (post.postedAt) {
+      const postedAtDate = post.postedAt.toDate ? post.postedAt.toDate() : new Date(post.postedAt);
+      serializablePost.postedAt = postedAtDate.toISOString();
+    }
+    // registeredAtも同様に変換
+    if (post.registeredAt) {
+      const registeredAtDate = post.registeredAt.toDate ? post.registeredAt.toDate() : new Date(post.registeredAt);
+      serializablePost.registeredAt = registeredAtDate.toISOString();
+    }
+    // dataFetchedAtも同様に変換
+    if (post.dataFetchedAt) {
+      const dataFetchedAtDate = post.dataFetchedAt.toDate ? post.dataFetchedAt.toDate() : new Date(post.dataFetchedAt);
+      serializablePost.dataFetchedAt = dataFetchedAtDate.toISOString();
+    }
+    
+    return {
+      userId,
+      accountId,
+      mediaId,
+      post: serializablePost,
+    };
+  });
+
   const topic = pubsub.topic(PUBSUB_TOPIC);
   const message = {
     action: 'process',
-    posts: remainingPosts,
+    posts: serializablePosts,
   };
 
   await topic.publishMessage({
@@ -1238,7 +1263,26 @@ exports.fetchPostInsights = async (event, context) => {
       postsToProcess = await findTargetPosts();
     } else {
       // 再帰実行: メッセージから処理対象を取得
-      postsToProcess = message.posts;
+      // ISO文字列からDateオブジェクトに復元
+      postsToProcess = message.posts.map(({ userId, accountId, mediaId, post }) => {
+        const restoredPost = { ...post };
+        // ISO文字列をDateオブジェクトに復元
+        if (post.postedAt) {
+          restoredPost.postedAt = new Date(post.postedAt);
+        }
+        if (post.registeredAt) {
+          restoredPost.registeredAt = new Date(post.registeredAt);
+        }
+        if (post.dataFetchedAt) {
+          restoredPost.dataFetchedAt = new Date(post.dataFetchedAt);
+        }
+        return {
+          userId,
+          accountId,
+          mediaId,
+          post: restoredPost,
+        };
+      });
     }
 
     if (postsToProcess.length === 0) {
