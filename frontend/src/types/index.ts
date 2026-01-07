@@ -193,6 +193,7 @@ export interface PRPostItem {
   igReelsVideoViewTotalTime?: number; // リールの総視聴時間
   reach?: number; // リーチ数
   saved?: number; // 保存数
+  shares?: number; // シェア数
   views?: number; // 再生数
   likes?: number; // いいね数
   comments?: number; // コメント数

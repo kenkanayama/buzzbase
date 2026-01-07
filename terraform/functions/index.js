@@ -917,6 +917,7 @@ async function fetchMediaInsights(mediaId, accessToken, mediaProductType) {
       'ig_reels_video_view_total_time',
       'reach',
       'saved',
+      'shares',
       'views',
       'likes',
       'comments',
@@ -926,6 +927,7 @@ async function fetchMediaInsights(mediaId, accessToken, mediaProductType) {
     metrics = [
       'reach',
       'saved',
+      'shares',
       'views',
       'likes',
       'comments',
@@ -988,6 +990,9 @@ function parseInsightsData(insightsResponse) {
       case 'comments':
         result.comments = value;
         break;
+      case 'shares':
+        result.shares = value;
+        break;
     }
   }
 
@@ -1043,6 +1048,9 @@ async function updatePostWithInsights(userId, accountId, mediaId, insightsData, 
     }
     if (insightsData.comments !== null && insightsData.comments !== undefined) {
       updateData[`postData.${accountId}.${mediaId}.comments`] = insightsData.comments;
+    }
+    if (insightsData.shares !== null && insightsData.shares !== undefined) {
+      updateData[`postData.${accountId}.${mediaId}.shares`] = insightsData.shares;
     }
   }
 

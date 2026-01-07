@@ -259,6 +259,14 @@ export function PostsPage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">シェア数</span>
+                      <span className="font-semibold text-gray-900">
+                        {typeof selectedPost.shares === 'number'
+                          ? formatNumber(selectedPost.shares)
+                          : 'ー'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">いいね数</span>
                       <span className="font-semibold text-gray-900">
                         {typeof selectedPost.likes === 'number'

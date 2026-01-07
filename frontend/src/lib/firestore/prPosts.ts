@@ -64,6 +64,7 @@ function parsePostData(data: unknown): PRPostDataMap {
                 : undefined,
             reach: typeof postRecord.reach === 'number' ? postRecord.reach : undefined,
             saved: typeof postRecord.saved === 'number' ? postRecord.saved : undefined,
+            shares: typeof postRecord.shares === 'number' ? postRecord.shares : undefined,
             views: typeof postRecord.views === 'number' ? postRecord.views : undefined,
             likes: typeof postRecord.likes === 'number' ? postRecord.likes : undefined,
             comments: typeof postRecord.comments === 'number' ? postRecord.comments : undefined,
