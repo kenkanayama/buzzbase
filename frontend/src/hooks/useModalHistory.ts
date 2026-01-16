@@ -12,8 +12,8 @@ import { useEffect, useCallback, useRef } from 'react';
 export function useModalHistory(isOpen: boolean, onClose: () => void, modalId: string) {
   // 履歴を追加したかどうかを追跡
   const historyPushedRef = useRef(false);
-  // closeModalから呼ばれたかどうかを追跡（popstateハンドラでの二重処理を防ぐ）
-  const closingFromCloseModalRef = useRef(false);
+  // popstateイベント処理中かどうかを追跡（useEffectでの重複処理を防ぐ）
+  const handlingPopStateRef = useRef(false);
   // onCloseのref（依存関係の問題を避けるため）
   const onCloseRef = useRef(onClose);
   // isOpenのref（popstateハンドラ内で最新の値を参照するため）
@@ -30,19 +30,12 @@ export function useModalHistory(isOpen: boolean, onClose: () => void, modalId: s
   // モーダルを閉じる（×ボタンやオーバーレイクリック時に使用）
   const closeModal = useCallback(() => {
     if (historyPushedRef.current) {
-      // closeModalから呼ばれたことをマーク
-      closingFromCloseModalRef.current = true;
       // 履歴フラグをリセット
       historyPushedRef.current = false;
       // onCloseを直接呼び出す（これでisOpenがfalseになる）
       onCloseRef.current();
-      // 履歴を戻す
+      // 履歴を戻す（×ボタンやオーバーレイクリック時のみ）
       window.history.back();
-      // フラグをリセット（次のpopstateイベント用）
-      // 非同期でリセットすることで、popstateイベントが処理される前にリセットされないようにする
-      setTimeout(() => {
-        closingFromCloseModalRef.current = false;
-      }, 0);
     } else {
       // 履歴がない場合は直接閉じる
       onCloseRef.current();
@@ -54,32 +47,36 @@ export function useModalHistory(isOpen: boolean, onClose: () => void, modalId: s
     const wasOpen = prevIsOpenRef.current;
     prevIsOpenRef.current = isOpen;
 
+    // popstateイベント処理中の場合はスキップ
+    // （「戻る」ジェスチャーで閉じた場合、追加の history.back() は不要）
+    if (handlingPopStateRef.current) {
+      handlingPopStateRef.current = false;
+      return;
+    }
+
     if (isOpen && !wasOpen && !historyPushedRef.current) {
       // モーダルが開いたとき: 履歴を追加
       window.history.pushState({ modalId, modalOpen: true }, '');
       historyPushedRef.current = true;
-    } else if (!isOpen && wasOpen && historyPushedRef.current) {
-      // モーダルが閉じられたが、履歴がまだ残っている場合
-      // （closeModalを経由せずに閉じられた場合のフォールバック）
-      // closeModalから呼ばれた場合は既にhistoryPushedRefがfalseになっているので
-      // この条件には入らない
-      historyPushedRef.current = false;
-      window.history.back();
     }
+    // 注意: モーダルが閉じたときに history.back() を呼ばない
+    // 「戻る」ジェスチャー時はブラウザが既に履歴を戻しているため不要
+    // ×ボタンやオーバーレイクリック時は closeModal() 内で処理
   }, [isOpen, modalId]);
 
   // popstateイベントのハンドリング（ブラウザの「戻る」ボタン/ジェスチャー用）
   useEffect(() => {
     const handlePopState = () => {
-      // closeModalから呼ばれた場合は処理をスキップ（既にonCloseが呼ばれているため）
-      if (closingFromCloseModalRef.current) {
-        return;
-      }
-
       // 履歴を追加していた場合のみ処理
       if (historyPushedRef.current) {
+        // popstateイベント処理中であることをマーク
+        // これにより、useEffectで余分な history.back() が呼ばれるのを防ぐ
+        handlingPopStateRef.current = true;
+        // 履歴フラグをリセット
         historyPushedRef.current = false;
         // モーダルがまだ開いている場合は閉じる
+        // 注意: ここでは history.back() を呼ばない
+        // ブラウザの「戻る」ジェスチャーによって既に履歴は戻っている
         if (isOpenRef.current) {
           onCloseRef.current();
         }
@@ -92,11 +89,6 @@ export function useModalHistory(isOpen: boolean, onClose: () => void, modalId: s
       window.removeEventListener('popstate', handlePopState);
     };
   }, []); // 依存関係を空にして、イベントリスナーの再登録を防ぐ
-
-  // 注意: コンポーネントのアンマウント時に history.back() を呼ばない
-  // これを呼ぶと、ページ遷移時に意図しない「戻る」が発生してしまう
-  // 例: モーダルを開いた状態でリンクをクリックして別ページに遷移すると、
-  //     新しいページに行った直後に前のページに戻されてしまう
 
   return { closeModal };
 }
