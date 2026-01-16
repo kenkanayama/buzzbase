@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Instagram,
@@ -17,6 +17,7 @@ import { getAllPRPostsFlat } from '@/lib/firestore/prPosts';
 import { InstagramAccountWithId, PRPostItem } from '@/types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { getMeasurementDate, formatDate, formatNumber } from '@/lib/utils';
+import { useModalHistory } from '@/hooks/useModalHistory';
 
 // Instagram認証URL生成用の定数
 const INSTAGRAM_APP_ID = '1395033632016244';
@@ -38,6 +39,28 @@ export function DashboardPage() {
 
   // 詳細ポップアップ用の状態
   const [selectedPost, setSelectedPost] = useState<PRPostItem | null>(null);
+
+  // モーダルの閉じるハンドラ
+  const handleCloseSettingsModal = useCallback(() => {
+    setIsSettingsModalOpen(false);
+  }, []);
+
+  const handleClosePostDetail = useCallback(() => {
+    setSelectedPost(null);
+  }, []);
+
+  // ブラウザの「戻る」ボタン/ジェスチャーでモーダルを閉じるためのフック
+  const { closeModal: closeSettingsModal } = useModalHistory(
+    isSettingsModalOpen,
+    handleCloseSettingsModal,
+    'settings-modal'
+  );
+
+  const { closeModal: closePostDetailModal } = useModalHistory(
+    selectedPost !== null,
+    handleClosePostDetail,
+    'post-detail-modal'
+  );
 
   // Firestoreからユーザーデータを取得
   useEffect(() => {
@@ -327,7 +350,7 @@ export function DashboardPage() {
           {/* オーバーレイ */}
           <div
             className="fixed bottom-0 left-0 right-0 top-0 bg-black/50"
-            onClick={() => setIsSettingsModalOpen(false)}
+            onClick={closeSettingsModal}
           />
           {/* モーダルコンテンツ */}
           <div className="relative z-10 mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
@@ -335,7 +358,7 @@ export function DashboardPage() {
             <div className="mb-6 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">SNS連携設定</h3>
               <button
-                onClick={() => setIsSettingsModalOpen(false)}
+                onClick={closeSettingsModal}
                 className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
               >
                 <X className="h-5 w-5" />
@@ -384,7 +407,7 @@ export function DashboardPage() {
           {/* オーバーレイ */}
           <div
             className="fixed bottom-0 left-0 right-0 top-0 bg-black/50"
-            onClick={() => setSelectedPost(null)}
+            onClick={closePostDetailModal}
           />
           {/* モーダルコンテンツ */}
           <div className="relative z-10 mx-4 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-xl">
@@ -392,7 +415,7 @@ export function DashboardPage() {
             <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white p-4">
               <h3 className="text-lg font-semibold text-gray-900">投稿詳細</h3>
               <button
-                onClick={() => setSelectedPost(null)}
+                onClick={closePostDetailModal}
                 className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
               >
                 <X className="h-5 w-5" />

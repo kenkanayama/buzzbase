@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Instagram, Calendar, ArrowLeft, X, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { getUserProfile } from '@/lib/firestore/users';
 import { PRPostItem, InstagramAccountWithId } from '@/types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { getMeasurementDate, formatDate, formatNumber } from '@/lib/utils';
+import { useModalHistory } from '@/hooks/useModalHistory';
 
 export function PostsPage() {
   const { user } = useAuth();
@@ -16,6 +17,18 @@ export function PostsPage() {
   const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccountWithId[]>([]);
   // 詳細ポップアップ用の状態
   const [selectedPost, setSelectedPost] = useState<PRPostItem | null>(null);
+
+  // モーダルの閉じるハンドラ
+  const handleClosePostDetail = useCallback(() => {
+    setSelectedPost(null);
+  }, []);
+
+  // ブラウザの「戻る」ボタン/ジェスチャーでモーダルを閉じるためのフック
+  const { closeModal: closePostDetailModal } = useModalHistory(
+    selectedPost !== null,
+    handleClosePostDetail,
+    'posts-page-detail-modal'
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -168,7 +181,7 @@ export function PostsPage() {
           {/* オーバーレイ */}
           <div
             className="fixed bottom-0 left-0 right-0 top-0 bg-black/50"
-            onClick={() => setSelectedPost(null)}
+            onClick={closePostDetailModal}
           />
           {/* モーダルコンテンツ */}
           <div className="relative z-10 mx-4 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-xl">
@@ -176,7 +189,7 @@ export function PostsPage() {
             <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white p-4">
               <h3 className="text-lg font-semibold text-gray-900">投稿詳細</h3>
               <button
-                onClick={() => setSelectedPost(null)}
+                onClick={closePostDetailModal}
                 className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
               >
                 <X className="h-5 w-5" />
