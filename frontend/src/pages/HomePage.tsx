@@ -46,16 +46,8 @@ export function HomePage() {
       >
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           {/* ロゴ */}
-          <div className="flex items-center gap-2">
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-lg"
-              style={{ backgroundColor: COLORS.primary }}
-            >
-              <span className="text-lg font-bold text-white">B</span>
-            </div>
-            <span className="font-display text-xl font-bold" style={{ color: COLORS.neutral900 }}>
-              Buzz<span style={{ color: COLORS.primary }}>Base</span>
-            </span>
+          <div className="flex items-center">
+            <img src="/logo-vertical.png" alt="BuzzBase" className="h-9 w-auto" />
           </div>
 
           {/* ナビゲーション */}
@@ -470,16 +462,8 @@ export function HomePage() {
         <div className="mx-auto max-w-5xl">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             {/* ロゴ */}
-            <div className="flex items-center gap-2">
-              <div
-                className="flex h-8 w-8 items-center justify-center rounded-lg"
-                style={{ backgroundColor: COLORS.primary }}
-              >
-                <span className="text-sm font-bold text-white">B</span>
-              </div>
-              <span className="font-display font-bold" style={{ color: COLORS.neutral900 }}>
-                BuzzBase
-              </span>
+            <div className="flex items-center">
+              <img src="/logo-vertical.png" alt="BuzzBase" className="h-8 w-auto" />
             </div>
 
             {/* リンク */}

@@ -612,9 +612,7 @@ export function RegisterPostPage() {
                 <CheckCircle2 className="h-10 w-10 text-green-500" />
               </div>
               <h2 className="mb-2 text-2xl font-bold text-gray-900">登録が完了しました！</h2>
-              <p className="mb-8 text-gray-500">
-                インサイトデータは毎日更新されます（7日間計測）
-              </p>
+              <p className="mb-8 text-gray-500">インサイトデータは毎日更新されます（7日間計測）</p>
 
               <div className="space-y-3">
                 <Button

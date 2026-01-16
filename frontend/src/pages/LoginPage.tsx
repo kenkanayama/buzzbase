@@ -79,16 +79,8 @@ export function LoginPage() {
       <div className="w-full max-w-md">
         {/* ロゴ */}
         <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-xl"
-              style={{ backgroundColor: COLORS.primary }}
-            >
-              <span className="text-lg font-bold text-white">B</span>
-            </div>
-            <span className="font-display text-2xl font-bold" style={{ color: COLORS.neutral800 }}>
-              Buzz<span style={{ color: COLORS.primary }}>Base</span>
-            </span>
+          <Link to="/" className="inline-block">
+            <img src="/logo-vertical.png" alt="BuzzBase" className="mx-auto h-12 w-auto" />
           </Link>
         </div>
 

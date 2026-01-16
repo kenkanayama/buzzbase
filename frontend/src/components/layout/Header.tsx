@@ -9,16 +9,8 @@ export function Header() {
     <header className="glass sticky top-0 z-50 border-b border-gray-200/50">
       <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
         {/* ロゴ */}
-        <Link to="/dashboard" className="flex items-center gap-2">
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-lg"
-            style={{ backgroundColor: '#f29801' }}
-          >
-            <span className="text-sm font-bold text-white">B</span>
-          </div>
-          <span className="font-display text-xl font-bold text-gray-900">
-            Buzz<span style={{ color: '#f29801' }}>Base</span>
-          </span>
+        <Link to="/dashboard" className="flex items-center">
+          <img src="/logo-vertical.png" alt="BuzzBase" className="h-8 w-auto" />
         </Link>
 
         {/* ユーザーメニュー */}
