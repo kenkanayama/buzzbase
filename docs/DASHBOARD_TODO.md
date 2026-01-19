@@ -112,7 +112,7 @@
   ├── postDate: timestamp (登録日)
   ├── measureDate: timestamp (計測予定日 = 登録日+7日)
   ├── viewCount: number | null
-  ├── status: 'pending' | 'completed' | 'failed'
+  ├── status: 'fetching' | 'measured'
   ├── createdAt: timestamp
   └── updatedAt: timestamp
   ```

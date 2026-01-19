@@ -286,7 +286,7 @@ export function DashboardPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate font-medium text-gray-900">{post.campaignName}</h3>
-                    {/* 再生数表示（計測完了時）または空のスペース（計測待ち時） */}
+                    {/* 再生数表示（計測完了時）または空のスペース（計測中時） */}
                     <div className="h-5">
                       {post.status === 'measured' && post.views !== undefined ? (
                         <p className="text-sm font-semibold" style={{ color: '#f87171' }}>
@@ -315,7 +315,7 @@ export function DashboardPage() {
                         className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
                         style={{ backgroundColor: '#fff8ed', color: '#f29801' }}
                       >
-                        計測待ち
+                        計測中
                       </span>
                     )}
                   </div>

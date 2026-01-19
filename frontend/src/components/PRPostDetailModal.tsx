@@ -88,9 +88,7 @@ export const PRPostDetailModal: FC<PRPostDetailModalProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">再生数</span>
                   <span className="font-semibold text-gray-900">
-                    {typeof post.views === 'number'
-                      ? `${formatNumber(post.views)} ビュー`
-                      : 'ー'}
+                    {typeof post.views === 'number' ? `${formatNumber(post.views)} ビュー` : 'ー'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">

@@ -200,7 +200,7 @@ export interface PRPostItem {
 
   // メタデータ
   registeredAt: Date; // バズベース登録日時（日本時間）
-  status: 'pending' | 'measured'; // ステータス
+  status: 'fetching' | 'measured'; // ステータス
 }
 
 /**

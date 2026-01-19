@@ -704,7 +704,7 @@ function getDaysSincePost(postedAt) {
 
 /**
  * Firestoreから対象投稿を検索
- * - statusが'pending'
+ * - statusが'fetching'
  * - postedAtから1日以上7日以下経過している投稿（毎日データ取得、7日目で最終）
  */
 async function findTargetPosts() {
@@ -729,8 +729,8 @@ async function findTargetPosts() {
       }
 
       for (const [mediaId, post] of Object.entries(mediaPosts)) {
-        // statusが'pending'かつpostedAtから1日以上7日以下経過している投稿を抽出
-        if (post.status === 'pending' && post.postedAt) {
+        // statusが'fetching'かつpostedAtから1日以上7日以下経過している投稿を抽出
+        if (post.status === 'fetching' && post.postedAt) {
           const daysSincePost = getDaysSincePost(post.postedAt);
           
           // 1日以上7日以下経過している投稿を対象（毎日データ取得、7日目で最終）
@@ -1015,8 +1015,8 @@ async function updatePostWithInsights(userId, accountId, mediaId, insightsData, 
   // 投稿から経過日数を計算
   const daysSincePost = getDaysSincePost(postedAt);
   
-  // 7日経過している場合は'measured'、それ以外は'pending'のまま
-  const newStatus = (daysSincePost !== null && daysSincePost >= 7) ? 'measured' : 'pending';
+  // 7日経過している場合は'measured'、それ以外は'fetching'のまま
+  const newStatus = (daysSincePost !== null && daysSincePost >= 7) ? 'measured' : 'fetching';
 
   // 更新データを構築
   const updateData = {
@@ -1304,7 +1304,7 @@ exports.fetchPostInsights = async (event, context) => {
 
     if (!accessToken) {
       console.warn(`アクセストークンが取得できないため、この投稿をスキップします: mediaId=${mediaId}`);
-      // ステータスは pending のまま
+      // ステータスは fetching のまま
     } else {
       // mediaProductTypeを取得（デフォルトはundefined）
       const mediaProductType = post?.mediaProductType || undefined;

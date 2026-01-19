@@ -69,7 +69,7 @@ function parsePostData(data: unknown): PRPostDataMap {
             likes: typeof postRecord.likes === 'number' ? postRecord.likes : undefined,
             comments: typeof postRecord.comments === 'number' ? postRecord.comments : undefined,
             registeredAt: timestampToDate(postRecord.registeredAt as Timestamp) || new Date(),
-            status: (postRecord.status as 'pending' | 'measured') || 'pending',
+            status: (postRecord.status as 'fetching' | 'measured') || 'fetching',
           };
         }
       }
@@ -200,7 +200,7 @@ export async function registerPRPost(
       postedAt: input.postedAt,
       mediaProductType: input.mediaProductType || null,
       registeredAt: new Date(),
-      status: 'pending' as const,
+      status: 'fetching' as const,
     };
 
     if (!docSnap.exists()) {

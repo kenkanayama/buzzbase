@@ -209,11 +209,9 @@ interface Post {
   shareCount: number | null;     // シェア数（オプション）
 
   // === ステータス ===
-  status: 'pending' | 'fetching' | 'completed' | 'failed';
-  // pending: 計測待ち（7日未経過）
-  // fetching: 計測中（API取得処理中）
-  // completed: 計測完了
-  // failed: 計測失敗
+  status: 'fetching' | 'measured';
+  // fetching: 計測中（7日未経過、API取得処理中）
+  // measured: 計測完了（7日経過後）
 
   // === エラー情報 ===
   errorCode: string | null;      // エラーコード
@@ -239,9 +237,7 @@ interface Post {
 ### ステータス遷移
 
 ```
-[登録] → pending → [7日経過] → fetching → completed
-                                    ↓
-                                  failed → [リトライ] → fetching
+[登録] → fetching → [7日経過] → measured
 ```
 
 ### URL形式バリデーション
@@ -466,7 +462,7 @@ firestore/
 // firestore.indexes.json
 {
   "indexes": [
-    // 計測待ち投稿の取得（バッチ処理用）
+    // 計測中投稿の取得（バッチ処理用）
     {
       "collectionGroup": "posts",
       "queryScope": "COLLECTION_GROUP",
@@ -571,7 +567,7 @@ firestore/
   "postDate": "2025-12-22T10:00:00Z",
   "measureDate": "2025-12-29T10:00:00Z",
   "viewCount": null,
-  "status": "pending",
+  "status": "fetching",
   "createdAt": "2025-12-22T10:00:00Z",
   "updatedAt": "2025-12-22T10:00:00Z"
 }
@@ -590,7 +586,7 @@ firestore/
       "productName": "〇〇化粧水",
       "postUrl": "https://www.instagram.com/reel/ABC123xyz/",
       "viewCount": 15420,
-      "status": "completed",
+      "status": "measured",
       "measureDate": "2025-12-29T10:00:00Z",
       "createdAt": "2025-12-22T10:00:00Z"
     },
@@ -600,7 +596,7 @@ firestore/
       "productName": "△△スキンケアセット",
       "postUrl": "https://www.tiktok.com/@user/video/123456",
       "viewCount": null,
-      "status": "pending",
+      "status": "fetching",
       "measureDate": "2025-12-30T10:00:00Z",
       "createdAt": "2025-12-23T10:00:00Z"
     }
