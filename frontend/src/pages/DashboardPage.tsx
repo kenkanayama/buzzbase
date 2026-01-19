@@ -16,7 +16,13 @@ import { getUserProfile } from '@/lib/firestore/users';
 import { getAllPRPostsFlat } from '@/lib/firestore/prPosts';
 import { InstagramAccountWithId, PRPostItem } from '@/types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { getMeasurementDate, formatDate, formatNumber } from '@/lib/utils';
+import {
+  getMeasurementDate,
+  formatDate,
+  formatDateTime,
+  formatMeasurementDateTime,
+  formatNumber,
+} from '@/lib/utils';
 import { useModalHistory } from '@/hooks/useModalHistory';
 
 // Instagram認証URL生成用の定数
@@ -447,16 +453,16 @@ export function DashboardPage() {
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-500">投稿日</p>
+                  <p className="text-sm text-gray-500">投稿日時</p>
                   <p className="mt-1 font-semibold text-gray-900">
-                    {formatDate(selectedPost.postedAt)}
+                    {formatDateTime(selectedPost.postedAt)}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-500">計測日</p>
+                  <p className="text-sm text-gray-500">計測日時</p>
                   <p className="mt-1 font-semibold text-gray-900">
-                    {formatDate(getMeasurementDate(selectedPost.postedAt))}
+                    {formatMeasurementDateTime(selectedPost.postedAt)}
                   </p>
                 </div>
 

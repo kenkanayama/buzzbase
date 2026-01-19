@@ -21,7 +21,7 @@ import { getActiveCampaigns } from '@/lib/firestore/campaigns';
 import { registerPRPost, isMediaIdAlreadyRegistered } from '@/lib/firestore/prPosts';
 import { getInstagramMedia, saveThumbnailToStorage } from '@/lib/api/instagram';
 import { Campaign, InstagramMedia, InstagramAccountWithId, PRPostRegisterInput } from '@/types';
-import { getMeasurementDate, formatDate } from '@/lib/utils';
+import { formatDate, formatDateTime, formatMeasurementDateTime } from '@/lib/utils';
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -556,15 +556,15 @@ export function RegisterPostPage() {
                     <p className="font-semibold text-gray-900">{selectedCampaign.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">投稿日</p>
+                    <p className="text-sm text-gray-500">投稿日時</p>
                     <p className="font-semibold text-gray-900">
-                      {formatDate(new Date(selectedPost.timestamp))}
+                      {formatDateTime(new Date(selectedPost.timestamp))}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">計測日</p>
+                    <p className="text-sm text-gray-500">計測日時</p>
                     <p className="font-semibold text-gray-900">
-                      {formatDate(getMeasurementDate(new Date(selectedPost.timestamp)))}
+                      {formatMeasurementDateTime(new Date(selectedPost.timestamp))}
                     </p>
                   </div>
                   <div>
